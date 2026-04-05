@@ -8,5 +8,6 @@
   "oxc.fmt.configPath": "./frontend/vite.config.ts",
   "[java]": {
     "editor.defaultFormatter": "redhat.java"
-  }
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
 }
