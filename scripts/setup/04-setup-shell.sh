@@ -9,5 +9,3 @@ echo 'cd /home' >> ~/.bashrc
 
 echo ""
 echo "=== 完了 ==="
-echo ""
-echo "=== WSL環境構築完了 ==="

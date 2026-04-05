@@ -9,7 +9,7 @@
 
 ### 1. WSL インスタンス作成
 
-コマンドプロンプトを管理者として実行し、以下を入力：
+コマンドプロンプトを実行し、以下を入力：
 
 ```cmd
 wsl --install Ubuntu-24.04 --name dev
@@ -43,8 +43,8 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y curl git wget unzip jq vim tree gnupg2 software-properties-common
 
 # Git基本設定（⚠️ 以下2行は自分の名前・メールアドレスに書き換えてから実行してください）
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"
+# git config --global user.name "Your Name"
+# git config --global user.email "you@example.com"
 
 git config --global core.autocrlf input
 git config --global core.fileMode true
@@ -68,10 +68,11 @@ cd spring-modulith-ai-harness
 ### 7. セットアップスクリプトの実行
 
 ```bash
-./scripts/setup/01-setup-tools.sh
-./scripts/setup/02-setup-java.sh
-./scripts/setup/03-setup-node.sh
-./scripts/setup/04-setup-shell.sh
+cd scripts/setup
+./01-setup-tools.sh
+./02-setup-java.sh
+./03-setup-node.sh
+./04-setup-shell.sh
 ```
 
 ### 8. シェル再起動
