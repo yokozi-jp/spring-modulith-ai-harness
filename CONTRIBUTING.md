@@ -4,6 +4,7 @@
 
 - Windows 11
 - Docker Desktop（WSL2 バックエンドモード）
+- Visual Studio Code
 
 ## 環境構築手順
 
@@ -95,7 +96,11 @@ source ~/.bashrc
 curl -fsSL https://cli.kiro.dev/install | bash
 ```
 
-### 11. 動作確認
+### 11. VSCode 拡張機能のインストール
+
+`.vscode/extensions.json` に記載されている推奨拡張機能をインストールしてください。
+
+### 12. 動作確認
 
 ```bash
 docker info
