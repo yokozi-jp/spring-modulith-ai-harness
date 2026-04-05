@@ -75,19 +75,27 @@ cd scripts/setup
 ./04-setup-shell.sh
 ```
 
-### 8. シェル再起動
+### 8. VITE+ のインストール
+
+```bash
+curl -fsSL https://vite.plus | bash
+```
+
+プロンプトが表示されたら `Y` を入力して、VITE+ に Node.js バージョン管理を任せます。
+
+インストール完了後、シェルを再読み込みします：
 
 ```bash
 source ~/.bashrc
 ```
 
-### 9. Kiro CLI のインストール
+### 10. Kiro CLI のインストール
 
 ```bash
 curl -fsSL https://cli.kiro.dev/install | bash
 ```
 
-### 10. 動作確認
+### 11. 動作確認
 
 ```bash
 docker info
