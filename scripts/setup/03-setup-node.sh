@@ -10,10 +10,14 @@ export NVM_DIR="$HOME/.nvm"
 nvm install ${NODE_VERSION}
 nvm alias default ${NODE_VERSION}
 
+# pnpm インストール
+corepack enable
+corepack prepare pnpm@${PNPM_VERSION} --activate
+
 echo ""
 echo "=== 完了 ==="
 echo "Node version: $(node -v)"
-echo "npm version: $(npm -v)"
+echo "pnpm version: $(pnpm -v)"
 echo ""
 echo "次のステップ："
 echo "  ./04-setup-shell.sh を実行"
