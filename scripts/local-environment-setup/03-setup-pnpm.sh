@@ -2,21 +2,12 @@
 set -e
 source ./versions.env
 
-# nvm を現在のシェルで有効化
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-# Node インストール
-nvm install ${NODE_VERSION}
-nvm alias default ${NODE_VERSION}
-
 # pnpm インストール
 corepack enable
 corepack prepare pnpm@${PNPM_VERSION} --activate
 
 echo ""
 echo "=== 完了 ==="
-echo "Node version: $(node -v)"
 echo "pnpm version: $(pnpm -v)"
 echo ""
 echo "次のステップ："
