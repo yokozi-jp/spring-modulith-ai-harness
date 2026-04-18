@@ -2,6 +2,7 @@
   "recommendations": [
     "VoidZero.vite-plus-extension-pack",
     "vscjava.vscode-java-pack",
-    "vmware.vscode-spring-boot"
+    "vmware.vscode-spring-boot",
+    "mermaidchart.vscode-mermaid-chart"
   ]
 }
