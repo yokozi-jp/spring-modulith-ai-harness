@@ -1,0 +1,48 @@
+{
+  "languages": {
+    "java": {
+      "name": "jdtls",
+      "command": "jdtls",
+      "args": [],
+      "file_extensions": ["java"],
+      "project_patterns": ["pom.xml", "build.gradle", ".project"],
+      "exclude_patterns": ["**/target/**", "**/build/**", "**/.gradle/**"],
+      "multi_workspace": true,
+      "initialization_options": {
+        "settings": {
+          "java": {
+            "compile": {
+              "nullAnalysis": {
+                "mode": "automatic"
+              }
+            },
+            "configuration": {
+              "annotationProcessing": {
+                "enabled": true
+              }
+            }
+          }
+        }
+      },
+      "request_timeout_secs": 60
+    },
+    "typescript": {
+      "name": "typescript-language-server",
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "file_extensions": ["ts", "js", "tsx", "jsx"],
+      "project_patterns": ["package.json", "tsconfig.json"],
+      "exclude_patterns": ["**/node_modules/**", "**/dist/**"],
+      "multi_workspace": true,
+      "initialization_options": {
+        "tsserver": {
+          "path": "./frontend/node_modules/typescript/lib/tsserver.js"
+        },
+        "preferences": {
+          "disableSuggestions": false
+        }
+      },
+      "request_timeout_secs": 60
+    }
+  }
+}

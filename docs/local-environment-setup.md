@@ -80,6 +80,8 @@ cd scripts/local-environment-setup
 source ~/.bashrc
 ./03-setup-kiro.sh
 ./04-setup-shell.sh
+./05-setup-lsp.sh
+source ~/.bashrc
 ```
 
 ### 8. VSCode 拡張機能のインストール
