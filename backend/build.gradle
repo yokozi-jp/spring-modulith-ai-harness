@@ -6,6 +6,7 @@ plugins {
     id 'com.diffplug.spotless' version '8.4.0'
     id 'pmd'
     id 'com.github.spotbugs' version '6.5.0'
+    id 'jacoco'
 }
 
 spotless {
@@ -105,6 +106,40 @@ dependencyManagement {
 tasks.named('test') {
     outputs.dir snippetsDir
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['**/DemoApplication.class'])
+        }))
+    }
+    reports {
+        html.required = true
+        xml.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['**/DemoApplication.class'])
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
 }
 
 tasks.named('asciidoctor') {
