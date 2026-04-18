@@ -36,8 +36,8 @@ wsl -d dev
 ```bash
 # 共通ワークスペース作成
 sudo mkdir -p /home/projects
-sudo chown -R $USER:$USER /home
-sudo chmod -R 755 /home
+sudo chown -R $USER:$USER /home/projects
+sudo chmod -R 755 /home/projects
 
 # 基本パッケージインストール
 sudo apt update && sudo apt upgrade -y
@@ -51,12 +51,17 @@ git config --global core.autocrlf input
 git config --global core.fileMode true
 git config --global core.symlinks true
 git config --global alias.logs "log --pretty='format:%C(yellow)%h %C(green)%cd %C(cyan)%an %C(reset)%s %C(magenta)%d' --date=format:'%Y-%m-%d %H:%M:%S' --graph"
-git config --global credential.helper store
 ```
 
 ### 5. GitHub CLI のインストールと認証
 
 [GitHub CLI クイックスタート](https://docs.github.com/ja/github-cli/github-cli/quickstart) に従ってインストールと認証を行います。
+
+認証完了後、Git の認証を GitHub CLI に委任します：
+
+```bash
+gh auth setup-git
+```
 
 ### 6. リポジトリのクローン
 
@@ -90,20 +95,23 @@ curl -fsSL https://vite.plus | bash
 source ~/.bashrc
 ```
 
-### 10. Kiro CLI のインストール
+### 9. Kiro CLI のインストール
 
 ```bash
 curl -fsSL https://cli.kiro.dev/install | bash
 ```
 
-### 11. VSCode 拡張機能のインストール
+### 10. VSCode 拡張機能のインストール
 
 `.vscode/extensions.json` に記載されている推奨拡張機能をインストールしてください。
 
-### 12. 動作確認
+### 11. 動作確認
 
 ```bash
 docker info
+java -version
+node -v
+gh auth status
 ```
 
-エラーなく Docker の情報が表示されれば環境構築完了です。
+エラーなく各ツールの情報が表示されれば環境構築完了です。
