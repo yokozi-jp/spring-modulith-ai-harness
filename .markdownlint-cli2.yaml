@@ -34,4 +34,3 @@ ignores:
   - ".agents/**"
   - ".kiro/aws-aidlc-rule-details/**"
   - ".kiro/steering/aws-aidlc-rules/**"
-  - ".kiro/skills/git-commit/**"
