@@ -6,6 +6,7 @@ plugins {
     id 'com.diffplug.spotless' version '8.4.0'
     id 'pmd'
     id 'com.github.spotbugs' version '6.5.0'
+    id 'info.solidsoft.pitest' version '1.19.0'
     id 'jacoco'
 }
 
@@ -38,6 +39,14 @@ spotbugs {
     ignoreFailures = false
     showStackTraces = true
     showProgress = true
+}
+
+pitest {
+    targetClasses = ['com.example.demo.*']
+    targetTests = ['com.example.demo.*']
+    junit5PluginVersion = '1.2.1'
+    outputFormats = ['HTML']
+    timestampedReports = false
 }
 
 group = 'com.example'
