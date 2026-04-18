@@ -8,6 +8,7 @@ plugins {
     id 'com.github.spotbugs' version '6.5.0'
     id 'info.solidsoft.pitest' version '1.19.0'
     id 'jacoco'
+    id 'net.ltgt.errorprone' version '5.1.0'
 }
 
 spotless {
@@ -84,7 +85,10 @@ dependencies {
     runtimeOnly 'org.springframework.modulith:spring-modulith-observability'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.9.3'
+    implementation 'org.jspecify:jspecify:1.0.0'
     annotationProcessor 'org.projectlombok:lombok'
+    errorprone 'com.google.errorprone:error_prone_core:2.49.0'
+    errorprone 'com.uber.nullaway:nullaway:0.13.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
@@ -153,4 +157,17 @@ tasks.named('check') {
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     dependsOn test
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        error('NullAway')
+        option('NullAway:AnnotatedPackages', 'com.example.demo')
+        option('NullAway:JSpecifyMode', 'true')
+    }
+    if (name.toLowerCase().contains("test")) {
+        options.errorprone {
+            disable('NullAway')
+        }
+    }
 }
