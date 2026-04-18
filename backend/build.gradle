@@ -5,13 +5,10 @@ plugins {
     id 'org.asciidoctor.jvm.convert' version '4.0.5'
     id 'com.diffplug.spotless' version '8.4.0'
     id 'pmd'
-}
-
-pmd {
-    toolVersion = '7.23.0'
-    consoleOutput = true
-    ignoreFailures = false
-    ruleSetFiles = files("config/pmd/ruleset.xml")
+    id 'com.github.spotbugs' version '6.5.0'
+    id 'info.solidsoft.pitest' version '1.19.0'
+    id 'jacoco'
+    id 'net.ltgt.errorprone' version '5.1.0'
 }
 
 spotless {
@@ -29,6 +26,27 @@ spotless {
         googleJavaFormat()
         formatAnnotations()
     }
+}
+
+pmd {
+    toolVersion = '7.23.0'
+    consoleOutput = true
+    ignoreFailures = false
+    ruleSetFiles = files("config/pmd/ruleset.xml")
+}
+
+spotbugs {
+    toolVersion = '4.9.8'
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+}
+
+pitest {
+    targetClasses = ['com.example.demo.*']
+    targetTests = ['com.example.demo.*']
+    outputFormats = ['HTML']
+    timestampedReports = false
 }
 
 group = 'com.example'
@@ -66,7 +84,11 @@ dependencies {
     runtimeOnly 'org.springframework.modulith:spring-modulith-actuator'
     runtimeOnly 'org.springframework.modulith:spring-modulith-observability'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.9.3'
+    implementation 'org.jspecify:jspecify:1.0.0'
     annotationProcessor 'org.projectlombok:lombok'
+    errorprone 'com.google.errorprone:error_prone_core:2.49.0'
+    errorprone 'com.uber.nullaway:nullaway:0.13.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
@@ -96,9 +118,56 @@ dependencyManagement {
 tasks.named('test') {
     outputs.dir snippetsDir
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['**/DemoApplication.class'])
+        }))
+    }
+    reports {
+        html.required = true
+        xml.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['**/DemoApplication.class'])
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
 }
 
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     dependsOn test
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        error('NullAway')
+        option('NullAway:AnnotatedPackages', 'com.example.demo')
+        option('NullAway:JSpecifyMode', 'true')
+    }
+    if (name.toLowerCase().contains("test")) {
+        options.errorprone {
+            disable('NullAway')
+        }
+    }
 }
