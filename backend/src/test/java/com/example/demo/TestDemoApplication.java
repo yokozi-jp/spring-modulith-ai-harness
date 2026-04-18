@@ -2,10 +2,16 @@ package com.example.demo;
 
 import org.springframework.boot.SpringApplication;
 
+/** Testcontainers を使用してローカル開発用にアプリケーションを起動する */
+@SuppressWarnings({
+  "PMD.UseUtilityClass",
+  "PMD.TestClassWithoutTestCases",
+  "PMD.MethodArgumentCouldBeFinal"
+})
 public class TestDemoApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.from(DemoApplication::main).with(TestcontainersConfiguration.class).run(args);
-	}
-
+  /** テストコンテナ付きでアプリケーションを起動する */
+  public static void main(String[] args) {
+    SpringApplication.from(DemoApplication::main).with(TestcontainersConfiguration.class).run(args);
+  }
 }
