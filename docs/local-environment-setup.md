@@ -78,12 +78,9 @@ cd scripts/local-environment-setup
 ./01-setup-java.sh
 ./02-setup-viteplus.sh
 source ~/.bashrc
-./03-setup-pnpm.sh
-./04-setup-kiro.sh
-./05-setup-shell.sh
+./03-setup-kiro.sh
+./04-setup-shell.sh
 ```
-
-> ⚠️ `02-setup-viteplus.sh` 実行時にプロンプトが表示されたら `Y` を入力して、VITE+ に Node.js バージョン管理を任せてください。
 
 ### 8. VSCode 拡張機能のインストール
 
