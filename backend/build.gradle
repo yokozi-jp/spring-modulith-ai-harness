@@ -88,7 +88,7 @@ dependencies {
     implementation 'org.jspecify:jspecify:1.0.0'
     annotationProcessor 'org.projectlombok:lombok'
     errorprone 'com.google.errorprone:error_prone_core:2.49.0'
-    errorprone 'com.uber.nullaway:nullaway:0.13.2'
+    errorprone 'com.uber.nullaway:nullaway:0.13.3'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
