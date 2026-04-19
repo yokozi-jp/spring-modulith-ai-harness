@@ -84,7 +84,7 @@ dependencies {
     runtimeOnly 'org.springframework.modulith:spring-modulith-actuator'
     runtimeOnly 'org.springframework.modulith:spring-modulith-observability'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.9.3'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.9.8'
     implementation 'org.jspecify:jspecify:1.0.0'
     annotationProcessor 'org.projectlombok:lombok'
     errorprone 'com.google.errorprone:error_prone_core:2.49.0'
