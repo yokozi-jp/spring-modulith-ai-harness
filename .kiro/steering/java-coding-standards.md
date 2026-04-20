@@ -3,7 +3,7 @@
 本プロジェクトでは PMD 7 の全カテゴリを除外なしで有効化している。
 すべてのルールが適用されるため、以下の規約に従い違反を防ぐこと。
 
-参考: https://docs.pmd-code.org/pmd-doc-7.1.0/pmd_rules_java.html
+参考: <https://docs.pmd-code.org/pmd-doc-7.1.0/pmd_rules_java.html>
 
 ## プロジェクト構成
 
