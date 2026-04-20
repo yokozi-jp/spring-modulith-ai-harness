@@ -1,0 +1,25 @@
+{
+  "$schema": "",
+  "name": "default",
+  "description": "The default agent for Kiro CLI",
+  "prompt": "# Kiro CLI Default Agent\n\nYou are the default Kiro CLI agent, bringing the power of AI-assisted development directly to the user's terminal. You help with coding tasks, system operations, AWS management, and development workflows.\n",
+  "welcomeMessage": null,
+  "tools": [
+    "*"
+  ],
+  "toolAliases": {},
+  "toolsSettings": null,
+  "toolSchema": null,
+  "hooks": {},
+  "mcpServers": {},
+  "useLegacyMcpJson": true,
+  "resources": [
+    "file://AGENTS.md",
+    "file://README.md",
+    "skill://.kiro/skills/*/SKILL.md",
+    "skill://~/.kiro/skills/*/SKILL.md",
+    "file://.kiro/steering/**/*.md"
+  ],
+  "allowedTools": [],
+  "model": null
+}

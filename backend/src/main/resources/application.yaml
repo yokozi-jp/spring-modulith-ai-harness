@@ -1,3 +1,85 @@
 spring:
   application:
     name: demo
+
+  # Jackson (3.x): fail-on-unknown-properties で不正リクエストを早期検出。
+  # non-null で null フィールドをレスポンスから除外。
+  # Jackson 3 では java.time はデフォルトで ISO-8601 文字列にシリアライズされる。
+  jackson:
+    default-property-inclusion: non-null
+    deserialization:
+      fail-on-unknown-properties: true
+
+  # Liquibase: デフォルトパスと異なるため明示指定。
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  # jOOQ: Testcontainers の自動検出に頼らず本番でも確実に動作させるため明示。
+  jooq:
+    sql-dialect: postgres
+
+  # OAuth2 Resource Server: issuer-uri から OIDC Discovery で JWK Set URI を自動解決。
+  # 注意: OAUTH2_ISSUER_URI は環境変数またはプロファイル別 yaml で設定すること。
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI}
+
+  # Spring Modulith Events: JDBC ベースの Event Publication Registry。
+  # completion-mode: update で完了イベントに日時をマーク。
+  # republish-outstanding-events-on-restart: false はマルチインスタンスデプロイ時の安全策。
+  modulith:
+    events:
+      jdbc:
+        schema-initialization:
+          enabled: true
+      completion-mode: update
+      republish-outstanding-events-on-restart: false
+
+  # Graceful Shutdown: シャットダウン時に処理中リクエストの完了を最大 30 秒待機。
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+  # Servlet Encoding: レスポンスの文字エンコーディングを UTF-8 に強制。
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+  # Virtual Threads: Java 25 で仮想スレッドを有効化し Tomcat のスループットを向上。
+  threads:
+    virtual:
+      enabled: true
+
+# Server: graceful shutdown を有効化。
+server:
+  shutdown: graceful
+
+# Actuator: 必要なエンドポイントのみ公開（"*" は避ける）。
+# show-details: when-authorized で認証済みユーザーのみ詳細表示。
+# probes.enabled: true で Kubernetes liveness/readiness プローブ対応。
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,modulith,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+# Logging: correlation パターンで OpenTelemetry の traceId/spanId をログに含め、
+# 分散トレーシングとログの紐付けを実現。
+logging:
+  level:
+    root: info
+    "[com.example.demo]": info
+    "[org.springframework.modulith]": info
+    "[org.jooq]": info
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "

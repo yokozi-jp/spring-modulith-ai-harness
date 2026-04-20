@@ -65,7 +65,6 @@ backend/                        → Spring Boot アプリケーション
 frontend/                       → Vite+ TypeScript SPA
 scripts/local-environment-setup/ → 環境構築スクリプト
 docs/                           → プロジェクトドキュメント
-.agents/summary/                → AI 向け詳細ドキュメント
 ```
 
 ## Architecture
