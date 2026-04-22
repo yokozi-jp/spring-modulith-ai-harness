@@ -21,8 +21,11 @@ import org.junit.jupiter.api.Test;
  *   <li>{@code domain/} → {@code @DomainModelRing}
  *   <li>{@code domain/service/} → {@code @DomainServiceRing}
  *   <li>{@code application/} → {@code @ApplicationServiceRing}
- *   <li>{@code presentation/} → {@code @InfrastructureRing}
+ *   <li>{@code application/command/} → {@code @ApplicationServiceRing}
+ *   <li>{@code application/query/} → {@code @ApplicationServiceRing}
  *   <li>{@code infrastructure/} → {@code @InfrastructureRing}
+ *   <li>{@code infrastructure/web/} → {@code @InfrastructureRing}
+ *   <li>{@code infrastructure/db/} → {@code @InfrastructureRing}
  * </ul>
  */
 class OnionRingAnnotationTest {
@@ -36,8 +39,11 @@ class OnionRingAnnotationTest {
           Map.entry("event", "@DomainModelRing"),
           Map.entry("domain/service", "@DomainServiceRing"),
           Map.entry("domain", "@DomainModelRing"),
+          Map.entry("application/command", "@ApplicationServiceRing"),
+          Map.entry("application/query", "@ApplicationServiceRing"),
           Map.entry("application", "@ApplicationServiceRing"),
-          Map.entry("presentation", "@InfrastructureRing"),
+          Map.entry("infrastructure/web", "@InfrastructureRing"),
+          Map.entry("infrastructure/db", "@InfrastructureRing"),
           Map.entry("infrastructure", "@InfrastructureRing"));
 
   @Test

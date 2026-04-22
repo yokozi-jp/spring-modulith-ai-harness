@@ -1,26 +1,23 @@
 package com.example.demo.architecture;
 
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.jmolecules.archunit.JMoleculesArchitectureRules;
-import org.junit.jupiter.api.Test;
+import org.jmolecules.archunit.JMoleculesDddRules;
 
-/** jMolecules の Classical Onion Architecture ルールでレイヤー依存方向を検証する。 */
+/** jMolecules の Onion Architecture + DDD 構造ルールを検証する。 */
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
+@AnalyzeClasses(packages = "com.example.demo", importOptions = ImportOption.DoNotIncludeTests.class)
 class OnionArchitectureTest {
 
-  /** ArchUnit 解析対象のプロダクションクラス群。 */
-  @SuppressWarnings("PMD.LooseCoupling")
-  private static final JavaClasses CLASSES =
-      new ClassFileImporter()
-          .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-          .importPackages("com.example.demo");
+  /** Classical Onion のリング間依存方向を検証する。 */
+  @ArchTest
+  /* default */ static final ArchRule ONION_CLASSICAL =
+      JMoleculesArchitectureRules.ensureOnionClassical();
 
-  @Test
-  void ensureOnionClassicalArchitecture() {
-    final ArchRule rule = JMoleculesArchitectureRules.ensureOnionClassical();
-    // check() は違反があると AssertionError をスローする
-    rule.check(CLASSES);
-  }
+  /** DDD の集約境界・エンティティ識別子・値オブジェクトの構造を検証する。 */
+  @ArchTest
+  /* default */ static final ArchRule DDD_RULES = JMoleculesDddRules.all().allowEmptyShould(true);
 }

@@ -1,6 +1,6 @@
 @NullMarked
 @InfrastructureRing
-package com.example.demo.project.presentation;
+package com.example.demo.project.infrastructure.db;
 
 import org.jmolecules.architecture.onion.classical.InfrastructureRing;
 import org.jspecify.annotations.NullMarked;
