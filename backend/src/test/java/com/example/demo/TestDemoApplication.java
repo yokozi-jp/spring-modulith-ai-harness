@@ -3,11 +3,7 @@ package com.example.demo;
 import org.springframework.boot.SpringApplication;
 
 /** Testcontainers を使用してローカル開発用にアプリケーションを起動する */
-@SuppressWarnings({
-  "PMD.UseUtilityClass",
-  "PMD.TestClassWithoutTestCases",
-  "PMD.MethodArgumentCouldBeFinal"
-})
+@SuppressWarnings({"PMD.UseUtilityClass", "PMD.TestClassWithoutTestCases"})
 public class TestDemoApplication {
 
   /** テストコンテナ付きでアプリケーションを起動する */
