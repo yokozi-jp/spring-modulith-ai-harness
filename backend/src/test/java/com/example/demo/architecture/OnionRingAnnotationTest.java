@@ -20,6 +20,10 @@ import org.junit.jupiter.api.Test;
  *   <li>{@code event/} → {@code @DomainModelRing}
  *   <li>{@code domain/} → {@code @DomainModelRing}
  *   <li>{@code domain/model/} → {@code @DomainModelRing}
+ *   <li>{@code domain/model/aggregate/} → {@code @DomainModelRing}
+ *   <li>{@code domain/model/entity/} → {@code @DomainModelRing}
+ *   <li>{@code domain/model/valueobject/} → {@code @DomainModelRing}
+ *   <li>{@code domain/model/valueobject/identifier/} → {@code @DomainModelRing}
  *   <li>{@code domain/repository/} → {@code @DomainModelRing}
  *   <li>{@code domain/service/} → {@code @DomainServiceRing}
  *   <li>{@code application/} → {@code @ApplicationServiceRing}
@@ -60,6 +64,10 @@ class OnionRingAnnotationTest {
   private static final List<Map.Entry<String, String>> LAYER_RULES =
       List.of(
           Map.entry("event", DOMAIN_MODEL),
+          Map.entry("domain/model/aggregate", DOMAIN_MODEL),
+          Map.entry("domain/model/entity", DOMAIN_MODEL),
+          Map.entry("domain/model/valueobject/identifier", DOMAIN_MODEL),
+          Map.entry("domain/model/valueobject", DOMAIN_MODEL),
           Map.entry("domain/model", DOMAIN_MODEL),
           Map.entry("domain/repository", DOMAIN_MODEL),
           Map.entry("domain/service", DOMAIN_SVC),

@@ -212,4 +212,42 @@ class ArchitectureConstraintTest {
           .should()
           .beRecords()
           .allowEmptyShould(true);
+
+  // === DDD 型制約 ===
+
+  /** aggregate パッケージには AggregateRoot 実装のみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule AGG_TYPE =
+      classes()
+          .that()
+          .resideInAPackage("..model.aggregate..")
+          .and()
+          .haveSimpleNameNotContaining(PKG_INFO)
+          .should()
+          .beAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
+          .allowEmptyShould(true);
+
+  /** entity パッケージには Entity 実装のみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule ENTITY_TYPE =
+      classes()
+          .that()
+          .resideInAPackage("..model.entity..")
+          .and()
+          .haveSimpleNameNotContaining(PKG_INFO)
+          .should()
+          .beAssignableTo(org.jmolecules.ddd.types.Entity.class)
+          .allowEmptyShould(true);
+
+  /** vo/identifier パッケージには Identifier 実装のみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule ID_TYPE =
+      classes()
+          .that()
+          .resideInAPackage("..valueobject.identifier..")
+          .and()
+          .haveSimpleNameNotContaining(PKG_INFO)
+          .should()
+          .beAssignableTo(org.jmolecules.ddd.types.Identifier.class)
+          .allowEmptyShould(true);
 }
