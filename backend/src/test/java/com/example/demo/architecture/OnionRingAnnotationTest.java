@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
  *   <li>{@code application/} → {@code @ApplicationServiceRing}
  *   <li>{@code application/command/} → {@code @ApplicationServiceRing}
  *   <li>{@code application/query/} → {@code @ApplicationServiceRing}
+ *   <li>{@code presentation/} → {@code @InfrastructureRing}
  *   <li>{@code infrastructure/} → {@code @InfrastructureRing}
- *   <li>{@code infrastructure/web/} → {@code @InfrastructureRing}
  *   <li>{@code infrastructure/db/} → {@code @InfrastructureRing}
  * </ul>
  */
@@ -42,7 +42,7 @@ class OnionRingAnnotationTest {
           Map.entry("application/command", "@ApplicationServiceRing"),
           Map.entry("application/query", "@ApplicationServiceRing"),
           Map.entry("application", "@ApplicationServiceRing"),
-          Map.entry("infrastructure/web", "@InfrastructureRing"),
+          Map.entry("presentation", "@InfrastructureRing"),
           Map.entry("infrastructure/db", "@InfrastructureRing"),
           Map.entry("infrastructure", "@InfrastructureRing"));
 
