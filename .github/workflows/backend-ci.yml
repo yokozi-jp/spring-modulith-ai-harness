@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Fetch origin/main for Spotless ratchetFrom
+        run: git fetch origin main:refs/remotes/origin/main
+
       - uses: actions/setup-java@v4
         with:
           distribution: corretto
