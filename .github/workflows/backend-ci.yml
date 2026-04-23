@@ -1,0 +1,49 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**']
+  pull_request:
+    branches: [main]
+    paths: ['backend/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    services:
+      docker:
+        image: docker:dind
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch origin/main for Spotless ratchetFrom
+        run: git fetch origin main:refs/remotes/origin/main
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run spotlessCheck
+        working-directory: backend
+        run: ./gradlew spotlessCheck
+
+      - name: Run check (compile, test, PMD, SpotBugs, JaCoCo)
+        working-directory: backend
+        run: ./gradlew check
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            backend/build/reports/tests/
+            backend/build/reports/pmd/
+            backend/build/reports/jacoco/
+          retention-days: 7

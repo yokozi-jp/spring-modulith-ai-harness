@@ -65,6 +65,7 @@ repositories {
 ext {
     set('snippetsDir', file("build/generated-snippets"))
     set('springModulithVersion', "2.0.5")
+    set('jmoleculesVersion', "2025.0.2")
 }
 
 dependencies {
@@ -80,6 +81,12 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springframework.modulith:spring-modulith-starter-jdbc'
+    implementation 'org.jmolecules:jmolecules-ddd'
+    implementation 'org.jmolecules:jmolecules-onion-architecture'
+    implementation 'org.jmolecules:jmolecules-cqrs-architecture'
+    implementation 'org.jmolecules:jmolecules-events'
+    implementation 'org.jmolecules.integrations:jmolecules-spring'
+    implementation 'org.jmolecules.integrations:jmolecules-starter-test'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
@@ -111,6 +118,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+        mavenBom "org.jmolecules:jmolecules-bom:${jmoleculesVersion}"
     }
 }
 
