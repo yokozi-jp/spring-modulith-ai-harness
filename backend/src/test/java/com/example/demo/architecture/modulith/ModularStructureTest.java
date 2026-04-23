@@ -1,4 +1,4 @@
-package com.example.demo.architecture;
+package com.example.demo.architecture.modulith;
 
 import com.example.demo.DemoApplication;
 import org.junit.jupiter.api.Test;

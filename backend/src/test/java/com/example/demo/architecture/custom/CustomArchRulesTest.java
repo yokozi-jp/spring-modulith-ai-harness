@@ -1,4 +1,4 @@
-package com.example.demo.architecture;
+package com.example.demo.architecture.custom;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -15,7 +15,7 @@ import com.tngtech.archunit.lang.ArchRule;
  */
 @SuppressWarnings("PMD.TestClassWithoutTestCases")
 @AnalyzeClasses(packages = "com.example.demo", importOptions = ImportOption.DoNotIncludeTests.class)
-class ArchitectureConstraintTest {
+class CustomArchRulesTest {
 
   /** package-info クラスの除外条件用。 */
   private static final String PKG_INFO = "package-info";
@@ -239,7 +239,7 @@ class ArchitectureConstraintTest {
           .beAssignableTo(org.jmolecules.ddd.types.Entity.class)
           .allowEmptyShould(true);
 
-  /** vo/identifier パッケージには Identifier 実装のみ配置可能。 */
+  /** valueobject/identifier パッケージには Identifier 実装のみ配置可能。 */
   @ArchTest
   /* default */ static final ArchRule ID_TYPE =
       classes()

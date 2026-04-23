@@ -1,4 +1,4 @@
-package com.example.demo.architecture;
+package com.example.demo.architecture.framework;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -10,7 +10,7 @@ import org.jmolecules.archunit.JMoleculesDddRules;
 /** jMolecules の Onion Architecture + DDD 構造ルールを検証する。 */
 @SuppressWarnings("PMD.TestClassWithoutTestCases")
 @AnalyzeClasses(packages = "com.example.demo", importOptions = ImportOption.DoNotIncludeTests.class)
-class OnionArchitectureTest {
+class JMoleculesRulesTest {
 
   /** Classical Onion のリング間依存方向を検証する。 */
   @ArchTest

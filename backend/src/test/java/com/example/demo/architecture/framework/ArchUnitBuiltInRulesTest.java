@@ -1,4 +1,4 @@
-package com.example.demo.architecture;
+package com.example.demo.architecture.framework;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -12,13 +12,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * ArchUnit の汎用コーディングルール・依存ルール・プロキシルールを検証する。
+ * ArchUnit 本体が提供する汎用コーディングルール・依存ルール・プロキシルールを検証する。
  *
  * <p>PMD / SpotBugs と重複しないルールを中心に適用。
  */
 @SuppressWarnings("PMD.TestClassWithoutTestCases")
 @AnalyzeClasses(packages = "com.example.demo", importOptions = ImportOption.DoNotIncludeTests.class)
-class CodingRulesTest {
+class ArchUnitBuiltInRulesTest {
 
   // === GeneralCodingRules ===
 
