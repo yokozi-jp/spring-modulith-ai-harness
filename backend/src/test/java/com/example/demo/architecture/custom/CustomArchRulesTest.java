@@ -250,4 +250,58 @@ class CustomArchRulesTest {
           .should()
           .beAssignableTo(org.jmolecules.ddd.types.Identifier.class)
           .allowEmptyShould(true);
+
+  // === 逆方向配置制約（型 → パッケージ） ===
+
+  /** AggregateRoot 実装は aggregate パッケージにのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule AGG_IN_PKG =
+      classes()
+          .that()
+          .areAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
+          .should()
+          .resideInAPackage("..model.aggregate..")
+          .allowEmptyShould(true);
+
+  /** Entity 実装は entity パッケージにのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule ENT_IN_PKG =
+      classes()
+          .that()
+          .areAssignableTo(org.jmolecules.ddd.types.Entity.class)
+          .and()
+          .areNotAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
+          .should()
+          .resideInAPackage("..model.entity..")
+          .allowEmptyShould(true);
+
+  /** Identifier 実装は valueobject/identifier にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule ID_IN_PKG =
+      classes()
+          .that()
+          .areAssignableTo(org.jmolecules.ddd.types.Identifier.class)
+          .should()
+          .resideInAPackage("..valueobject.identifier..")
+          .allowEmptyShould(true);
+
+  /** ValueObject 実装は valueobject パッケージにのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule VO_IN_PKG =
+      classes()
+          .that()
+          .areAssignableTo(org.jmolecules.ddd.types.ValueObject.class)
+          .should()
+          .resideInAPackage("..model.valueobject..")
+          .allowEmptyShould(true);
+
+  /** Repository 実装（インターフェース）は domain/repository にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule REPO_IN_PKG =
+      classes()
+          .that()
+          .areAssignableTo(org.jmolecules.ddd.types.Repository.class)
+          .should()
+          .resideInAPackage("..domain.repository..")
+          .allowEmptyShould(true);
 }
