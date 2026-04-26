@@ -1,16 +1,29 @@
-plugins {
-    id 'java'
-    id 'org.springframework.boot' version '4.0.5'
-    id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.asciidoctor.jvm.convert' version '4.0.5'
-    id 'com.diffplug.spotless' version '8.4.0'
-    id 'pmd'
-    id 'com.github.spotbugs' version '6.5.1'
-    id 'info.solidsoft.pitest' version '1.19.0'
-    id 'jacoco'
-    id 'net.ltgt.errorprone' version '5.1.0'
+// jMolecules ByteBuddy プラグインをビルドスクリプトのクラスパスに追加する。
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.jmolecules.integrations:jmolecules-bytebuddy:0.33.0'
+    }
 }
 
+// --- Gradle プラグイン ---
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '8.4.0'         // コードフォーマッター（Google Java Format）
+    id 'pmd'                                            // 静的解析（PMD 7）
+    id 'com.github.spotbugs' version '6.5.1'           // バグパターン検出
+    id 'info.solidsoft.pitest' version '1.19.0'         // ミューテーションテスト
+    id 'jacoco'                                         // コードカバレッジ
+    id 'net.ltgt.errorprone' version '5.1.0'            // Error Prone + NullAway
+    id 'net.bytebuddy.byte-buddy-gradle-plugin' version '1.18.8-jdk5' // jMolecules バイトコード変換
+}
+
+// --- Spotless: コードフォーマット ---
+// Google Java Format を適用。origin/main からの差分のみチェックする。
 spotless {
     ratchetFrom 'origin/main'
     format 'misc', {
@@ -28,6 +41,8 @@ spotless {
     }
 }
 
+// --- PMD: 静的解析 ---
+// PMD 7 の全カテゴリを有効化。ルールセットは config/pmd/ruleset.xml で定義。
 pmd {
     toolVersion = '7.23.0'
     consoleOutput = true
@@ -35,6 +50,7 @@ pmd {
     ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
+// --- SpotBugs: バグパターン検出 ---
 spotbugs {
     toolVersion = '4.9.8'
     ignoreFailures = false
@@ -42,6 +58,7 @@ spotbugs {
     showProgress = true
 }
 
+// --- PIT: ミューテーションテスト ---
 pitest {
     targetClasses = ['com.example.demo.*']
     targetTests = ['com.example.demo.*']
@@ -52,6 +69,7 @@ pitest {
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
+// --- Java ツールチェーン ---
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
@@ -62,13 +80,15 @@ repositories {
     mavenCentral()
 }
 
+// --- バージョン定数 ---
 ext {
-    set('snippetsDir', file("build/generated-snippets"))
     set('springModulithVersion', "2.0.5")
     set('jmoleculesVersion', "2025.0.2")
 }
 
+// --- 依存関係 ---
 dependencies {
+    // Spring Boot スターター
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.data:spring-data-commons'
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
@@ -78,25 +98,50 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+    // OpenAPI ドキュメント生成
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+
+    // Spring Modulith（モジュラーモノリス）
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springframework.modulith:spring-modulith-starter-jdbc'
+
+    // jMolecules（DDD / アーキテクチャアノテーション）
     implementation 'org.jmolecules:jmolecules-ddd'
     implementation 'org.jmolecules:jmolecules-onion-architecture'
     implementation 'org.jmolecules:jmolecules-cqrs-architecture'
     implementation 'org.jmolecules:jmolecules-events'
     implementation 'org.jmolecules.integrations:jmolecules-spring'
     implementation 'org.jmolecules.integrations:jmolecules-starter-test'
+
+    // jMolecules ByteBuddy: コンパイル後のバイトコード変換用
+    byteBuddy 'org.jmolecules.integrations:jmolecules-bytebuddy:0.33.0'
+
+    // Lombok（コンパイル時のみ）
     compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // 開発時のみ（ホットリロード等）
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // ランタイム
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'org.springframework.modulith:spring-modulith-starter-insight'
+
+    // アノテーションプロセッサ
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // SpotBugs アノテーション（コンパイル時のみ）
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.9.8'
+
+    // JSpecify: null 安全性アノテーション（NullAway と連携）
     implementation 'org.jspecify:jspecify:1.0.0'
-    annotationProcessor 'org.projectlombok:lombok'
+
+    // Error Prone + NullAway
     errorprone 'com.google.errorprone:error_prone_core:2.49.0'
-    errorprone 'com.uber.nullaway:nullaway:0.13.3'
+    errorprone 'com.uber.nullaway:nullaway:0.13.4'
+
+    // テスト: Spring Boot テストスターター
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
@@ -105,16 +150,25 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+
+    // テスト: Testcontainers（統合テスト用コンテナ管理）
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
     testImplementation 'org.testcontainers:testcontainers-grafana'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
+
+    // テスト: Spring Modulith テストサポート
+    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
+
+    // テスト: Lombok
     testCompileOnly 'org.projectlombok:lombok'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // テスト: JUnit Platform
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// --- BOM（依存バージョン一括管理）---
 dependencyManagement {
     imports {
         mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
@@ -122,12 +176,14 @@ dependencyManagement {
     }
 }
 
+// --- テスト設定 ---
 tasks.named('test') {
-    outputs.dir snippetsDir
     useJUnitPlatform()
-    finalizedBy jacocoTestReport
+    finalizedBy jacocoTestReport  // テスト後にカバレッジレポート生成
 }
 
+// --- JaCoCo: カバレッジレポート ---
+// DemoApplication（main メソッドのみ）はカバレッジ対象から除外。
 jacocoTestReport {
     dependsOn test
     afterEvaluate {
@@ -141,6 +197,8 @@ jacocoTestReport {
     }
 }
 
+// --- JaCoCo: カバレッジ閾値チェック ---
+// 命令カバレッジ 85% 以上を要求。
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
     afterEvaluate {
@@ -157,15 +215,14 @@ jacocoTestCoverageVerification {
     }
 }
 
+// check タスク実行時にカバレッジ閾値も検証する。
 tasks.named('check') {
     dependsOn jacocoTestCoverageVerification
 }
 
-tasks.named('asciidoctor') {
-    inputs.dir snippetsDir
-    dependsOn test
-}
-
+// --- Error Prone + NullAway ---
+// 本番コード: NullAway を error レベルで有効化（JSpecifyMode）。
+// テストコード: NullAway を無効化。
 tasks.withType(JavaCompile).configureEach {
     options.errorprone {
         error('NullAway')
@@ -177,4 +234,26 @@ tasks.withType(JavaCompile).configureEach {
             disable('NullAway')
         }
     }
+}
+
+// --- ByteBuddy + jMolecules: バイトコード変換 ---
+// jMolecules の DDD アノテーション（@Entity, @Repository 等）は単なるマーカーであり、
+// そのままではフレームワークが認識しない。ByteBuddy の jMolecules プラグインが
+// コンパイル後の .class ファイルを書き換え、Spring や JPA 固有のアノテーション・
+// インターフェース実装を自動付与する。これによりドメインコードがフレームワークに
+// 直接依存しなくなる。
+//
+// adjustment = NONE: デフォルトの自動タスク依存調整は Spotless プラグインの
+// 入力プロパティ走査時に NPE を起こすため無効化している。
+// 代わりに classes タスクの依存を手動で設定し、
+// compileJava → byteBuddy → classes の順序を保証する。
+byteBuddy {
+    adjustment = net.bytebuddy.build.gradle.Adjustment.NONE
+    transformation {
+        pluginName = "org.jmolecules.bytebuddy.JMoleculesPlugin"
+    }
+}
+
+tasks.named('classes') {
+    dependsOn tasks.named('byteBuddy')
 }

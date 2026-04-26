@@ -30,6 +30,8 @@ class CustomArchRulesTest {
           .areAnnotatedWith(org.jmolecules.architecture.cqrs.Command.class)
           .should()
           .resideInAPackage("..command.dto..")
+          .as("@Command アノテーション付きクラスは ..command.dto.. パッケージにのみ配置可能")
+          .because("CQRS 制約: 対象クラスを ..command.dto.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** {@code @CommandHandler} は command/handler にのみ配置可能。 */
@@ -40,6 +42,8 @@ class CustomArchRulesTest {
           .areAnnotatedWith(org.jmolecules.architecture.cqrs.CommandHandler.class)
           .should()
           .resideInAPackage("..command.handler..")
+          .as("@CommandHandler アノテーション付きクラスは ..command.handler.. パッケージにのみ配置可能")
+          .because("CQRS 制約: 対象クラスを ..command.handler.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** {@code @QueryModel} は query/dto にのみ配置可能。 */
@@ -50,6 +54,8 @@ class CustomArchRulesTest {
           .areAnnotatedWith(org.jmolecules.architecture.cqrs.QueryModel.class)
           .should()
           .resideInAPackage("..query.dto..")
+          .as("@QueryModel アノテーション付きクラスは ..query.dto.. パッケージにのみ配置可能")
+          .because("CQRS 制約: 対象クラスを ..query.dto.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** {@code @DomainEvent} は event パッケージにのみ配置可能。 */
@@ -60,6 +66,8 @@ class CustomArchRulesTest {
           .areAnnotatedWith(org.jmolecules.event.annotation.DomainEvent.class)
           .should()
           .resideInAPackage("..event..")
+          .as("@DomainEvent アノテーション付きクラスは ..event.. パッケージにのみ配置可能")
+          .because("イベント制約: 対象クラスを ..event.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** {@code @RestController} は presentation/controller にのみ配置可能。 */
@@ -70,6 +78,8 @@ class CustomArchRulesTest {
           .areAnnotatedWith(org.springframework.web.bind.annotation.RestController.class)
           .should()
           .resideInAPackage("..presentation.controller..")
+          .as("@RestController アノテーション付きクラスは ..presentation.controller.. パッケージにのみ配置可能")
+          .because("レイヤー制約: 対象クラスを ..presentation.controller.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   // === command / query 混在禁止 ===
@@ -82,6 +92,8 @@ class CustomArchRulesTest {
           .resideInAPackage("..command..")
           .should()
           .beAnnotatedWith(org.jmolecules.architecture.cqrs.QueryModel.class)
+          .as("command パッケージに @QueryModel を配置してはいけない")
+          .because("CQRS 分離違反: @QueryModel を ..query.dto.. パッケージに移動するか、アノテーションを除去してください")
           .allowEmptyShould(true);
 
   /** query パッケージに {@code @Command} を置いてはいけない。 */
@@ -92,6 +104,8 @@ class CustomArchRulesTest {
           .resideInAPackage("..query..")
           .should()
           .beAnnotatedWith(org.jmolecules.architecture.cqrs.Command.class)
+          .as("query パッケージに @Command を配置してはいけない")
+          .because("CQRS 分離違反: @Command を ..command.dto.. パッケージに移動するか、アノテーションを除去してください")
           .allowEmptyShould(true);
 
   // === パッケージ依存制約 ===
@@ -105,17 +119,31 @@ class CustomArchRulesTest {
           .should()
           .dependOnClassesThat()
           .resideInAPackage("..domain..")
+          .as("query パッケージは domain パッケージに依存してはいけない")
+          .because("CQRS 依存制約: query から domain への import を除去し、query 用の DTO/インターフェースを使用してください")
           .allowEmptyShould(true);
 
-  /** domain パッケージは Spring に依存してはいけない。 */
+  /**
+   * domain パッケージは Spring に依存してはいけない。
+   *
+   * <p>domain/service と domain/repository は jMolecules ByteBuddy プラグインにより Spring ステレオタイプ
+   * アノテーションがバイトコードレベルで付与されるため除外する。
+   */
   @ArchTest
   /* default */ static final ArchRule DOMAIN_NO_SPRING =
       noClasses()
           .that()
           .resideInAPackage("..domain..")
+          .and()
+          .resideOutsideOfPackage("..domain.service..")
+          .and()
+          .resideOutsideOfPackage("..domain.repository..")
           .should()
           .dependOnClassesThat()
           .resideInAPackage("org.springframework..")
+          .as("domain パッケージ(service/repository 除く)は Spring に依存してはいけない")
+          .because(
+              "DDD 制約: domain 内の Spring import を除去してください。DI は jMolecules ByteBuddy 経由で自動付与されます")
           .allowEmptyShould(true);
 
   /** presentation は infrastructure に依存してはいけない。 */
@@ -127,6 +155,8 @@ class CustomArchRulesTest {
           .should()
           .dependOnClassesThat()
           .resideInAPackage("..infrastructure..")
+          .as("presentation は infrastructure に依存してはいけない")
+          .because("レイヤー制約: presentation から infrastructure への直接参照を除去し、application 層経由にしてください")
           .allowEmptyShould(true);
 
   // === インターフェースのみ制約 ===
@@ -139,6 +169,8 @@ class CustomArchRulesTest {
           .resideInAPackage("..domain.repository..")
           .should()
           .beInterfaces()
+          .as("domain/repository にはインターフェースのみ配置可能")
+          .because("実装クラスを infrastructure/db/repository に移動してください")
           .allowEmptyShould(true);
 
   /** query/service にはインターフェースのみ配置可能。 */
@@ -149,6 +181,8 @@ class CustomArchRulesTest {
           .resideInAPackage("..query.service..")
           .should()
           .beInterfaces()
+          .as("query/service にはインターフェースのみ配置可能")
+          .because("実装クラスを infrastructure/db/query に移動してください")
           .allowEmptyShould(true);
 
   // === record のみ制約 ===
@@ -163,6 +197,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beRecords()
+          .as("command/dto には record のみ配置可能(package-info 除く)")
+          .because("対象クラスを record に変換してください (例: public record XxxCommand(...))")
           .allowEmptyShould(true);
 
   /** query/dto には record のみ配置可能（package-info を除く）。 */
@@ -175,6 +211,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beRecords()
+          .as("query/dto には record のみ配置可能(package-info 除く)")
+          .because("対象クラスを record に変換してください (例: public record XxxQuery(...))")
           .allowEmptyShould(true);
 
   /** event パッケージには record のみ配置可能（package-info を除く）。 */
@@ -187,6 +225,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beRecords()
+          .as("event パッケージには record のみ配置可能(package-info 除く)")
+          .because("対象クラスを record に変換してください (例: public record XxxEvent(...))")
           .allowEmptyShould(true);
 
   /** presentation/request には record のみ配置可能（package-info を除く）。 */
@@ -199,6 +239,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beRecords()
+          .as("presentation/request には record のみ配置可能(package-info 除く)")
+          .because("対象クラスを record に変換してください (例: public record XxxRequest(...))")
           .allowEmptyShould(true);
 
   /** presentation/response には record のみ配置可能（package-info を除く）。 */
@@ -211,6 +253,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beRecords()
+          .as("presentation/response には record のみ配置可能(package-info 除く)")
+          .because("対象クラスを record に変換してください (例: public record XxxResponse(...))")
           .allowEmptyShould(true);
 
   // === DDD 型制約 ===
@@ -225,6 +269,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
+          .as("model/aggregate には AggregateRoot 実装のみ配置可能(package-info 除く)")
+          .because("対象クラスに AggregateRoot<T, ID> を実装するか、適切なパッケージに移動してください")
           .allowEmptyShould(true);
 
   /** entity パッケージには Entity 実装のみ配置可能。 */
@@ -237,6 +283,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beAssignableTo(org.jmolecules.ddd.types.Entity.class)
+          .as("model/entity には Entity 実装のみ配置可能(package-info 除く)")
+          .because("対象クラスに Entity<T, ID> を実装するか、適切なパッケージに移動してください")
           .allowEmptyShould(true);
 
   /** valueobject/identifier パッケージには Identifier 実装のみ配置可能。 */
@@ -249,6 +297,8 @@ class CustomArchRulesTest {
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
           .beAssignableTo(org.jmolecules.ddd.types.Identifier.class)
+          .as("valueobject/identifier には Identifier 実装のみ配置可能(package-info 除く)")
+          .because("対象クラスに Identifier を実装するか、適切なパッケージに移動してください")
           .allowEmptyShould(true);
 
   // === 逆方向配置制約（型 → パッケージ） ===
@@ -261,6 +311,8 @@ class CustomArchRulesTest {
           .areAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
           .should()
           .resideInAPackage("..model.aggregate..")
+          .as("AggregateRoot 実装は ..model.aggregate.. パッケージにのみ配置可能")
+          .because("対象クラスを ..model.aggregate.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** Entity 実装は entity パッケージにのみ配置可能。 */
@@ -273,6 +325,8 @@ class CustomArchRulesTest {
           .areNotAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
           .should()
           .resideInAPackage("..model.entity..")
+          .as("Entity 実装(AggregateRoot 除く)は ..model.entity.. パッケージにのみ配置可能")
+          .because("対象クラスを ..model.entity.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** Identifier 実装は valueobject/identifier にのみ配置可能。 */
@@ -283,6 +337,8 @@ class CustomArchRulesTest {
           .areAssignableTo(org.jmolecules.ddd.types.Identifier.class)
           .should()
           .resideInAPackage("..valueobject.identifier..")
+          .as("Identifier 実装は ..valueobject.identifier.. パッケージにのみ配置可能")
+          .because("対象クラスを ..valueobject.identifier.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** ValueObject 実装は valueobject パッケージにのみ配置可能。 */
@@ -293,6 +349,8 @@ class CustomArchRulesTest {
           .areAssignableTo(org.jmolecules.ddd.types.ValueObject.class)
           .should()
           .resideInAPackage("..model.valueobject..")
+          .as("ValueObject 実装は ..model.valueobject.. パッケージにのみ配置可能")
+          .because("対象クラスを ..model.valueobject.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** Repository 実装（インターフェース）は domain/repository にのみ配置可能。 */
@@ -303,5 +361,7 @@ class CustomArchRulesTest {
           .areAssignableTo(org.jmolecules.ddd.types.Repository.class)
           .should()
           .resideInAPackage("..domain.repository..")
+          .as("Repository 実装は ..domain.repository.. パッケージにのみ配置可能")
+          .because("対象クラスを ..domain.repository.. パッケージに移動してください")
           .allowEmptyShould(true);
 }

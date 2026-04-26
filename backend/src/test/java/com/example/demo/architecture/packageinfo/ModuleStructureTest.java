@@ -59,7 +59,7 @@ class ModuleStructureTest {
           .forEach(mod -> checkModule(mod, violations));
     }
 
-    assertThat(violations).as("Module structure violations").isEmpty();
+    assertThat(violations).as("モジュール構造違反 — 各項目の修正コマンドを実行してください").isEmpty();
   }
 
   private boolean isModule(final Path dir) {
@@ -75,13 +75,28 @@ class ModuleStructureTest {
     final String name = fileName.toString();
     for (final String required : REQUIRED_DIRS) {
       final Path target = mod.resolve(required);
+      final String fullPath = "src/main/java/com/example/demo/" + name + "/" + required;
       if (Files.isDirectory(target) && Files.exists(target.resolve("package-info.java"))) {
         continue;
       }
       if (Files.isDirectory(target)) {
-        violations.add(name + "/" + required + " — package-info.java が存在しない");
+        violations.add(
+            name
+                + "/"
+                + required
+                + " — package-info.java が存在しない。"
+                + " 修正: "
+                + fullPath
+                + "/package-info.java を作成し、@NullMarked と適切な Onion アノテーションを付与してください");
       } else {
-        violations.add(name + "/" + required + " — ディレクトリが存在しない");
+        violations.add(
+            name
+                + "/"
+                + required
+                + " — ディレクトリが存在しない。"
+                + " 修正: mkdir -p "
+                + fullPath
+                + " を実行し、package-info.java を作成してください");
       }
     }
   }
