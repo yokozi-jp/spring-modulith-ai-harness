@@ -49,9 +49,10 @@ public record OrderCreatedEvent() {}
 | 実装 | `implements AggregateRoot<{Name}, {Name}Id>` |
 | アノテーション | `@Slf4j`, `@Getter`, `@EqualsAndHashCode`, `@ToString` |
 | import | `org.jmolecules.ddd.types.AggregateRoot`, Lombok |
-| 自動連鎖 | `{Name}Id` を `identifier` に自動生成 |
-| 不変性 | 全フィールド `private final`。状態変更は新しいインスタンスを生成する |
-| コンストラクタ | 手書き。引数の不正ガード（null チェック等）を記述する |
+| 自動連鎖 | `{Name}Id`（identifier）、`{Name}Factory`（domain/service） |
+| 不変性 | 全フィールド `private final`（ArchUnit で強制）。状態変更は新しいインスタンスを生成する |
+| コンストラクタ | 手書き `public`。引数の不正ガード（null チェック等）を記述する |
+| 生成制約 | コンストラクタの直接呼び出しは `model/aggregate` と `domain/service` からのみ許可（ArchUnit で強制） |
 
 ```java
 @Slf4j
@@ -86,9 +87,10 @@ public class Order implements AggregateRoot<Order, OrderId> {
 | アノテーション | `@Slf4j`, `@Getter`, `@EqualsAndHashCode`, `@ToString` |
 | import | `org.jmolecules.ddd.types.Entity`, Lombok |
 | 必須オプション | `--aggregate {AggregateRootName}` |
-| 自動連鎖 | `{Name}Id` を `identifier` に自動生成 |
-| 不変性 | 全フィールド `private final`。状態変更は新しいインスタンスを生成する |
-| コンストラクタ | 手書き。引数の不正ガード（null チェック等）を記述する |
+| 自動連鎖 | `{Name}Id`（identifier）、`{Name}Factory`（domain/service）、`{Name}IdGenerator`（domain/repository）、`{Name}IdGeneratorImpl`（infrastructure/db/repository） |
+| 不変性 | 全フィールド `private final`（ArchUnit で強制）。状態変更は新しいインスタンスを生成する |
+| コンストラクタ | 手書き `public`。引数の不正ガード（null チェック等）を記述する |
+| 生成制約 | コンストラクタの直接呼び出しは `model/entity` と `domain/service` からのみ許可（ArchUnit で強制）。外部からは Factory 経由で生成 |
 
 ```java
 @Slf4j
@@ -111,6 +113,51 @@ public class OrderItem implements Entity<Order, OrderItemId> {
   }
 }
 ```
+
+### factory
+
+| 項目 | 値 |
+|---|---|
+| ディレクトリ | `domain/service/` |
+| 種別 | `class` |
+| クラス名 | `{Name}Factory` |
+| アノテーション | `@RequiredArgsConstructor` |
+| import | Lombok |
+| 備考 | aggregate/entity 生成時に自動連鎖で生成。単独生成も可能。jMolecules ByteBuddy が `@Service` を自動付与するため DI 可能 |
+
+aggregate 用ファクトリ（Repository の `generateId()` 経由で ID 生成）:
+
+```java
+@RequiredArgsConstructor
+public class OrderFactory {
+
+  /** リポジトリ。 */
+  private final OrderRepository repository;
+
+  /** 新規生成。 */
+  public Order create() {
+    return new Order(repository.generateId());
+  }
+}
+```
+
+entity 用ファクトリ（`{Name}IdGenerator` 経由で ID 生成）:
+
+```java
+@RequiredArgsConstructor
+public class OrderItemFactory {
+
+  /** ID ジェネレータ。 */
+  private final OrderItemIdGenerator idGenerator;
+
+  /** 新規生成。 */
+  public OrderItem create() {
+    return new OrderItem(idGenerator.generate());
+  }
+}
+```
+
+entity 生成時に `{Name}IdGenerator`（interface）と `{Name}IdGeneratorImpl`（UUID 実装）も自動連鎖で生成される。
 
 ### identifier
 
@@ -150,9 +197,15 @@ public record Money(long amount, String currency) implements ValueObject {}
 | 実装 | `extends Repository<{Name}, {Name}Id>` |
 | import | `org.jmolecules.ddd.types.Repository` |
 | 自動連鎖 | `{Name}RepositoryImpl` を `infrastructure/db/repository/` に自動生成 |
+| ID 生成 | `generateId()` メソッドを定義。entity 用の ID 生成メソッドは手動で追加する |
 
 ```java
-public interface OrderRepository extends Repository<Order, OrderId> {}
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
+public interface OrderRepository extends Repository<Order, OrderId> {
+
+  /** ID を生成する。 */
+  OrderId generateId();
+}
 ```
 
 ### domainservice
@@ -196,16 +249,20 @@ public record CreateOrderCommand() {}
 | ディレクトリ | `application/command/handler/` |
 | 種別 | `class` |
 | クラス名 | `{Name}CommandHandler` |
-| アノテーション | `@CommandHandler`, `@Slf4j`, `@RequiredArgsConstructor` |
+| アノテーション | `@Slf4j`, `@RequiredArgsConstructor` |
 | import | `org.jmolecules.architecture.cqrs.CommandHandler`, Lombok |
+| 備考 | `@CommandHandler` はメソッドに付与（TYPE ターゲットではない） |
 
 ```java
-@CommandHandler
 @Slf4j
 @RequiredArgsConstructor
 public class CreateOrderCommandHandler {
 
-  // DI フィールドをここに追加
+  /** コマンドを処理する。 */
+  @CommandHandler
+  /* default */ void handle() {
+    // コマンド処理
+  }
 }
 ```
 
@@ -225,9 +282,9 @@ public class CreateOrderCommandHandler {
 @RequiredArgsConstructor
 public class OrderCreatedEventListener {
 
-  /** イベントハンドラ。 */
+  /** イベントを処理する。 */
   @ApplicationModuleListener
-  void on(final OrderCreatedEvent event) {
+  /* default */ void handle() {
     // イベント処理
   }
 }
@@ -268,7 +325,7 @@ public interface OrderQueryService {}
 | ディレクトリ | `presentation/controller/` |
 | 種別 | `class` |
 | クラス名 | `{Name}Controller` |
-| アノテーション | `@RestController`, `@RequestMapping("/{module}/{name}")`, `@Slf4j`, `@RequiredArgsConstructor` |
+| アノテーション | `@RestController`, `@RequestMapping("/{module}s")`, `@Slf4j`, `@RequiredArgsConstructor` |
 | import | Spring Web, Lombok |
 
 ```java
@@ -315,15 +372,20 @@ public record OrderResponse() {}
 | クラス名 | `{Name}RepositoryImpl` |
 | 実装 | `implements {Name}Repository` |
 | アノテーション | `@Slf4j`, `@RequiredArgsConstructor` |
-| import | Lombok, `org.jooq.DSLContext` |
-| 備考 | 通常は `repository` layer から自動連鎖で生成。単独生成も可能 |
+| import | Lombok |
+| 備考 | 通常は `repository` layer から自動連鎖で生成。`generateId()` は UUID ベースで実装 |
 
 ```java
 @Slf4j
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
 
-  private final DSLContext dsl;
+  // private final DSLContext dsl; (import org.jooq.DSLContext)
+
+  @Override
+  public OrderId generateId() {
+    return new OrderId(UUID.randomUUID().toString());
+  }
 }
 ```
 
@@ -336,7 +398,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 | クラス名 | `{Name}QueryServiceImpl` |
 | 実装 | `implements {Name}QueryService` |
 | アノテーション | `@Slf4j`, `@RequiredArgsConstructor` |
-| import | Lombok, `org.jooq.DSLContext` |
+| import | Lombok |
 | 備考 | 通常は `queryservice` layer から自動連鎖で生成。単独生成も可能 |
 
 ```java
@@ -344,7 +406,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 @RequiredArgsConstructor
 public class OrderQueryServiceImpl implements OrderQueryService {
 
-  private final DSLContext dsl;
+  // private final DSLContext dsl; (import org.jooq.DSLContext)
 }
 ```
 
@@ -357,7 +419,11 @@ public class OrderQueryServiceImpl implements OrderQueryService {
 | トリガー layer | 自動生成されるファイル | 生成先 |
 |---|---|---|
 | `aggregate {Name}` | `{Name}Id` | `domain/model/valueobject/identifier/` |
+| `aggregate {Name}` | `{Name}Factory` | `domain/service/` |
 | `entity {Name}` | `{Name}Id` | `domain/model/valueobject/identifier/` |
+| `entity {Name}` | `{Name}Factory` | `domain/service/` |
+| `entity {Name}` | `{Name}IdGenerator` | `domain/repository/` |
+| `entity {Name}` | `{Name}IdGeneratorImpl` | `infrastructure/db/repository/` |
 | `repository {Name}` | `{Name}RepositoryImpl` | `infrastructure/db/repository/` |
 | `queryservice {Name}` | `{Name}QueryServiceImpl` | `infrastructure/db/query/` |
 
@@ -368,15 +434,19 @@ public class OrderQueryServiceImpl implements OrderQueryService {
 ## 使用例
 
 ```bash
-# 集約ルート + Identifier を作成
+# 集約ルート + Identifier + Factory を作成
 ./scripts/create-class.sh order aggregate Order
 # → order/domain/model/aggregate/Order.java
 # → order/domain/model/valueobject/identifier/OrderId.java
+# → order/domain/service/OrderFactory.java
 
-# エンティティ + Identifier を作成（集約ルート指定必須）
+# エンティティ + Identifier + Factory + IdGenerator を作成（集約ルート指定必須）
 ./scripts/create-class.sh order entity OrderItem --aggregate Order
 # → order/domain/model/entity/OrderItem.java
 # → order/domain/model/valueobject/identifier/OrderItemId.java
+# → order/domain/service/OrderItemFactory.java
+# → order/domain/repository/OrderItemIdGenerator.java
+# → order/infrastructure/db/repository/OrderItemIdGeneratorImpl.java
 
 # 値オブジェクトを作成
 ./scripts/create-class.sh order valueobject Money
@@ -385,6 +455,15 @@ public class OrderQueryServiceImpl implements OrderQueryService {
 # イベントを作成
 ./scripts/create-class.sh order event OrderCreated
 # → order/event/OrderCreatedEvent.java
+
+# リポジトリ（interface + impl 自動連鎖、generateId() 付き）
+./scripts/create-class.sh order repository Order
+# → order/domain/repository/OrderRepository.java (generateId() 定義付き)
+# → order/infrastructure/db/repository/OrderRepositoryImpl.java (UUID 実装付き)
+
+# ファクトリを単独生成
+./scripts/create-class.sh order factory Order
+# → order/domain/service/OrderFactory.java
 
 # コマンド + ハンドラを作成
 ./scripts/create-class.sh order command CreateOrder
@@ -395,11 +474,6 @@ public class OrderQueryServiceImpl implements OrderQueryService {
 # イベントリスナーを作成（他モジュールのイベントを受信）
 ./scripts/create-class.sh order eventlistener OrderCreated
 # → order/application/command/handler/OrderCreatedEventListener.java
-
-# リポジトリ（interface + impl 自動連鎖）
-./scripts/create-class.sh order repository Order
-# → order/domain/repository/OrderRepository.java
-# → order/infrastructure/db/repository/OrderRepositoryImpl.java
 
 # クエリサービス（interface + impl 自動連鎖）
 ./scripts/create-class.sh order queryservice Order
@@ -419,16 +493,22 @@ public class OrderQueryServiceImpl implements OrderQueryService {
 
 ---
 
-## PMD / アーキテクチャテスト適合
+## ArchUnit ルール適合
 
 | 制約 | 対応方法 |
 |---|---|
-| `AtLeastOneConstructor` | class には `@RequiredArgsConstructor` を付与（Lombok 生成コンストラクタで充足） |
 | record のみパッケージ | `event`, `command/dto`, `query/dto`, `request`, `response` は record で生成 |
 | interface のみパッケージ | `domain/repository`, `query/service` は interface で生成 |
 | DDD 型制約 | aggregate → `AggregateRoot`, entity → `Entity`, identifier → `Identifier`, valueobject → `ValueObject` |
-| CQRS アノテーション制約 | `@Command` → `command/dto`, `@CommandHandler` → `command/handler`, `@QueryModel` → `query/dto`, `@DomainEvent` → `event` |
+| CQRS アノテーション制約 | `@Command` → `command/dto`, `@CommandHandler` → `command/handler`（メソッド）, `@QueryModel` → `query/dto`, `@DomainEvent` → `event` |
 | `@RestController` 制約 | `presentation/controller` のみ |
+| `@ApplicationModuleListener` 制約 | `command/handler` のみ |
+| `*RepositoryImpl` 配置制約 | `infrastructure/db/repository` のみ |
+| `*QueryServiceImpl` 配置制約 | `infrastructure/db/query` のみ |
 | フィールドインジェクション禁止 | `@RequiredArgsConstructor` + `final` フィールドで対応 |
+| `@Data` / `@Setter` 禁止 | 使用しない。`@Getter` + `@EqualsAndHashCode` + `@ToString` で代替 |
 | domain → Spring 依存禁止 | domain 内のクラスに Spring import を含めない |
 | query → domain 依存禁止 | query 系ファイルに domain の import を含めない |
+| aggregate/entity 不変性 | 全フィールド `private final`（ArchUnit で強制） |
+| aggregate/entity コンストラクタ制約 | 直接 `new` は `model/aggregate`・`model/entity`・`domain/service` からのみ許可（ArchUnit で強制）。外部からは Factory 経由で生成 |
+| ID 生成 | aggregate: Repository の `generateId()` 経由。entity: 専用の `{Name}IdGenerator` インターフェース経由。いずれも Factory が DI で受け取る |

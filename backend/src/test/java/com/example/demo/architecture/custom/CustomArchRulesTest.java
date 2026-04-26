@@ -5,6 +5,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -24,6 +25,15 @@ class CustomArchRulesTest {
   /** package-info クラスの除外条件用。 */
   private static final String PKG_INFO = "package-info";
 
+  /** aggregate パッケージパターン。 */
+  private static final String PKG_AGG = "..model.aggregate..";
+
+  /** entity パッケージパターン。 */
+  private static final String PKG_ENT = "..model.entity..";
+
+  /** domain/service パッケージパターン。 */
+  private static final String PKG_SVC = "..domain.service..";
+
   /** {@code @CommandHandler} メソッド判定用。 */
   @SuppressWarnings("unchecked")
   private static final DescribedPredicate<JavaMethod> HAS_CMD_HANDLER =
@@ -38,6 +48,24 @@ class CustomArchRulesTest {
           (DescribedPredicate<?>)
               Predicates.annotatedWith(
                   org.springframework.modulith.events.ApplicationModuleListener.class);
+
+  /** aggregate パッケージへのコンストラクタ呼び出し判定用。 */
+  private static final DescribedPredicate<JavaConstructorCall> TARGET_IN_AGG =
+      new DescribedPredicate<>("target is in ..model.aggregate..") {
+        @Override
+        public boolean test(final JavaConstructorCall call) {
+          return call.getTargetOwner().getPackageName().contains(".model.aggregate");
+        }
+      };
+
+  /** entity パッケージへのコンストラクタ呼び出し判定用。 */
+  private static final DescribedPredicate<JavaConstructorCall> TARGET_IN_ENT =
+      new DescribedPredicate<>("target is in ..model.entity..") {
+        @Override
+        public boolean test(final JavaConstructorCall call) {
+          return call.getTargetOwner().getPackageName().contains(".model.entity");
+        }
+      };
 
   // === アノテーション配置制約 ===
 
@@ -283,7 +311,7 @@ class CustomArchRulesTest {
   /* default */ static final ArchRule AGG_TYPE =
       classes()
           .that()
-          .resideInAPackage("..model.aggregate..")
+          .resideInAPackage(PKG_AGG)
           .and()
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
@@ -297,7 +325,7 @@ class CustomArchRulesTest {
   /* default */ static final ArchRule ENTITY_TYPE =
       classes()
           .that()
-          .resideInAPackage("..model.entity..")
+          .resideInAPackage(PKG_ENT)
           .and()
           .haveSimpleNameNotContaining(PKG_INFO)
           .should()
@@ -329,7 +357,7 @@ class CustomArchRulesTest {
           .that()
           .areAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
           .should()
-          .resideInAPackage("..model.aggregate..")
+          .resideInAPackage(PKG_AGG)
           .as("AggregateRoot 実装は ..model.aggregate.. パッケージにのみ配置可能")
           .because("対象クラスを ..model.aggregate.. パッケージに移動してください")
           .allowEmptyShould(true);
@@ -343,7 +371,7 @@ class CustomArchRulesTest {
           .and()
           .areNotAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
           .should()
-          .resideInAPackage("..model.entity..")
+          .resideInAPackage(PKG_ENT)
           .as("Entity 実装(AggregateRoot 除く)は ..model.entity.. パッケージにのみ配置可能")
           .because("対象クラスを ..model.entity.. パッケージに移動してください")
           .allowEmptyShould(true);
@@ -446,7 +474,7 @@ class CustomArchRulesTest {
       fields()
           .that()
           .areDeclaredInClassesThat()
-          .resideInAPackage("..model.aggregate..")
+          .resideInAPackage(PKG_AGG)
           .and()
           .areNotStatic()
           .should()
@@ -463,7 +491,7 @@ class CustomArchRulesTest {
       fields()
           .that()
           .areDeclaredInClassesThat()
-          .resideInAPackage("..model.entity..")
+          .resideInAPackage(PKG_ENT)
           .and()
           .areNotStatic()
           .should()
@@ -472,5 +500,35 @@ class CustomArchRulesTest {
           .beFinal()
           .as("entity のフィールドは private final でなければならない")
           .because("不変性制約: フィールドに private final を付与してください。" + " 状態変更は新しいインスタンスを生成してください")
+          .allowEmptyShould(true);
+
+  // === コンストラクタ呼び出し制約 ===
+
+  /** aggregate のコンストラクタは aggregate 自身と domain/service からのみ呼び出し可能。 */
+  @ArchTest
+  /* default */ static final ArchRule AGG_CTOR =
+      noClasses()
+          .that()
+          .resideOutsideOfPackages(PKG_AGG, PKG_SVC)
+          .should()
+          .callConstructorWhere(TARGET_IN_AGG)
+          .as("aggregate のコンストラクタは model/aggregate と domain/service からのみ呼び出し可能")
+          .because(
+              "aggregate の生成には Factory を使用してください。"
+                  + " 直接 new は model/aggregate 内と domain/service 内でのみ許可されます")
+          .allowEmptyShould(true);
+
+  /** entity のコンストラクタは entity 自身と domain/service からのみ呼び出し可能。 */
+  @ArchTest
+  /* default */ static final ArchRule ENT_CTOR =
+      noClasses()
+          .that()
+          .resideOutsideOfPackages(PKG_ENT, PKG_SVC)
+          .should()
+          .callConstructorWhere(TARGET_IN_ENT)
+          .as("entity のコンストラクタは model/entity と domain/service からのみ呼び出し可能")
+          .because(
+              "entity の生成には Factory を使用してください。"
+                  + " 直接 new は model/entity 内と domain/service 内でのみ許可されます")
           .allowEmptyShould(true);
 }

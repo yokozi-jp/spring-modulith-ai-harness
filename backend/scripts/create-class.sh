@@ -29,7 +29,7 @@ done
 
 if [ "${#POSITIONAL[@]}" -ne 3 ]; then
   echo "Usage: cd backend && $0 <module> <layer> <name> [--aggregate <Aggregate>]" >&2
-  echo "Layers: event aggregate entity identifier valueobject repository domainservice" >&2
+  echo "Layers: event aggregate entity identifier valueobject repository domainservice factory" >&2
   echo "        command commandhandler eventlistener query queryservice" >&2
   echo "        controller request response repositoryimpl queryimpl" >&2
   exit 1
@@ -137,6 +137,8 @@ public class ${NAME} implements AggregateRoot<${NAME}, ${id_cls}> {
 }"
   # 自動連鎖: Identifier
   gen_identifier_for "$NAME"
+  # 自動連鎖: Factory
+  gen_factory_for "$NAME" ""
 }
 
 gen_entity() {
@@ -186,6 +188,120 @@ public class ${NAME} implements Entity<${AGGREGATE}, ${id_cls}> {
 }"
   # 自動連鎖: Identifier
   gen_identifier_for "$NAME"
+  # 自動連鎖: Factory
+  gen_factory_for "$NAME" "$AGGREGATE"
+}
+
+gen_factory_for() {
+  local target="$1"
+  local agg="$2"
+  local pkg
+  pkg=$(pkg_for "domain/service")
+  local id_cls="${target}Id"
+  local id_pkg
+  id_pkg=$(pkg_for "domain/model/valueobject/identifier")
+  local repo_pkg
+  repo_pkg=$(pkg_for "domain/repository")
+  # aggregate の場合: 自身の Repository を使う。entity の場合: 集約の Repository を使う
+  local repo_target="${agg:-$target}"
+  if [ -z "$agg" ]; then
+    # aggregate 用ファクトリ
+    local target_pkg
+    target_pkg=$(pkg_for "domain/model/aggregate")
+    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "\
+package $pkg;
+
+import ${id_pkg}.${id_cls};
+import ${repo_pkg}.${target}Repository;
+import ${target_pkg}.${target};
+import lombok.RequiredArgsConstructor;
+
+/** ${target} ファクトリ。 */
+@RequiredArgsConstructor
+public class ${target}Factory {
+
+  /** リポジトリ。 */
+  private final ${target}Repository repository;
+
+  /** 新規生成。 */
+  public ${target} create() {
+    return new ${target}(repository.generateId());
+  }
+}"
+  else
+    # entity 用ファクトリ
+    local target_pkg
+    target_pkg=$(pkg_for "domain/model/entity")
+    local gen_iface="${target}IdGenerator"
+    local gen_pkg
+    gen_pkg=$(pkg_for "domain/repository")
+    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "\
+package $pkg;
+
+import ${gen_pkg}.${gen_iface};
+import ${target_pkg}.${target};
+import lombok.RequiredArgsConstructor;
+
+/** ${target} ファクトリ。 */
+@RequiredArgsConstructor
+public class ${target}Factory {
+
+  /** ID ジェネレータ。 */
+  private final ${gen_iface} idGenerator;
+
+  /** 新規生成。 */
+  public ${target} create() {
+    return new ${target}(idGenerator.generate());
+  }
+}"
+    # 自動連鎖: IdGenerator + IdGeneratorImpl
+    gen_id_generator_for "$target"
+  fi
+}
+
+gen_id_generator_for() {
+  local target="$1"
+  local id_cls="${target}Id"
+  local repo_pkg
+  repo_pkg=$(pkg_for "domain/repository")
+  local id_pkg
+  id_pkg=$(pkg_for "domain/model/valueobject/identifier")
+  local infra_pkg
+  infra_pkg=$(pkg_for "infrastructure/db/repository")
+  # interface
+  write_file "$MODULE_DIR/domain/repository/${target}IdGenerator.java" "\
+package $repo_pkg;
+
+import ${id_pkg}.${id_cls};
+
+/** ${target} の ID ジェネレータ。 */
+@SuppressWarnings(\"PMD.ImplicitFunctionalInterface\")
+public interface ${target}IdGenerator {
+
+  /** ID を生成する。 */
+  ${id_cls} generate();
+}"
+  # impl
+  write_file "$MODULE_DIR/infrastructure/db/repository/${target}IdGeneratorImpl.java" "\
+package $infra_pkg;
+
+import ${id_pkg}.${id_cls};
+import ${repo_pkg}.${target}IdGenerator;
+import java.util.UUID;
+
+/** ${target} の ID ジェネレータ実装。 */
+public class ${target}IdGeneratorImpl implements ${target}IdGenerator {
+
+  @Override
+  public ${id_cls} generate() {
+    return new ${id_cls}(UUID.randomUUID().toString());
+  }
+}"
+}
+
+gen_factory() {
+  local agg="${AGGREGATE:-}"
+  gen_factory_for "$NAME" "$agg"
 }
 
 gen_identifier_for() {
@@ -234,7 +350,12 @@ import ${id_pkg}.${agg}Id;
 import org.jmolecules.ddd.types.Repository;
 
 /** ${agg} リポジトリ。 */
-public interface ${agg}Repository extends Repository<${agg}, ${agg}Id> {}"
+@SuppressWarnings(\"PMD.ImplicitFunctionalInterface\")
+public interface ${agg}Repository extends Repository<${agg}, ${agg}Id> {
+
+  /** ID を生成する。 */
+  ${agg}Id generateId();
+}"
   # 自動連鎖: RepositoryImpl
   gen_repositoryimpl_for "$agg"
 }
@@ -245,10 +366,14 @@ gen_repositoryimpl_for() {
   pkg=$(pkg_for "infrastructure/db/repository")
   local repo_pkg
   repo_pkg=$(pkg_for "domain/repository")
+  local id_pkg
+  id_pkg=$(pkg_for "domain/model/valueobject/identifier")
   write_file "$MODULE_DIR/infrastructure/db/repository/${agg}RepositoryImpl.java" "\
 package $pkg;
 
+import ${id_pkg}.${agg}Id;
 import ${repo_pkg}.${agg}Repository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -258,6 +383,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ${agg}RepositoryImpl implements ${agg}Repository {
 
   // private final DSLContext dsl; (import org.jooq.DSLContext)
+
+  @Override
+  public ${agg}Id generateId() {
+    return new ${agg}Id(UUID.randomUUID().toString());
+  }
 }"
 }
 
@@ -447,6 +577,7 @@ case "$LAYER" in
   valueobject)    gen_valueobject ;;
   repository)     gen_repository ;;
   repositoryimpl) gen_repositoryimpl ;;
+  factory)        gen_factory ;;
   domainservice)  gen_domainservice ;;
   command)        gen_command ;;
   commandhandler) gen_commandhandler ;;
@@ -459,7 +590,7 @@ case "$LAYER" in
   response)       gen_response ;;
   *)
     echo "Error: Unknown layer '$LAYER'" >&2
-    echo "Valid layers: event aggregate entity identifier valueobject repository domainservice" >&2
+    echo "Valid layers: event aggregate entity identifier valueobject repository domainservice factory" >&2
     echo "             command commandhandler eventlistener query queryservice" >&2
     echo "             controller request response repositoryimpl queryimpl" >&2
     exit 1
