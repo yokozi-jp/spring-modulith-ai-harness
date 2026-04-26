@@ -12,6 +12,12 @@
         <exclude name="MethodArgumentCouldBeFinal"/>
         <!-- Lombok がコンストラクタを生成し、record クラスは暗黙コンストラクタを持つため無効化 -->
         <exclude name="AtLeastOneConstructor"/>
+        <!-- DDD では id 等の短い変数名が頻出するため無効化 -->
+        <exclude name="ShortVariable"/>
+        <!-- 長い変数名は説明的で可読性が高いため無効化 -->
+        <exclude name="LongVariable"/>
+        <!-- DDD ではドメインモデル名が短くなることがあるため無効化 -->
+        <exclude name="ShortClassName"/>
     </rule>
     <rule ref="category/java/design.xml"/>
     <rule ref="category/java/documentation.xml">

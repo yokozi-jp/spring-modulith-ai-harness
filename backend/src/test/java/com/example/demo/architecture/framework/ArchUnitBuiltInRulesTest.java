@@ -1,5 +1,7 @@
 package com.example.demo.architecture.framework;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -80,5 +82,29 @@ class ArchUnitBuiltInRulesTest {
           .no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(
               Async.class)
           .because("@Async メソッドの呼び出しを別クラスに委譲してください" + "（同一クラス内呼び出しでは Spring AOP プロキシが機能しません）")
+          .allowEmptyShould(true);
+
+  // === Lombok 禁止ルール ===
+
+  /** 本番コードで {@code @Data} の使用を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_DATA =
+      noClasses()
+          .should()
+          .beAnnotatedWith("lombok.Data")
+          .as("@Data の使用は禁止")
+          .because(
+              "@Data を除去し、@Getter + @EqualsAndHashCode + @ToString に置換してください。"
+                  + " 不変クラスには @Value を使用してください")
+          .allowEmptyShould(true);
+
+  /** {@code @Setter} の使用を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_SETTER =
+      noClasses()
+          .should()
+          .beAnnotatedWith("lombok.Setter")
+          .as("@Setter の使用は禁止")
+          .because("@Setter を除去してください。" + " フィールドへの書き込みが必要な場合は明示的な setter メソッドか @Builder を使用してください")
           .allowEmptyShould(true);
 }
