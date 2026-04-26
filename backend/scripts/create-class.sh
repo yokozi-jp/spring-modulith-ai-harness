@@ -15,6 +15,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=module-common.sh
+source "$SCRIPT_DIR/module-common.sh"
+
 # === オプション解析 ===
 AGGREGATE=""
 POSITIONAL=()
@@ -50,8 +54,6 @@ if [[ ! "$NAME" =~ ^[A-Z][a-zA-Z0-9]*$ ]]; then
   exit 1
 fi
 
-BASE_PKG="com.example.demo"
-SRC_ROOT="src/main/java/com/example/demo"
 MODULE_DIR="$SRC_ROOT/$MODULE"
 
 if [ ! -d "$MODULE_DIR" ]; then
@@ -60,13 +62,17 @@ if [ ! -d "$MODULE_DIR" ]; then
 fi
 
 # === ファイル書き出し関数 ===
+# 引数: $1=ファイルパス, $2=ディレクトリ相対パス（package-info 自動作成用）, $3=内容
 write_file() {
   local file_path="$1"
-  local content="$2"
+  local dir_rel="$2"
+  local content="$3"
   if [ -f "$file_path" ]; then
     echo "[SKIP] $file_path (already exists)"
     return 1
   fi
+  # ディレクトリと package-info.java を自動作成
+  ensure_package_info "$MODULE" "$dir_rel"
   mkdir -p "$(dirname "$file_path")"
   echo "$content" > "$file_path"
   echo "[CREATE] $file_path"
@@ -87,7 +93,7 @@ gen_event() {
   local pkg
   pkg=$(pkg_for "event")
   local cls="${NAME}Event"
-  write_file "$MODULE_DIR/event/${cls}.java" "\
+  write_file "$MODULE_DIR/event/${cls}.java" "event" "\
 package $pkg;
 
 import org.jmolecules.event.annotation.DomainEvent;
@@ -103,7 +109,7 @@ gen_aggregate() {
   local id_cls="${NAME}Id"
   local id_pkg
   id_pkg=$(pkg_for "domain/model/valueobject/identifier")
-  write_file "$MODULE_DIR/domain/model/aggregate/${NAME}.java" "\
+  write_file "$MODULE_DIR/domain/model/aggregate/${NAME}.java" "domain/model/aggregate" "\
 package $pkg;
 
 import ${id_pkg}.${id_cls};
@@ -153,7 +159,7 @@ gen_entity() {
   id_pkg=$(pkg_for "domain/model/valueobject/identifier")
   local agg_pkg
   agg_pkg=$(pkg_for "domain/model/aggregate")
-  write_file "$MODULE_DIR/domain/model/entity/${NAME}.java" "\
+  write_file "$MODULE_DIR/domain/model/entity/${NAME}.java" "domain/model/entity" "\
 package $pkg;
 
 import ${agg_pkg}.${AGGREGATE};
@@ -208,7 +214,7 @@ gen_factory_for() {
     # aggregate 用ファクトリ
     local target_pkg
     target_pkg=$(pkg_for "domain/model/aggregate")
-    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "\
+    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "domain/service" "\
 package $pkg;
 
 import ${id_pkg}.${id_cls};
@@ -235,7 +241,7 @@ public class ${target}Factory {
     local gen_iface="${target}IdGenerator"
     local gen_pkg
     gen_pkg=$(pkg_for "domain/repository")
-    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "\
+    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "domain/service" "\
 package $pkg;
 
 import ${gen_pkg}.${gen_iface};
@@ -269,7 +275,7 @@ gen_id_generator_for() {
   local infra_pkg
   infra_pkg=$(pkg_for "infrastructure/db/repository")
   # interface
-  write_file "$MODULE_DIR/domain/repository/${target}IdGenerator.java" "\
+  write_file "$MODULE_DIR/domain/repository/${target}IdGenerator.java" "domain/repository" "\
 package $repo_pkg;
 
 import ${id_pkg}.${id_cls};
@@ -282,7 +288,7 @@ public interface ${target}IdGenerator {
   ${id_cls} generate();
 }"
   # impl
-  write_file "$MODULE_DIR/infrastructure/db/repository/${target}IdGeneratorImpl.java" "\
+  write_file "$MODULE_DIR/infrastructure/db/repository/${target}IdGeneratorImpl.java" "infrastructure/db/repository" "\
 package $infra_pkg;
 
 import ${id_pkg}.${id_cls};
@@ -309,7 +315,7 @@ gen_identifier_for() {
   local pkg
   pkg=$(pkg_for "domain/model/valueobject/identifier")
   local cls="${target_name}Id"
-  write_file "$MODULE_DIR/domain/model/valueobject/identifier/${cls}.java" "\
+  write_file "$MODULE_DIR/domain/model/valueobject/identifier/${cls}.java" "domain/model/valueobject/identifier" "\
 package $pkg;
 
 import org.jmolecules.ddd.types.Identifier;
@@ -325,7 +331,7 @@ gen_identifier() {
 gen_valueobject() {
   local pkg
   pkg=$(pkg_for "domain/model/valueobject")
-  write_file "$MODULE_DIR/domain/model/valueobject/${NAME}.java" "\
+  write_file "$MODULE_DIR/domain/model/valueobject/${NAME}.java" "domain/model/valueobject" "\
 package $pkg;
 
 import org.jmolecules.ddd.types.ValueObject;
@@ -342,7 +348,7 @@ gen_repository() {
   agg_pkg=$(pkg_for "domain/model/aggregate")
   local id_pkg
   id_pkg=$(pkg_for "domain/model/valueobject/identifier")
-  write_file "$MODULE_DIR/domain/repository/${agg}Repository.java" "\
+  write_file "$MODULE_DIR/domain/repository/${agg}Repository.java" "domain/repository" "\
 package $pkg;
 
 import ${agg_pkg}.${agg};
@@ -368,7 +374,7 @@ gen_repositoryimpl_for() {
   repo_pkg=$(pkg_for "domain/repository")
   local id_pkg
   id_pkg=$(pkg_for "domain/model/valueobject/identifier")
-  write_file "$MODULE_DIR/infrastructure/db/repository/${agg}RepositoryImpl.java" "\
+  write_file "$MODULE_DIR/infrastructure/db/repository/${agg}RepositoryImpl.java" "infrastructure/db/repository" "\
 package $pkg;
 
 import ${id_pkg}.${agg}Id;
@@ -399,7 +405,7 @@ gen_repositoryimpl() {
 gen_domainservice() {
   local pkg
   pkg=$(pkg_for "domain/service")
-  write_file "$MODULE_DIR/domain/service/${NAME}DomainService.java" "\
+  write_file "$MODULE_DIR/domain/service/${NAME}DomainService.java" "domain/service" "\
 package $pkg;
 
 import lombok.RequiredArgsConstructor;
@@ -417,7 +423,7 @@ public class ${NAME}DomainService {
 gen_command() {
   local pkg
   pkg=$(pkg_for "application/command/dto")
-  write_file "$MODULE_DIR/application/command/dto/${NAME}Command.java" "\
+  write_file "$MODULE_DIR/application/command/dto/${NAME}Command.java" "application/command/dto" "\
 package $pkg;
 
 import org.jmolecules.architecture.cqrs.Command;
@@ -430,7 +436,7 @@ public record ${NAME}Command() {}"
 gen_commandhandler() {
   local pkg
   pkg=$(pkg_for "application/command/handler")
-  write_file "$MODULE_DIR/application/command/handler/${NAME}CommandHandler.java" "\
+  write_file "$MODULE_DIR/application/command/handler/${NAME}CommandHandler.java" "application/command/handler" "\
 package $pkg;
 
 import lombok.RequiredArgsConstructor;
@@ -453,7 +459,7 @@ public class ${NAME}CommandHandler {
 gen_eventlistener() {
   local pkg
   pkg=$(pkg_for "application/command/handler")
-  write_file "$MODULE_DIR/application/command/handler/${NAME}EventListener.java" "\
+  write_file "$MODULE_DIR/application/command/handler/${NAME}EventListener.java" "application/command/handler" "\
 package $pkg;
 
 import lombok.RequiredArgsConstructor;
@@ -476,7 +482,7 @@ public class ${NAME}EventListener {
 gen_query() {
   local pkg
   pkg=$(pkg_for "application/query/dto")
-  write_file "$MODULE_DIR/application/query/dto/${NAME}Query.java" "\
+  write_file "$MODULE_DIR/application/query/dto/${NAME}Query.java" "application/query/dto" "\
 package $pkg;
 
 import org.jmolecules.architecture.cqrs.QueryModel;
@@ -489,7 +495,7 @@ public record ${NAME}Query() {}"
 gen_queryservice() {
   local pkg
   pkg=$(pkg_for "application/query/service")
-  write_file "$MODULE_DIR/application/query/service/${NAME}QueryService.java" "\
+  write_file "$MODULE_DIR/application/query/service/${NAME}QueryService.java" "application/query/service" "\
 package $pkg;
 
 /** ${NAME} クエリサービス。 */
@@ -504,7 +510,7 @@ gen_queryimpl_for() {
   pkg=$(pkg_for "infrastructure/db/query")
   local svc_pkg
   svc_pkg=$(pkg_for "application/query/service")
-  write_file "$MODULE_DIR/infrastructure/db/query/${target}QueryServiceImpl.java" "\
+  write_file "$MODULE_DIR/infrastructure/db/query/${target}QueryServiceImpl.java" "infrastructure/db/query" "\
 package $pkg;
 
 import ${svc_pkg}.${target}QueryService;
@@ -529,7 +535,7 @@ gen_controller() {
   pkg=$(pkg_for "presentation/controller")
   # endpoint パスをモジュール名ベースで生成
   local path="/${MODULE}s"
-  write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "\
+  write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "\
 package $pkg;
 
 import lombok.RequiredArgsConstructor;
@@ -551,7 +557,7 @@ public class ${NAME}Controller {
 gen_request() {
   local pkg
   pkg=$(pkg_for "presentation/request")
-  write_file "$MODULE_DIR/presentation/request/${NAME}Request.java" "\
+  write_file "$MODULE_DIR/presentation/request/${NAME}Request.java" "presentation/request" "\
 package $pkg;
 
 /** ${NAME} リクエスト。 */
@@ -561,7 +567,7 @@ public record ${NAME}Request() {}"
 gen_response() {
   local pkg
   pkg=$(pkg_for "presentation/response")
-  write_file "$MODULE_DIR/presentation/response/${NAME}Response.java" "\
+  write_file "$MODULE_DIR/presentation/response/${NAME}Response.java" "presentation/response" "\
 package $pkg;
 
 /** ${NAME} レスポンス。 */
