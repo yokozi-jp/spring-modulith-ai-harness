@@ -92,7 +92,7 @@ cd spring-modulith-ai-harness
 ### 7. セットアップスクリプトの実行
 
 ```bash
-cd scripts/local-environment-setup
+cd docs/local-environment-setup
 ./01-setup-java.sh
 ./02-setup-viteplus.sh
 source ~/.bashrc

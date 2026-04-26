@@ -4,7 +4,7 @@
 
 ## 開発環境構築
 
-[開発環境構築ガイド](docs/local-environment-setup.md) を参照してください。
+[開発環境構築ガイド](docs/local-environment-setup/README.md) を参照してください。
 
 ## ブランチ戦略
 
