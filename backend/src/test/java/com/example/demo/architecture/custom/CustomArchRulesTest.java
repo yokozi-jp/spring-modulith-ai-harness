@@ -107,12 +107,21 @@ class CustomArchRulesTest {
           .resideInAPackage("..domain..")
           .allowEmptyShould(true);
 
-  /** domain パッケージは Spring に依存してはいけない。 */
+  /**
+   * domain パッケージは Spring に依存してはいけない。
+   *
+   * <p>domain/service と domain/repository は jMolecules ByteBuddy プラグインにより Spring ステレオタイプ
+   * アノテーションがバイトコードレベルで付与されるため除外する。
+   */
   @ArchTest
   /* default */ static final ArchRule DOMAIN_NO_SPRING =
       noClasses()
           .that()
           .resideInAPackage("..domain..")
+          .and()
+          .resideOutsideOfPackage("..domain.service..")
+          .and()
+          .resideOutsideOfPackage("..domain.repository..")
           .should()
           .dependOnClassesThat()
           .resideInAPackage("org.springframework..")
