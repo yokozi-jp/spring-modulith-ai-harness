@@ -20,8 +20,6 @@
 以下の抑制は特定のコンテキストで使用済みかつ許容されている:
 
 - `PMD.UseUtilityClass` — `@SpringBootApplication` クラスおよびテストランチャークラス
-- `PMD.MethodArgumentCouldBeFinal` — main メソッドクラス（Google Java Format はパラメータに `final` を付与しない）
-- `PMD.AtLeastOneConstructor` — テストクラスおよび `@TestConfiguration` クラス（コンストラクタが不要な場合）
 - `PMD.UnitTestShouldIncludeAssert` — コンテキストロードのスモークテスト
 - `PMD.TestClassWithoutTestCases` — テストサポートクラス（例: `TestcontainersConfiguration`）
 
@@ -95,9 +93,8 @@
 
 ## コードスタイル (`codestyle.xml`)
 
-適用ルール（59 件、deprecated 除外）:
+適用ルール（56 件、deprecated 除外）:
 
-- **AtLeastOneConstructor** — 非静的クラスには少なくとも 1 つのコンストラクタを宣言する。
 - **AvoidDollarSigns** — 変数/メソッド/クラス/インターフェース名にドル記号を使わない。
 - **AvoidProtectedFieldInFinalClass** — final クラスで protected フィールドを使わない。
 - **AvoidProtectedMethodInFinalClassNotExtending** — final クラスで protected メソッドを使わない。
@@ -123,9 +120,7 @@
 - **LocalInterfaceSessionNamingConvention** — Session EJB の Local インターフェースは `Local` サフィックスを付ける。
 - **LocalVariableCouldBeFinal** — 一度だけ代入されるローカル変数は final にできる。
 - **LocalVariableNamingConventions** — ローカル変数の命名規則を設定可能。
-- **LongVariable** — 長すぎる変数名は可読性を下げる。
 - **MDBAndSessionBeanNamingConvention** — MessageDrivenBean/SessionBean は `Bean` サフィックスを付ける。
-- **MethodArgumentCouldBeFinal** — 再代入されないメソッド引数は final にできる。
 - **MethodNamingConventions** — メソッド宣言の命名規則を設定可能。
 - **ModifierOrder** — JLS 推奨の修飾子順序を強制する。
 - **NoPackage** — パッケージ定義がないクラスを検出。
@@ -136,7 +131,6 @@
 - **RemoteSessionInterfaceNamingConvention** — Session EJB の Remote Home インターフェースは `Home` サフィックスを付ける。
 - **ShortClassName** — 短すぎるクラス名を検出。
 - **ShortMethodName** — 短すぎるメソッド名を検出。
-- **ShortVariable** — 短すぎる変数名を検出。
 - **TooManyStaticImports** — static import の過剰使用を検出。
 - **TypeParameterNamingConventions** — 型パラメータの命名規則を設定可能。
 - **UnnecessaryAnnotationValueElement** — アノテーションの唯一の要素が value の場合、明示不要。
@@ -389,7 +383,6 @@
 - DI（コンストラクタインジェクション）には `@RequiredArgsConstructor` を使用する。
 - ロガーフィールドを手動宣言する代わりに `@Slf4j` を使用する。
 - `@Getter`、`@Builder`、`@Value`（不変）を適宜使用する。
-- Lombok 生成コンストラクタは PMD の `AtLeastOneConstructor` ルールを満たす。
 - 本番コードの可変クラスに `@Data` を使わない — 不変には `@Value`、それ以外は明示的な getter/setter を優先する。
 - `@Setter` を使わない — 可変性を最小限に保つため、フィールドへの書き込みが必要な場合は明示的な setter メソッドか、ビルダーパターン（`@Builder`）を使用する。
 

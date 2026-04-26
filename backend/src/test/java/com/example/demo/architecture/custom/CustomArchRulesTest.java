@@ -1,8 +1,12 @@
 package com.example.demo.architecture.custom;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -19,6 +23,21 @@ class CustomArchRulesTest {
 
   /** package-info クラスの除外条件用。 */
   private static final String PKG_INFO = "package-info";
+
+  /** {@code @CommandHandler} メソッド判定用。 */
+  @SuppressWarnings("unchecked")
+  private static final DescribedPredicate<JavaMethod> HAS_CMD_HANDLER =
+      (DescribedPredicate<JavaMethod>)
+          (DescribedPredicate<?>)
+              Predicates.annotatedWith(org.jmolecules.architecture.cqrs.CommandHandler.class);
+
+  /** {@code @ApplicationModuleListener} メソッド判定用。 */
+  @SuppressWarnings("unchecked")
+  private static final DescribedPredicate<JavaMethod> HAS_MOD_LISTENER =
+      (DescribedPredicate<JavaMethod>)
+          (DescribedPredicate<?>)
+              Predicates.annotatedWith(
+                  org.springframework.modulith.events.ApplicationModuleListener.class);
 
   // === アノテーション配置制約 ===
 
@@ -353,15 +372,105 @@ class CustomArchRulesTest {
           .because("対象クラスを ..model.valueobject.. パッケージに移動してください")
           .allowEmptyShould(true);
 
-  /** Repository 実装（インターフェース）は domain/repository にのみ配置可能。 */
+  /** Repository インターフェースは domain/repository にのみ配置可能（infrastructure の実装クラスは除外）。 */
   @ArchTest
   /* default */ static final ArchRule REPO_IN_PKG =
       classes()
           .that()
           .areAssignableTo(org.jmolecules.ddd.types.Repository.class)
+          .and()
+          .areInterfaces()
           .should()
           .resideInAPackage("..domain.repository..")
-          .as("Repository 実装は ..domain.repository.. パッケージにのみ配置可能")
-          .because("対象クラスを ..domain.repository.. パッケージに移動してください")
+          .as("Repository インターフェースは ..domain.repository.. パッケージにのみ配置可能")
+          .because("対象インターフェースを ..domain.repository.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  // === メソッドアノテーション配置制約 ===
+
+  /** {@code @CommandHandler} メソッドを持つクラスは command/handler にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule CMD_H_METHOD =
+      classes()
+          .that()
+          .containAnyMethodsThat(HAS_CMD_HANDLER)
+          .should()
+          .resideInAPackage("..command.handler..")
+          .as("@CommandHandler メソッドを持つクラスは ..command.handler.. パッケージにのみ配置可能")
+          .because("対象クラスを ..command.handler.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  /** {@code @ApplicationModuleListener} メソッドを持つクラスは command/handler にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule EVT_LISTENER =
+      classes()
+          .that()
+          .containAnyMethodsThat(HAS_MOD_LISTENER)
+          .should()
+          .resideInAPackage("..command.handler..")
+          .as("@ApplicationModuleListener メソッドを持つクラスは ..command.handler.. パッケージにのみ配置可能")
+          .because("対象クラスを ..command.handler.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  // === 実装クラス配置制約 ===
+
+  /** RepositoryImpl クラスは infrastructure/db/repository にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule REPO_IMPL_PKG =
+      classes()
+          .that()
+          .haveSimpleNameEndingWith("RepositoryImpl")
+          .should()
+          .resideInAPackage("..infrastructure.db.repository..")
+          .as("*RepositoryImpl クラスは ..infrastructure.db.repository.. パッケージにのみ配置可能")
+          .because("対象クラスを ..infrastructure.db.repository.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  /** QueryServiceImpl クラスは infrastructure/db/query にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule QRY_IMPL_PKG =
+      classes()
+          .that()
+          .haveSimpleNameEndingWith("QueryServiceImpl")
+          .should()
+          .resideInAPackage("..infrastructure.db.query..")
+          .as("*QueryServiceImpl クラスは ..infrastructure.db.query.. パッケージにのみ配置可能")
+          .because("対象クラスを ..infrastructure.db.query.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  // === 不変性制約 ===
+
+  /** aggregate のフィールドは private final でなければならない。 */
+  @ArchTest
+  /* default */ static final ArchRule AGG_FIELDS_FINAL =
+      fields()
+          .that()
+          .areDeclaredInClassesThat()
+          .resideInAPackage("..model.aggregate..")
+          .and()
+          .areNotStatic()
+          .should()
+          .bePrivate()
+          .andShould()
+          .beFinal()
+          .as("aggregate のフィールドは private final でなければならない")
+          .because("不変性制約: フィールドに private final を付与してください。" + " 状態変更は新しいインスタンスを生成してください")
+          .allowEmptyShould(true);
+
+  /** entity のフィールドは private final でなければならない。 */
+  @ArchTest
+  /* default */ static final ArchRule ENT_FIELDS_FINAL =
+      fields()
+          .that()
+          .areDeclaredInClassesThat()
+          .resideInAPackage("..model.entity..")
+          .and()
+          .areNotStatic()
+          .should()
+          .bePrivate()
+          .andShould()
+          .beFinal()
+          .as("entity のフィールドは private final でなければならない")
+          .because("不変性制約: フィールドに private final を付与してください。" + " 状態変更は新しいインスタンスを生成してください")
           .allowEmptyShould(true);
 }
