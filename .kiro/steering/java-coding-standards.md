@@ -93,7 +93,7 @@
 
 ## コードスタイル (`codestyle.xml`)
 
-適用ルール（56 件、deprecated 除外）:
+適用ルール（55 件、deprecated 除外）:
 
 - **AvoidDollarSigns** — 変数/メソッド/クラス/インターフェース名にドル記号を使わない。
 - **AvoidProtectedFieldInFinalClass** — final クラスで protected フィールドを使わない。
@@ -129,7 +129,6 @@
 - **PrematureDeclaration** — 使用前に早すぎる変数宣言を検出。
 - **RemoteInterfaceNamingConvention** — Session EJB の Remote インターフェースにサフィックスを付けない。
 - **RemoteSessionInterfaceNamingConvention** — Session EJB の Remote Home インターフェースは `Home` サフィックスを付ける。
-- **ShortClassName** — 短すぎるクラス名を検出。
 - **ShortMethodName** — 短すぎるメソッド名を検出。
 - **TooManyStaticImports** — static import の過剰使用を検出。
 - **TypeParameterNamingConventions** — 型パラメータの命名規則を設定可能。
