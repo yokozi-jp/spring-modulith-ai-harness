@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -22,27 +23,46 @@ class NullMarkedPackageInfoTest {
 
   @Test
   void allPackagesShouldHaveNullMarkedPackageInfo() throws IOException {
-    try (Stream<Path> dirs = Files.walk(SRC_ROOT)) {
-      final List<Path> violations =
-          dirs.filter(Files::isDirectory).filter(this::isMissingNullMarkedPackageInfo).toList();
+    final List<String> violations = new ArrayList<>();
 
-      assertThat(violations)
-          .as("These packages are missing @NullMarked package-info.java")
-          .isEmpty();
+    try (Stream<Path> dirs = Files.walk(SRC_ROOT)) {
+      dirs.filter(Files::isDirectory).forEach(dir -> checkNullMarked(dir, violations));
     }
+
+    assertThat(violations).as("@NullMarked package-info.java の違反 — 各項目の修正指示に従ってください").isEmpty();
   }
 
-  private boolean isMissingNullMarkedPackageInfo(final Path dir) {
+  private void checkNullMarked(final Path dir, final List<String> violations) {
     final Path packageInfo = dir.resolve("package-info.java");
-    boolean missing = !Files.exists(packageInfo);
-    if (!missing) {
-      try {
-        final String content = Files.readString(packageInfo);
-        missing = !content.contains("@NullMarked");
-      } catch (IOException exception) {
-        missing = true;
-      }
+    final String relative = SRC_ROOT.relativize(dir).toString().replace('\\', '/');
+    final String pkg =
+        relative.isEmpty() ? "com.example.demo" : "com.example.demo." + relative.replace('/', '.');
+
+    if (!Files.exists(packageInfo)) {
+      violations.add(
+          relative
+              + " — package-info.java が存在しない。"
+              + " 修正: "
+              + dir
+              + "/package-info.java を作成し、"
+              + "内容は '@NullMarked package "
+              + pkg
+              + ";' + import org.jspecify.annotations.NullMarked; としてください");
+      return;
     }
-    return missing;
+    try {
+      final String content = Files.readString(packageInfo);
+      if (!content.contains("@NullMarked")) {
+        violations.add(
+            relative
+                + " — package-info.java に @NullMarked が未記述。"
+                + " 修正: "
+                + packageInfo
+                + " に '@NullMarked' アノテーションと"
+                + " 'import org.jspecify.annotations.NullMarked;' を追加してください");
+      }
+    } catch (IOException exception) {
+      violations.add(relative + " — package-info.java の読み取りに失敗: " + exception.getMessage());
+    }
   }
 }

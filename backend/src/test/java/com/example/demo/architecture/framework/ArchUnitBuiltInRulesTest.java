@@ -25,24 +25,32 @@ class ArchUnitBuiltInRulesTest {
   /** java.util.logging の使用を禁止し SLF4J に統一する。 */
   @ArchTest
   /* default */ static final ArchRule NO_JUL =
-      GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING.allowEmptyShould(true);
+      GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING
+          .because("java.util.logging の import を org.slf4j.Logger/LoggerFactory に置換してください")
+          .allowEmptyShould(true);
 
   /** フィールドインジェクション禁止。コンストラクタインジェクションを使用する。 */
   @ArchTest
   /* default */ static final ArchRule NO_FIELD_DI =
-      GeneralCodingRules.NO_CLASSES_SHOULD_USE_FIELD_INJECTION.allowEmptyShould(true);
+      GeneralCodingRules.NO_CLASSES_SHOULD_USE_FIELD_INJECTION
+          .because("@Autowired フィールドを削除し、@RequiredArgsConstructor + final フィールドに変更してください")
+          .allowEmptyShould(true);
 
   /** {@code @Deprecated} API の使用を禁止する。 */
   @ArchTest
   /* default */ static final ArchRule NO_DEPRECATED =
-      GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED.allowEmptyShould(true);
+      GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED
+          .because("@Deprecated API の呼び出しを非推奨でない代替 API に置換してください")
+          .allowEmptyShould(true);
 
   // === DependencyRules ===
 
   /** 子パッケージから親パッケージへの依存を禁止する。 */
   @ArchTest
   /* default */ static final ArchRule NO_UPPER_DEPS =
-      DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES.allowEmptyShould(true);
+      DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES
+          .because("子パッケージから親パッケージへの import を除去し、依存方向を修正してください")
+          .allowEmptyShould(true);
 
   // === ProxyRules ===
 
@@ -52,6 +60,8 @@ class ArchUnitBuiltInRulesTest {
       ProxyRules
           .no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(
               Transactional.class)
+          .because(
+              "@Transactional メソッドの呼び出しを別クラスに委譲してください" + "（同一クラス内呼び出しでは Spring AOP プロキシが機能しません）")
           .allowEmptyShould(true);
 
   /** 同一クラス内での {@code @Cacheable} メソッド直接呼び出しを禁止する。 */
@@ -60,6 +70,7 @@ class ArchUnitBuiltInRulesTest {
       ProxyRules
           .no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(
               Cacheable.class)
+          .because("@Cacheable メソッドの呼び出しを別クラスに委譲してください" + "（同一クラス内呼び出しでは Spring AOP プロキシが機能しません）")
           .allowEmptyShould(true);
 
   /** 同一クラス内での {@code @Async} メソッド直接呼び出しを禁止する。 */
@@ -68,5 +79,6 @@ class ArchUnitBuiltInRulesTest {
       ProxyRules
           .no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(
               Async.class)
+          .because("@Async メソッドの呼び出しを別クラスに委譲してください" + "（同一クラス内呼び出しでは Spring AOP プロキシが機能しません）")
           .allowEmptyShould(true);
 }

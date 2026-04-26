@@ -60,6 +60,18 @@ class OnionRingAnnotationTest {
   /** Onion アノテーション名の定数。 */
   private static final String INFRA = "@InfrastructureRing";
 
+  /** アノテーション名から import 文を導出するための FQCN マッピング。 */
+  private static final Map<String, String> IMPORT_MAP =
+      Map.of(
+          DOMAIN_MODEL,
+          "org.jmolecules.architecture.onion.classical.DomainModelRing",
+          DOMAIN_SVC,
+          "org.jmolecules.architecture.onion.classical.DomainServiceRing",
+          APP_SVC,
+          "org.jmolecules.architecture.onion.classical.ApplicationServiceRing",
+          INFRA,
+          "org.jmolecules.architecture.onion.classical.InfrastructureRing");
+
   /** パッケージ末尾名と期待する Onion アノテーションの対応。順序は具体的なパスから先にマッチさせる。 */
   private static final List<Map.Entry<String, String>> LAYER_RULES =
       List.of(
@@ -107,24 +119,58 @@ class OnionRingAnnotationTest {
     }
 
     assertThat(violations)
-        .as("Onion Architecture annotation violations in package-info.java")
+        .as("Onion Architecture annotation violations — 各項目の修正指示に従ってください")
         .isEmpty();
   }
 
   private void checkAnnotation(
       final Path dir, final String expected, final List<String> violations) {
     final Path packageInfo = dir.resolve("package-info.java");
+    final String relative = SRC_ROOT.relativize(dir).toString().replace('\\', '/');
+    final String pkg = "com.example.demo." + relative.replace('/', '.');
+    final String fqcn = IMPORT_MAP.getOrDefault(expected, "");
+
     if (!Files.exists(packageInfo)) {
-      violations.add(dir + " — package-info.java が存在しない（期待: " + expected + "）");
+      violations.add(
+          relative
+              + " — package-info.java が存在しない(期待: "
+              + expected
+              + ")。"
+              + " 修正: "
+              + dir
+              + "/package-info.java を作成してください。"
+              + " 内容例: "
+              + expected
+              + " @NullMarked package "
+              + pkg
+              + "; (import: "
+              + fqcn
+              + ")");
       return;
     }
     try {
       final String content = Files.readString(packageInfo);
       if (!content.contains(expected)) {
-        violations.add(dir + " — " + expected + " が見つからない");
+        violations.add(
+            relative
+                + " — package-info.java に "
+                + expected
+                + " が未記述。"
+                + " 修正: "
+                + packageInfo
+                + " に "
+                + expected
+                + " を追加してください。"
+                + " 内容例: "
+                + expected
+                + " @NullMarked package "
+                + pkg
+                + "; (import: "
+                + fqcn
+                + ")");
       }
     } catch (IOException exception) {
-      violations.add(dir + " — package-info.java の読み取りに失敗");
+      violations.add(relative + " — package-info.java の読み取りに失敗: " + exception.getMessage());
     }
   }
 }
