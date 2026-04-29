@@ -87,7 +87,7 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 ## パッケージ依存制約
 
 - **query → domain 禁止**: query パッケージは domain パッケージに依存してはいけない。
-- **domain → Spring 禁止**: domain パッケージは Spring に依存してはいけない。ただし `domain/service` と `domain/repository` は jMolecules ByteBuddy プラグインにより Spring アノテーションが付与されるため除外。
+- **domain → Spring 禁止**: domain パッケージは Spring に依存してはいけない。ただし `domain/service` と `domain/repository` は jMolecules ByteBuddy プラグインにより Spring ステレオタイプアノテーションがビルド時にバイトコードレベルで付与されるため除外（ソースコード上は jMolecules アノテーションのみ使用）。
 - **presentation → infrastructure 禁止**: presentation は infrastructure に依存してはいけない。
 - **子 → 親パッケージ依存禁止**: 子パッケージから親パッケージへの依存を禁止する。
 
@@ -119,6 +119,23 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 | `Repository` 実装 | `domain/repository/` のみ |
 
 逆方向も検証される: 各パッケージには対応する型の実装のみ配置可能。
+
+---
+
+## Bean 登録アノテーション規約
+
+実装クラスには以下のアノテーションを付与し、Spring Bean として登録する。
+jMolecules アノテーションは ByteBuddy プラグインにより対応する Spring ステレオタイプアノテーションにビルド時変換される。
+
+| クラス | 付与するアノテーション | ByteBuddy 変換先 |
+|---|---|---|
+| `*RepositoryImpl` | `@org.jmolecules.ddd.annotation.Repository` | → `@springframework.stereotype.Repository` |
+| `*Factory` | `@org.jmolecules.ddd.annotation.Factory` | → `@springframework.stereotype.Component` |
+| `*DomainService` | `@org.jmolecules.ddd.annotation.Service` | → `@springframework.stereotype.Service` |
+| `*QueryServiceImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
+| `*IdGeneratorImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
+
+`create-class.sh` が自動付与するため手動で追加する必要はない。
 
 ---
 

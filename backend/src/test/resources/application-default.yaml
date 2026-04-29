@@ -1,0 +1,11 @@
+# テスト用設定（default プロファイル）
+# main/resources/application.yaml をベースとし、テスト固有の値のみ上書きする。
+# OAuth2 issuer-uri は TestcontainersConfiguration の Keycloak コンテナが動的に上書きする。
+# ここではプレースホルダー解決エラーを防ぐためダミー値を設定する。
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost/dummy
