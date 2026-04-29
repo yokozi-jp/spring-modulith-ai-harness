@@ -153,6 +153,7 @@ dependencies {
 
     // テスト: Testcontainers（統合テスト用コンテナ管理）
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'com.github.dasniko:testcontainers-keycloak:4.2.1'
     testImplementation 'org.testcontainers:testcontainers-grafana'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
