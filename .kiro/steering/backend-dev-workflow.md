@@ -34,20 +34,20 @@ cd backend && ./scripts/create-class.sh <module> <layer> <name> [--aggregate <Ag
 | layer | 配置先 | 生成物 |
 |---|---|---|
 | `event` | `event/` | record（`@DomainEvent`） |
-| `aggregate` | `domain/model/aggregate/` | class（`AggregateRoot` 実装）+ Identifier + Factory + Repository + RepositoryImpl |
-| `entity` | `domain/model/entity/` | class（`Entity` 実装）+ Identifier + Factory + IdGenerator + IdGeneratorImpl |
+| `aggregate` | `domain/model/aggregate/` | class（`AggregateRoot` 実装）+ Identifier + Factory（`@Factory`） + Repository + RepositoryImpl（`@Repository`） |
+| `entity` | `domain/model/entity/` | class（`Entity` 実装）+ Identifier + Factory（`@Factory`） + IdGenerator + IdGeneratorImpl（`@Component`） |
 | `identifier` | `domain/model/valueobject/identifier/` | record（`Identifier` 実装） |
 | `valueobject` | `domain/model/valueobject/` | record（`ValueObject` 実装） |
-| `repository` | `domain/repository/` | interface（`Repository`）+ RepositoryImpl |
-| `repositoryimpl` | `infrastructure/db/repository/` | class |
-| `factory` | `domain/service/` | class |
-| `domainservice` | `domain/service/` | class |
+| `repository` | `domain/repository/` | interface（`Repository`）+ RepositoryImpl（`@Repository`） |
+| `repositoryimpl` | `infrastructure/db/repository/` | class（`@Repository`） |
+| `factory` | `domain/service/` | class（`@Factory`） |
+| `domainservice` | `domain/service/` | class（`@Service`） |
 | `command` | `application/command/dto/` | record（`@Command`） |
 | `commandhandler` | `application/command/handler/` | class（`@CommandHandler`） |
 | `eventlistener` | `application/command/handler/` | class（`@ApplicationModuleListener`） |
 | `query` | `application/query/dto/` | record（`@QueryModel`） |
-| `queryservice` | `application/query/service/` | interface + QueryServiceImpl |
-| `queryimpl` | `infrastructure/db/query/` | class |
+| `queryservice` | `application/query/service/` | interface + QueryServiceImpl（`@Component`） |
+| `queryimpl` | `infrastructure/db/query/` | class（`@Component`） |
 | `controller` | `presentation/controller/` | class（`@RestController`） |
 | `request` | `presentation/request/` | record |
 | `response` | `presentation/response/` | record |

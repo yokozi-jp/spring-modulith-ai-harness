@@ -7,7 +7,7 @@
 
 ## プロジェクト構成
 
-- Java 25, Spring Boot 4.0.5, Spring Modulith（モジュラーモノリス）
+- Java 25, Spring Boot 4.0.6, Spring Modulith（モジュラーモノリス）
 - Google Java Format（Spotless 経由）— フォーマットを手動調整しない
 - JSpecify + NullAway 有効（`com.example.demo` パッケージ、JSpecifyMode=true）
 - テストコードでは NullAway 無効

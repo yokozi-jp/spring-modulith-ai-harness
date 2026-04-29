@@ -221,9 +221,11 @@ import ${id_pkg}.${id_cls};
 import ${repo_pkg}.${target}Repository;
 import ${target_pkg}.${target};
 import lombok.RequiredArgsConstructor;
+import org.jmolecules.ddd.annotation.Factory;
 
 /** ${target} ファクトリ。 */
 @RequiredArgsConstructor
+@Factory
 public class ${target}Factory {
 
   /** リポジトリ。 */
@@ -247,9 +249,11 @@ package $pkg;
 import ${gen_pkg}.${gen_iface};
 import ${target_pkg}.${target};
 import lombok.RequiredArgsConstructor;
+import org.jmolecules.ddd.annotation.Factory;
 
 /** ${target} ファクトリ。 */
 @RequiredArgsConstructor
+@Factory
 public class ${target}Factory {
 
   /** ID ジェネレータ。 */
@@ -294,8 +298,10 @@ package $infra_pkg;
 import ${id_pkg}.${id_cls};
 import ${repo_pkg}.${target}IdGenerator;
 import java.util.UUID;
+import org.springframework.stereotype.Component;
 
 /** ${target} の ID ジェネレータ実装。 */
+@Component
 public class ${target}IdGeneratorImpl implements ${target}IdGenerator {
 
   @Override
@@ -382,10 +388,12 @@ import ${repo_pkg}.${agg}Repository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jmolecules.ddd.annotation.Repository;
 
 /** ${agg} リポジトリ実装。 */
 @Slf4j
 @RequiredArgsConstructor
+@Repository
 public class ${agg}RepositoryImpl implements ${agg}Repository {
 
   // private final DSLContext dsl; (import org.jooq.DSLContext)
@@ -410,10 +418,12 @@ package $pkg;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jmolecules.ddd.annotation.Service;
 
 /** ${NAME} ドメインサービス。 */
 @Slf4j
 @RequiredArgsConstructor
+@Service
 public class ${NAME}DomainService {
 
   // DI フィールドをここに追加
@@ -516,10 +526,12 @@ package $pkg;
 import ${svc_pkg}.${target}QueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /** ${target} クエリサービス実装。 */
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class ${target}QueryServiceImpl implements ${target}QueryService {
 
   // private final DSLContext dsl; (import org.jooq.DSLContext)
