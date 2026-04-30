@@ -11,11 +11,21 @@ spring:
   docker:
     compose:
       lifecycle-management: start-only
+      file: ../compose.yaml
+  datasource:
+    hikari:
+      schema: public
+  liquibase:
+    default-schema: public
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/demo
+
+# Keycloak がホストの 8080 を使うため、アプリは 8081 で起動する。
+server:
+  port: 8081
 
 logging:
   level:

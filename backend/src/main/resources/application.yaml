@@ -10,9 +10,11 @@ spring:
     deserialization:
       fail-on-unknown-properties: true
 
-  # Liquibase: デフォルトパスと異なるため明示指定。
+  # Liquibase: デフォルトパス（classpath:/db/changelog/db.changelog-master.xml）と異なるため明示指定。
+  # default-schema: HikariCP の schema 設定を参照しないため個別に指定が必要。
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: ${DB_SCHEMA}
 
   # jOOQ: Testcontainers の自動検出に頼らず本番でも確実に動作させるため明示。
   jooq:
@@ -23,9 +25,12 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      schema: ${DB_SCHEMA}
 
   # OAuth2 Resource Server: issuer-uri から OIDC Discovery で JWK Set URI を自動解決。
-  # 注意: OAUTH2_ISSUER_URI は環境変数またはプロファイル別 yaml で設定すること。
+  # ローカル開発では application-default.yaml で固定値に上書きされる。
+  # 本番では環境変数 OAUTH2_ISSUER_URI を設定すること（未設定なら起動失敗する）。
   security:
     oauth2:
       resourceserver:

@@ -9,6 +9,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/dummy
     username: dummy
     password: dummy
+    hikari:
+      schema: public
+  liquibase:
+    default-schema: public
   security:
     oauth2:
       resourceserver:

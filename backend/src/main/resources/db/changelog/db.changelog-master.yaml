@@ -1,3 +1,5 @@
 databaseChangeLog:
   - includeAll:
       path: db/changelog/migrations/
+      endsWithFilter: .yaml
+      errorIfMissingOrEmpty: false
