@@ -5,6 +5,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.jmolecules.integrations:jmolecules-bytebuddy:0.33.0'
+        classpath 'org.liquibase:liquibase-core:5.0.2'
     }
 }
 
@@ -20,6 +21,7 @@ plugins {
     id 'jacoco'                                         // コードカバレッジ
     id 'net.ltgt.errorprone' version '5.1.0'            // Error Prone + NullAway
     id 'net.bytebuddy.byte-buddy-gradle-plugin' version '1.18.8-jdk5' // jMolecules バイトコード変換
+    id 'org.liquibase.gradle' version '3.1.0'           // Liquibase CLI コマンド（rollback, status 等）
 }
 
 // --- Spotless: コードフォーマット ---
@@ -257,4 +259,37 @@ byteBuddy {
 
 tasks.named('classes') {
     dependsOn tasks.named('byteBuddy')
+}
+
+// --- bootRun: デバッグ用 JDWP ---
+// JAVA_TOOL_OPTIONS は Gradle Daemon にも適用されるため、bootRun の jvmArgs で渡す。
+tasks.named('bootRun') {
+    jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005']
+}
+
+// --- Liquibase Gradle プラグイン ---
+// rollback, status 等の CLI コマンドを Gradle タスクとして実行可能にする。
+// DB 接続情報の優先順: 環境変数 → -P オプション → デフォルト値（ローカル開発用）
+def liquibaseDbUrl = System.getenv('DATASOURCE_URL') ?: 'jdbc:postgresql://localhost:5432/demo'
+def liquibaseDbUsername = System.getenv('DATASOURCE_USERNAME') ?: 'demo'
+def liquibaseDbPassword = System.getenv('DATASOURCE_PASSWORD') ?: 'demo'
+def liquibaseDbSchema = System.getenv('DB_SCHEMA') ?: 'public'
+
+liquibase {
+    activities {
+        main {
+            changelogFile 'db/changelog/db.changelog-master.yaml'
+            searchPath 'src/main/resources'
+            url liquibaseDbUrl
+            username liquibaseDbUsername
+            password liquibaseDbPassword
+            defaultSchemaName liquibaseDbSchema
+        }
+    }
+}
+
+dependencies {
+    liquibaseRuntime 'org.liquibase:liquibase-core:5.0.2'
+    liquibaseRuntime 'org.postgresql:postgresql'
+    liquibaseRuntime 'info.picocli:picocli:4.7.7'
 }

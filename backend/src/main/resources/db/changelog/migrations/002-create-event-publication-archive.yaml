@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: "002-create-event-publication-archive"
+      author: "system"
+      changes:
+        - createTable:
+            tableName: event_publication_archive
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: listener_id
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: serialized_event
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: publication_date
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completion_date
+                  type: timestamptz
+              - column:
+                  name: status
+                  type: text
+              - column:
+                  name: completion_attempts
+                  type: int
+              - column:
+                  name: last_resubmission_date
+                  type: timestamptz
+        - createIndex:
+            indexName: event_publication_archive_serialized_event_hash_idx
+            tableName: event_publication_archive
+            using: hash
+            columns:
+              - column:
+                  name: serialized_event
+        - createIndex:
+            indexName: event_publication_archive_by_completion_date_idx
+            tableName: event_publication_archive
+            columns:
+              - column:
+                  name: completion_date
