@@ -1,0 +1,10 @@
+.gradle/
+build/
+bin/
+net/
+.classpath
+.factorypath
+.project
+.settings/
+.gitattributes
+scripts/

@@ -13,6 +13,8 @@ hs_err_pid*
 replay_pid*
 HELP.md
 .gradle
+.gradle-docker
+.gradle-docker-project
 build/
 !backend/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
