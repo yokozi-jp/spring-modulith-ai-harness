@@ -123,6 +123,7 @@ dependencies {
 
     // 開発時のみ（ホットリロード等）
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
     // ランタイム
     runtimeOnly 'org.postgresql:postgresql'

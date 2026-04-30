@@ -1,12 +1,16 @@
 # ローカル開発用設定（default プロファイル）
 # 明示的に spring.profiles.active を指定しない場合に適用される。
+# Docker Compose で起動した外部依存に接続する。
+#
+# DB 接続情報は spring-boot-docker-compose が PostgreSQL コンテナを検出して自動注入するため不要。
+# OAuth2 issuer-uri は自動注入されないためここで固定値を設定する。
+# application.yaml の ${OAUTH2_ISSUER_URI} は本番用プレースホルダーとして残し、
+# このファイルで上書きすることで bootRun 時に .env や環境変数の設定を不要にしている。
 
 spring:
-  # Testcontainers で自動起動される PostgreSQL に接続。
-  # spring-boot-testcontainers + ServiceConnection により
-  # datasource URL は自動設定されるため、ここでは指定不要。
-
-  # OAuth2: ローカルでは Keycloak コンテナ等を想定。
+  docker:
+    compose:
+      lifecycle-management: start-only
   security:
     oauth2:
       resourceserver:

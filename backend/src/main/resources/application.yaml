@@ -18,6 +18,12 @@ spring:
   jooq:
     sql-dialect: postgres
 
+  # DataSource: 環境変数で注入する。ローカル開発では .env で管理。
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
   # OAuth2 Resource Server: issuer-uri から OIDC Discovery で JWK Set URI を自動解決。
   # 注意: OAUTH2_ISSUER_URI は環境変数またはプロファイル別 yaml で設定すること。
   security:

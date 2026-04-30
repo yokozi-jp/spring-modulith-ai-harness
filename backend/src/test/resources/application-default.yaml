@@ -1,9 +1,14 @@
 # テスト用設定（default プロファイル）
 # main/resources/application.yaml をベースとし、テスト固有の値のみ上書きする。
+# datasource は Testcontainers の @ServiceConnection が動的に上書きする。
 # OAuth2 issuer-uri は TestcontainersConfiguration の Keycloak コンテナが動的に上書きする。
 # ここではプレースホルダー解決エラーを防ぐためダミー値を設定する。
 
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dummy
+    username: dummy
+    password: dummy
   security:
     oauth2:
       resourceserver:

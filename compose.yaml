@@ -1,0 +1,72 @@
+# ローカル開発用 Docker Compose
+# デフォルト: インフラのみ起動（bootRun 用）— ADR-0001 参照
+# コンテナ確認: docker compose --profile app up --build
+
+services:
+  app:
+    build:
+      context: ./backend
+    profiles: [app]
+    ports:
+      - "${APP_PORT:-8081}:8080"
+      - "${DEBUG_PORT:-5005}:5005"
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/demo
+      OAUTH2_ISSUER_URI: http://keycloak:8080/realms/demo
+      JAVA_TOOL_OPTIONS: >-
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+  postgres:
+    image: postgres:18.3
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.0
+    ports:
+      - "8080:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - ./docker/keycloak/demo-realm.json:/opt/keycloak/data/import/demo-realm.json:ro
+    command: start-dev --import-realm --health-enabled=true
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  grafana-lgtm:
+    image: grafana/otel-lgtm:0.26.0
+    ports:
+      - "3000:3000" # Grafana UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+
+volumes:
+  postgres-data:
