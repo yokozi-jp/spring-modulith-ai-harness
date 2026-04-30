@@ -1,7 +1,10 @@
 # === dev: 開発用（bootRun + DevTools ホットリロード）===
 FROM amazoncorretto:25 AS dev
 WORKDIR /app
-RUN yum install -y findutils && yum clean all
+RUN yum install -y findutils shadow-utils && yum clean all \
+ && groupadd --gid 1000 app \
+ && useradd --uid 1000 --gid app app
+USER app
 EXPOSE 8081 5005
 CMD ["./gradlew", "bootRun"]
 
