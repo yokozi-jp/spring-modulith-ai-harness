@@ -18,3 +18,29 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost/dummy
+  devtools:
+    restart:
+      poll-interval: 2s
+      quiet-period: 1s
+
+server:
+  port: 8081
+
+logging:
+  level:
+    "[com.example.demo]": debug
+    "[org.jooq]": debug
+management:
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost/dummy
+    logging:
+      export:
+        otlp:
+          endpoint: http://localhost/dummy
+  otlp:
+    metrics:
+      export:
+        url: http://localhost/dummy

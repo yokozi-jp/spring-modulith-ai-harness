@@ -2,9 +2,9 @@
 
 ## 方針
 
-- 日常開発は `bootRun`（ホスト JVM）で行う（ADR-0001）
-- コンテナ確認・E2E・CI 用に compose profiles でアプリコンテナを起動できる
-- Dockerfile は本番デプロイでもそのまま使う
+- 開発はコンテナ内 bootRun で行う（ADR-0001）
+- `.env` で全環境変数を一元管理する
+- Dockerfile は本番デプロイでもそのまま使う（マルチステージ: dev + builder + runtime）
 
 ## Dockerfile 配置
 
@@ -16,31 +16,32 @@ frontend/Dockerfile      ← context: ./frontend（将来）
 docker/keycloak/         ← アプリ外の設定ファイル
 ```
 
-理由: ビルドコンテキストをアプリディレクトリに閉じることで、不要ファイルの送信を防ぎ、Dockerfile 内のパスをシンプルに保つ。
-
 ## compose.yaml の構成
 
 - プロファイルなし: インフラのみ（PostgreSQL, Keycloak, Grafana LGTM）
-- `--profile app`: インフラ + アプリコンテナ
+- `--profile app`: インフラ + アプリコンテナ（dev ステージ、バインドマウント + bootRun）
 
 ```bash
-# 日常開発
-docker compose up -d
-cd backend && ./gradlew bootRun
+# 開発
+docker compose up --build
 
-# コンテナ確認
-docker compose --profile app up --build
+# テスト・静的解析（ホストで実行）
+cd backend && ./gradlew check
 ```
 
 ## ベースイメージ
 
 Amazon Corretto を使用する（ローカル開発環境と同じディストリビューション）。
 
-- builder ステージ: `amazoncorretto:<version>`（JDK）
-- runtime ステージ: `amazoncorretto:<version>-headless`（JRE 相当）
+- dev ステージ: `amazoncorretto:<version>`（JDK、bootRun 用）
+- builder ステージ: `amazoncorretto:<version>`（JDK、fat JAR ビルド用）
+- runtime ステージ: `amazoncorretto:<version>-headless`（JRE 相当、本番用）
 
 ## 環境変数
 
-- ローカル開発（bootRun）: `application-default.yaml` で固定値を設定。環境変数や `.env` は不要
-- コンテナ確認（`--profile app`）: `compose.yaml` の `environment` で Docker ネットワーク内アドレスを直接指定
-- 本番: 環境変数を直接設定する（`SPRING_DATASOURCE_URL`, `OAUTH2_ISSUER_URI`, `DB_SCHEMA` 等）
+- `application.yaml` の環境固有の値はすべて `${ENV_VAR}` プレースホルダーで定義する
+- プレースホルダーにデフォルト値を設定しない（未設定時は起動失敗させる）
+- ローカル開発: `.env` で全環境変数を管理（`env_file: .env` で読み込み）
+- 本番: 環境変数を直接設定する
+- 必要な環境変数の一覧は `.env.example` を参照する
+- テスト: `test/resources/application-default.yaml` でダミー値を設定（Testcontainers が動的に上書き）

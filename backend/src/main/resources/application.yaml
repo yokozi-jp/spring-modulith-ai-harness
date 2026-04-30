@@ -22,9 +22,9 @@ spring:
 
   # DataSource: 環境変数で注入する。ローカル開発では .env で管理。
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     hikari:
       schema: ${DB_SCHEMA}
 
@@ -44,7 +44,7 @@ spring:
     events:
       jdbc:
         schema-initialization:
-          enabled: true
+          enabled: false
       completion-mode: update
       republish-outstanding-events-on-restart: false
 
@@ -63,8 +63,16 @@ spring:
     virtual:
       enabled: true
 
+  # DevTools: コンテナ内のバインドマウントではファイル変更イベントが遅延するため、
+  # ポーリング間隔を明示する。本番では devtools 自体が無効化される。
+  devtools:
+    restart:
+      poll-interval: ${SPRING_DEVTOOLS_RESTART_POLL_INTERVAL}
+      quiet-period: ${SPRING_DEVTOOLS_RESTART_QUIET_PERIOD}
+
 # Server: graceful shutdown を有効化。
 server:
+  port: ${SERVER_PORT}
   shutdown: graceful
 
 # Actuator: 必要なエンドポイントのみ公開（"*" は避ける）。
@@ -83,14 +91,29 @@ management:
   info:
     env:
       enabled: true
+  # OpenTelemetry: OTLP エクスポーターのエンドポイント。
+  # プロパティ名がシグナルごとに異なるため、環境変数も個別に設定する。
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT}
+    logging:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT}
+  otlp:
+    metrics:
+      export:
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT}
 
 # Logging: correlation パターンで OpenTelemetry の traceId/spanId をログに含め、
 # 分散トレーシングとログの紐付けを実現。
 logging:
   level:
     root: info
-    "[com.example.demo]": info
+    "[com.example.demo]": ${LOGGING_LEVEL_COM_EXAMPLE_DEMO}
     "[org.springframework.modulith]": info
-    "[org.jooq]": info
+    "[org.jooq]": ${LOGGING_LEVEL_ORG_JOOQ}
   pattern:
     correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
