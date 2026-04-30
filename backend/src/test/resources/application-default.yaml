@@ -24,13 +24,16 @@ spring:
       quiet-period: 1s
 
 server:
-  port: 8081
+  port: 18080
 
 logging:
   level:
     "[com.example.demo]": debug
     "[org.jooq]": debug
 management:
+  tracing:
+    sampling:
+      probability: 1.0
   opentelemetry:
     tracing:
       export:
@@ -44,3 +47,9 @@ management:
     metrics:
       export:
         url: http://localhost/dummy
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

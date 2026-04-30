@@ -88,6 +88,11 @@ management:
       show-details: when-authorized
       probes:
         enabled: true
+  # トレースサンプリング率: デフォルト 0.1（10%）。環境変数で制御する。
+  # 開発では 1.0（100%）を推奨。本番ではパフォーマンス影響を考慮し 0.1 以下に下げること。
+  tracing:
+    sampling:
+      probability: ${MANAGEMENT_TRACING_SAMPLING_PROBABILITY}
   info:
     env:
       enabled: true
@@ -117,3 +122,10 @@ logging:
     "[org.jooq]": ${LOGGING_LEVEL_ORG_JOOQ}
   pattern:
     correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+
+# SpringDoc: デフォルト OFF。開発時は環境変数で有効化する。
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED}
+  swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED}

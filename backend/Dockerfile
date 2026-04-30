@@ -5,7 +5,7 @@ RUN yum install -y findutils shadow-utils && yum clean all \
  && groupadd --gid 1000 app \
  && useradd --uid 1000 --gid app app
 USER app
-EXPOSE 8081 5005
+EXPOSE 18080 5005
 CMD ["./gradlew", "bootRun"]
 
 # === builder: Gradle ビルド → fat JAR 生成 ===
@@ -34,5 +34,5 @@ USER app
 
 COPY --from=builder /app/build/libs/demo-*-SNAPSHOT.jar app.jar
 
-EXPOSE 8081
+EXPOSE 18080
 ENTRYPOINT ["java", "-jar", "app.jar"]
