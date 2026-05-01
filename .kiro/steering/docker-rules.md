@@ -18,8 +18,8 @@ docker/keycloak/         ← アプリ外の設定ファイル
 
 ## compose.yaml の構成
 
-- プロファイルなし: インフラのみ（PostgreSQL, Keycloak, Grafana LGTM）
-- `--profile app`: インフラ + アプリコンテナ（dev ステージ、バインドマウント + bootRun）
+- `docker compose up --build` で全サービス起動（インフラ + アプリ）
+- app サービスは dev ステージをターゲットにし、ソースをバインドマウント
 
 ```bash
 # 開発

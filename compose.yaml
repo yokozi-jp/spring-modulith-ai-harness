@@ -20,6 +20,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       keycloak:
         condition: service_healthy
 
@@ -32,6 +34,7 @@ services:
       POSTGRES_DB: demo
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: demo
+      TZ: ${TZ}
     volumes:
       - postgres-data:/var/lib/postgresql
     healthcheck:
@@ -64,6 +67,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  redis:
+    container_name: redis
+    image: redis:8.6.2
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   grafana-lgtm:
     container_name: grafana-lgtm

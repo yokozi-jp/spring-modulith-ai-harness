@@ -5,6 +5,10 @@
 # ここではプレースホルダー解決エラーを防ぐためダミー値を設定する。
 
 spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
   datasource:
     url: jdbc:postgresql://localhost:5432/dummy
     username: dummy
@@ -15,9 +19,18 @@ spring:
     default-schema: public
   security:
     oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost/dummy
+      client:
+        registration:
+          keycloak:
+            client-id: dummy
+            client-secret: dummy
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            issuer-uri: http://localhost/dummy
+            user-name-attribute: preferred_username
   devtools:
     restart:
       poll-interval: 2s
@@ -25,6 +38,10 @@ spring:
 
 server:
   port: 18080
+
+actuator:
+  username: admin
+  password: admin
 
 logging:
   level:

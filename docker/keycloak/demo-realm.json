@@ -18,10 +18,15 @@
     {
       "clientId": "demo-app",
       "enabled": true,
-      "publicClient": true,
+      "publicClient": false,
+      "secret": "demo-app-secret",
       "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
       "redirectUris": ["*"],
-      "webOrigins": ["*"]
+      "webOrigins": ["*"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ],
   "users": [
