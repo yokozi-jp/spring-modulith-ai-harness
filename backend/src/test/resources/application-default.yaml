@@ -29,7 +29,10 @@ spring:
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           keycloak:
-            issuer-uri: http://localhost/dummy
+            authorization-uri: http://localhost/dummy
+            token-uri: http://localhost/dummy
+            jwk-set-uri: http://localhost/dummy
+            user-info-uri: http://localhost/dummy
             user-name-attribute: preferred_username
   devtools:
     restart:
@@ -38,6 +41,10 @@ spring:
 
 server:
   port: 18080
+  servlet:
+    session:
+      cookie:
+        secure: false
 
 actuator:
   username: admin

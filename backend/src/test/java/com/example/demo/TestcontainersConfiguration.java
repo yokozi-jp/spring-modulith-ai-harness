@@ -43,8 +43,17 @@ class TestcontainersConfiguration {
   @Bean
   /* default */ DynamicPropertyRegistrar keycloakProperties(KeycloakContainer keycloak) {
     return registry -> {
-      final String issuerUri = keycloak.getAuthServerUrl() + "/realms/demo";
-      registry.add("spring.security.oauth2.client.provider.keycloak.issuer-uri", () -> issuerUri);
+      final String oidcBase = keycloak.getAuthServerUrl() + "/realms/demo/protocol/openid-connect";
+      registry.add(
+          "spring.security.oauth2.client.provider.keycloak.authorization-uri",
+          () -> oidcBase + "/auth");
+      registry.add(
+          "spring.security.oauth2.client.provider.keycloak.token-uri", () -> oidcBase + "/token");
+      registry.add(
+          "spring.security.oauth2.client.provider.keycloak.jwk-set-uri", () -> oidcBase + "/certs");
+      registry.add(
+          "spring.security.oauth2.client.provider.keycloak.user-info-uri",
+          () -> oidcBase + "/userinfo");
       registry.add(
           "spring.security.oauth2.client.registration.keycloak.client-id", () -> "demo-app");
       registry.add(

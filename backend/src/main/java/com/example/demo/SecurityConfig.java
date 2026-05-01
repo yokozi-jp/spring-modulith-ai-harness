@@ -23,7 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * <p>2 つの SecurityFilterChain を定義する:
  *
  * <ol>
- *   <li>Actuator / Swagger — Basic 認証
+ *   <li>Actuator / Swagger — Basic 認証（ステートレス）
  *   <li>それ以外 — OAuth2 Login (BFF) + セッション Cookie
  * </ol>
  */
@@ -34,6 +34,9 @@ class SecurityConfig {
 
   /**
    * Actuator + Swagger 用の SecurityFilterChain。Basic 認証で保護する。
+   *
+   * <p>ステートレス構成にし、OAuth2 の AuthenticationEntryPoint を排除するため exceptionHandling で
+   * HttpStatusEntryPoint(401) を明示設定する。httpBasic が WWW-Authenticate ヘッダーを付与する。
    *
    * <p>ECS タスクヘルスチェックおよび ALB ターゲットグループのヘルスチェックは認証不要で公開する。
    */
@@ -49,7 +52,22 @@ class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        .httpBasic(withDefaults())
+        .httpBasic(
+            basic ->
+                basic.authenticationEntryPoint(
+                    (request, response, authException) -> {
+                      response.setStatus(401);
+                      response.setHeader("WWW-Authenticate", "Basic realm=\"actuator\"");
+                      response.flushBuffer();
+                    }))
+        .exceptionHandling(
+            ex ->
+                ex.authenticationEntryPoint(
+                    (request, response, authException) -> {
+                      response.setStatus(401);
+                      response.setHeader("WWW-Authenticate", "Basic realm=\"actuator\"");
+                      response.flushBuffer();
+                    }))
         .csrf(AbstractHttpConfigurer::disable);
     return http.build();
   }

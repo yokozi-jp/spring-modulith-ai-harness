@@ -56,7 +56,10 @@ spring:
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           keycloak:
-            issuer-uri: ${OAUTH2_ISSUER_URI}
+            authorization-uri: ${OAUTH2_AUTHORIZATION_URI}
+            token-uri: ${OAUTH2_TOKEN_URI}
+            jwk-set-uri: ${OAUTH2_JWK_SET_URI}
+            user-info-uri: ${OAUTH2_USERINFO_URI}
             user-name-attribute: preferred_username
 
   # Spring Modulith Events: JDBC ベースの Event Publication Registry。
@@ -96,6 +99,10 @@ spring:
 server:
   port: ${SERVER_PORT}
   shutdown: graceful
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE}
 
 # Actuator / Swagger 用 Basic 認証の資格情報。環境変数で注入する。
 actuator:
