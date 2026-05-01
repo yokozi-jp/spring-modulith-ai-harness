@@ -2,6 +2,19 @@ spring:
   application:
     name: demo
 
+  # Redis: Spring Session のセッションストアとして使用。
+  # ホスト・ポートは環境変数で注入する。ローカル開発では .env で管理。
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+
+  # Spring Session: Redis をセッションストアに使用し、OAuth2 トークンをサーバーサイドで管理。
+  session:
+    data:
+      redis:
+        namespace: "demo:session"
+
   # Jackson (3.x): fail-on-unknown-properties で不正リクエストを早期検出。
   # non-null で null フィールドをレスポンスから除外。
   # Jackson 3 では java.time はデフォルトで ISO-8601 文字列にシリアライズされる。
@@ -28,14 +41,26 @@ spring:
     hikari:
       schema: ${DB_SCHEMA}
 
-  # OAuth2 Resource Server: issuer-uri から OIDC Discovery で JWK Set URI を自動解決。
-  # ローカル開発では application-default.yaml で固定値に上書きされる。
-  # 本番では環境変数 OAUTH2_ISSUER_URI を設定すること（未設定なら起動失敗する）。
+  # OAuth2 Client (BFF): Authorization Code Flow + PKCE で Keycloak と連携。
+  # トークンはサーバーサイドセッションに保持し、ブラウザには JSESSIONID Cookie のみ送信。
+  # Confidential Client のため client-secret を環境変数で注入する。
   security:
     oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${OAUTH2_ISSUER_URI}
+      client:
+        registration:
+          keycloak:
+            client-id: demo-app
+            client-secret: ${OAUTH2_CLIENT_SECRET}
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            authorization-uri: ${OAUTH2_AUTHORIZATION_URI}
+            token-uri: ${OAUTH2_TOKEN_URI}
+            jwk-set-uri: ${OAUTH2_JWK_SET_URI}
+            user-info-uri: ${OAUTH2_USERINFO_URI}
+            user-name-attribute: preferred_username
 
   # Spring Modulith Events: JDBC ベースの Event Publication Registry。
   # completion-mode: update で完了イベントに日時をマーク。
@@ -74,6 +99,15 @@ spring:
 server:
   port: ${SERVER_PORT}
   shutdown: graceful
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE}
+
+# Actuator / Swagger 用 Basic 認証の資格情報。環境変数で注入する。
+actuator:
+  username: ${ACTUATOR_USERNAME}
+  password: ${ACTUATOR_PASSWORD}
 
 # Actuator: 必要なエンドポイントのみ公開（"*" は避ける）。
 # show-details: when-authorized で認証済みユーザーのみ詳細表示。
@@ -112,16 +146,17 @@ management:
       export:
         url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT}
 
-# Logging: correlation パターンで OpenTelemetry の traceId/spanId をログに含め、
-# 分散トレーシングとログの紐付けを実現。
+# Logging: Micrometer Tracing がクラスパスにあれば traceId/spanId は自動でログに含まれる。
+# structured.format.console: コンソール出力を JSON（ECS 形式）にする。環境変数で制御。
 logging:
+  structured:
+    format:
+      console: ${LOGGING_STRUCTURED_FORMAT_CONSOLE}
   level:
     root: info
     "[com.example.demo]": ${LOGGING_LEVEL_COM_EXAMPLE_DEMO}
     "[org.springframework.modulith]": info
     "[org.jooq]": ${LOGGING_LEVEL_ORG_JOOQ}
-  pattern:
-    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
 
 # SpringDoc: デフォルト OFF。開発時は環境変数で有効化する。
 springdoc:

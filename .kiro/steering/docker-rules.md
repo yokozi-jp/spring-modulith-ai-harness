@@ -18,16 +18,26 @@ docker/keycloak/         ← アプリ外の設定ファイル
 
 ## compose.yaml の構成
 
-- プロファイルなし: インフラのみ（PostgreSQL, Keycloak, Grafana LGTM）
-- `--profile app`: インフラ + アプリコンテナ（dev ステージ、バインドマウント + bootRun）
+- `docker compose up` で全サービス起動（インフラ + アプリ）
+- app サービスは dev ステージをターゲットにし、ソースをバインドマウント
+- ソース変更は DevTools のホットリロードで反映されるため、通常は `--build` 不要
 
 ```bash
-# 開発
+# 開発（通常）
+docker compose up
+
+# Dockerfile や build.gradle の依存を変更した場合はイメージを再ビルド
 docker compose up --build
 
 # テスト・静的解析（ホストで実行）
 cd backend && ./gradlew check
 ```
+
+### `--build` が必要なケース
+
+- `Dockerfile` を変更した
+- `build.gradle` の依存を変更した
+- 確実にクリーンな状態で起動したい
 
 ## ベースイメージ
 

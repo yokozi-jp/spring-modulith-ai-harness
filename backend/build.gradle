@@ -101,7 +101,8 @@ dependencies {
     // Spring Boot 4 は SDK を自動設定するが、Logback appender は別途必要。
     implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.27.0-alpha'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 
@@ -152,7 +153,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-opentelemetry-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -163,6 +164,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-grafana'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testImplementation 'com.redis:testcontainers-redis:2.2.4'
 
     // テスト: Spring Modulith テストサポート
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
@@ -195,7 +197,7 @@ jacocoTestReport {
     dependsOn test
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/DemoApplication.class'])
+            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class'])
         }))
     }
     reports {
@@ -210,7 +212,7 @@ jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/DemoApplication.class'])
+            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class'])
         }))
     }
     violationRules {
@@ -265,10 +267,13 @@ tasks.named('classes') {
     dependsOn tasks.named('byteBuddy')
 }
 
-// --- bootRun: デバッグ用 JDWP ---
+// --- bootRun: JVM 引数 ---
 // JAVA_TOOL_OPTIONS は Gradle Daemon にも適用されるため、bootRun の jvmArgs で渡す。
 tasks.named('bootRun') {
-    jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005']
+    jvmArgs = [
+        '-Duser.timezone=UTC',
+        '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'
+    ]
 }
 
 // --- Liquibase Gradle プラグイン ---
