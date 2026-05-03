@@ -50,6 +50,7 @@ cd backend && ./scripts/create-class.sh <module> <layer> <name> [--aggregate <Ag
 | `queryservice` | `application/query/service/` | interface + QueryServiceImpl（`@Component`） |
 | `queryimpl` | `infrastructure/db/query/` | class（`@Component`） |
 | `controller` | `presentation/controller/` | class（`@RestController`） |
+| `exceptionhandler` | `presentation/controller/` | class（`@RestControllerAdvice`、`ProblemDetail` を返却） |
 | `request` | `presentation/request/` | record |
 | `response` | `presentation/response/` | record |
 

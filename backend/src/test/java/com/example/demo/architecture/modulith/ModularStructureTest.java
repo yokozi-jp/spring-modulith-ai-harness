@@ -12,7 +12,7 @@ class ModularStructureTest {
   /** テスト対象のアプリケーションモジュール構造。 */
   private static final ApplicationModules MODULES = ApplicationModules.of(DemoApplication.class);
 
-  @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.UnitTestContainsTooManyAsserts"})
+  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   @Test
   void verifyModularStructure() {
     try {

@@ -46,7 +46,6 @@ class ArchTestMessageQualityTest {
 
   /** 全 ArchUnit ルールソースで、各 {@code ArchRule} フィールド定義に {@code .because(} が含まれていることを検証する。 */
   @Test
-  @SuppressWarnings("PMD.UnitTestContainsTooManyAsserts")
   void allArchRulesShouldHaveBecause() throws IOException {
     final List<String> violations = new ArrayList<>();
 

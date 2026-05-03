@@ -124,15 +124,13 @@ private static final String PRODUCT_ID_VALUE = "product-1";
 - 1 つのテストメソッドでは 1 つの論理的検証を行う
 - `assertEquals`, `assertTrue`, `assertThrows` 等は 1 つに留める
 
-### 複数アサーションが必要な場合
+### 複数アサーション
 
-- 論理的に 1 つの検証を複数の assert で表現する場合に限り許容する
-- `@SuppressWarnings("PMD.UnitTestContainsTooManyAsserts")` を付与する
-- 理由がメソッド名や Javadoc から明らかでない場合はコメントで補足する
+- テストでは複数アサーションが自然なため、`UnitTestContainsTooManyAsserts` ルールは PMD で除外済み
+- `@SuppressWarnings` は不要
 
 ```java
 @Test
-@SuppressWarnings({"PMD.UnitTestContainsTooManyAsserts", "PMD.LawOfDemeter"})
 void shouldUpdateNameDescriptionAndPrice() {
     // 1 つの update 操作の結果を複数フィールドで検証
     ...
@@ -205,7 +203,6 @@ class ProductControllerTest {
 | ルール | 用途 | 適用範囲 |
 |---|---|---|
 | `PMD.UnitTestShouldIncludeAssert` | MockMvc テスト（`andExpect` で検証しており JUnit assert は不要） | クラスレベル |
-| `PMD.UnitTestContainsTooManyAsserts` | 論理的に 1 つの検証を複数 assert で表現する場合 | メソッドレベル |
 | `PMD.TooManyMethods` | テストクラスのメソッド数が閾値を超える場合 | クラスレベル |
 | `PMD.LawOfDemeter` | テスト内のメソッドチェーン（getter 呼び出し、`captor.getValue().field()` 等） | メソッドレベル |
 | `PMD.AvoidDuplicateLiterals` | テストデータの文字列リテラル重複が定数化に適さない場合 | クラスレベル |

@@ -35,7 +35,7 @@ if [ "${#POSITIONAL[@]}" -ne 3 ]; then
   echo "Usage: cd backend && $0 <module> <layer> <name> [--aggregate <Aggregate>]" >&2
   echo "Layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
   echo "        command commandhandler eventlistener query queryservice" >&2
-  echo "        controller request response repositoryimpl queryimpl" >&2
+  echo "        controller exceptionhandler request response repositoryimpl queryimpl" >&2
   exit 1
 fi
 
@@ -610,6 +610,37 @@ public class ${NAME}Controller {
 }"
 }
 
+gen_exceptionhandler() {
+  local pkg
+  pkg=$(pkg_for "presentation/controller")
+  write_file "$MODULE_DIR/presentation/controller/${NAME}ExceptionHandler.java" "presentation/controller" "\
+package $pkg;
+
+import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+/** ${NAME} モジュールの例外ハンドラ。 */
+@Slf4j
+@RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
+public class ${NAME}ExceptionHandler {
+
+  // TODO: モジュール固有の例外ハンドラを追加する。ProblemDetail を返すこと。
+  // 例:
+  // @ExceptionHandler(XxxNotFoundException.class)
+  // /* default */ ProblemDetail handleNotFound(final XxxNotFoundException ex) {
+  //   final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+  //   problem.setTitle(\"Not Found\");
+  //   problem.setDetail(ex.getMessage());
+  //   problem.setType(URI.create(\"about:blank\"));
+  //   return problem;
+  // }
+}"
+}
+
 gen_request() {
   local pkg
   pkg=$(pkg_for "presentation/request")
@@ -648,14 +679,15 @@ case "$LAYER" in
   query)          gen_query ;;
   queryservice)   gen_queryservice ;;
   queryimpl)      gen_queryimpl ;;
-  controller)     gen_controller ;;
+  controller)        gen_controller ;;
+  exceptionhandler)  gen_exceptionhandler ;;
   request)        gen_request ;;
   response)       gen_response ;;
   *)
     echo "Error: Unknown layer '$LAYER'" >&2
     echo "Valid layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
     echo "             command commandhandler eventlistener query queryservice" >&2
-    echo "             controller request response repositoryimpl queryimpl" >&2
+    echo "             controller exceptionhandler request response repositoryimpl queryimpl" >&2
     exit 1
     ;;
 esac

@@ -9,6 +9,7 @@
 - `LongVariable` — 長い変数名は説明的で可読性が高いため
 - `ShortClassName` — DDD ではドメインモデル名が短くなることがあるため
 - `CommentSize` — Javadoc の行数・行長制限は Google Java Format に委ねるため
+- `UnitTestContainsTooManyAsserts` — テストでは複数アサーションが自然なため
 
 上記以外のすべてのルールが適用されるため、以下の規約に従い違反を防ぐこと。
 
@@ -403,5 +404,8 @@
 ## REST API 規約
 
 - POSTは `201 Created` + `Location` ヘッダーのみ返す — レスポンスボディで作成結果を read-back しない（CQRS の Command/Query 分離を維持）。
-- エラーレスポンスは RFC 9457 `ProblemDetail` を使用する — `spring.mvc.problemdetails.enabled=true` を設定し、カスタマイズが必要な場合のみ `@ExceptionHandler` で `ProblemDetail` を返す。
+- エラーレスポンスは RFC 9457 `ProblemDetail` を使用する — Spring Boot 4 ではデフォルト有効。カスタマイズが必要な場合のみ `@ExceptionHandler` で `ProblemDetail` を返す。
+- 例外ハンドラは 2 層構成とする:
+  - **グローバルハンドラ**（`com.example.demo.GlobalExceptionHandler`）: `IllegalStateException` → 409、`IllegalArgumentException` → 400 等のアプリ共通例外を処理。
+  - **モジュール別ハンドラ**（`<module>/presentation/controller/<Name>ExceptionHandler`）: モジュール固有の業務例外（`XxxNotFoundException` 等）を処理。`@RestControllerAdvice(basePackages = "...")` でスコープを限定する。
 - `Instant.now()` をドメイン層やファクトリで直接呼ばない — `ClockConfig`（`com.example.demo.ClockConfig`）が `Clock.systemUTC()` を Bean として提供するので、`java.time.Clock` をコンストラクタインジェクションで受け取り `clock.instant()` で現在時刻を取得する。テストでは `Clock.fixed(...)` で時刻を固定する。
