@@ -117,23 +117,27 @@ import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.ddd.types.AggregateRoot;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 /** ${NAME} 集約ルート。 */
-@Slf4j
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(of = \"id\", callSuper = false)
 @ToString
-public class ${NAME} implements AggregateRoot<${NAME}, ${id_cls}> {
+public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements AggregateRoot<${NAME}, ${id_cls}> {
 
   /** 識別子。 */
   private final ${id_cls} id;
 
   /** コンストラクタ。 */
-  public ${NAME}(final ${id_cls} id) {
+  ${NAME}(final ${id_cls} id) {
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;
+  }
+
+  /** 永続化データから集約を再構築する。 */
+  public static ${NAME} reconstitute(final ${id_cls} id) {
+    return new ${NAME}(id);
   }
 
   @Override
@@ -450,15 +454,17 @@ gen_commandhandler() {
 package $pkg;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.cqrs.CommandHandler;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /** ${NAME} コマンドハンドラ。 */
-@Slf4j
 @RequiredArgsConstructor
+@Component
 public class ${NAME}CommandHandler {
 
   /** コマンドを処理する。 */
+  @Transactional
   @CommandHandler
   /* default */ void handle() {
     // コマンド処理

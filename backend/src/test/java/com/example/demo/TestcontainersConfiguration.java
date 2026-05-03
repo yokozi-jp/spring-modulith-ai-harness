@@ -13,7 +13,7 @@ import org.testcontainers.utility.DockerImageName;
 /** ローカル開発・テスト用の Testcontainers 設定 */
 @SuppressWarnings("PMD.TestClassWithoutTestCases")
 @TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
 
   @Bean
   @ServiceConnection
