@@ -99,7 +99,7 @@ dependencies {
 
     // OpenTelemetry Logback Appender: ログを OTLP 経由で Loki 等に送信する。
     // Spring Boot 4 は SDK を自動設定するが、Logback appender は別途必要。
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.27.0-alpha'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.21.0-alpha'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
