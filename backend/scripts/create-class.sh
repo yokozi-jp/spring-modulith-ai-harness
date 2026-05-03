@@ -33,7 +33,7 @@ done
 
 if [ "${#POSITIONAL[@]}" -ne 3 ]; then
   echo "Usage: cd backend && $0 <module> <layer> <name> [--aggregate <Aggregate>]" >&2
-  echo "Layers: event aggregate entity identifier valueobject repository domainservice factory" >&2
+  echo "Layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
   echo "        command commandhandler eventlistener query queryservice" >&2
   echo "        controller request response repositoryimpl queryimpl" >&2
   exit 1
@@ -101,6 +101,25 @@ import org.jmolecules.event.annotation.DomainEvent;
 /** ${NAME} ドメインイベント。 */
 @DomainEvent
 public record ${cls}() {}"
+}
+
+gen_exception() {
+  local pkg
+  pkg=$(pkg_for "exception")
+  local cls="${NAME}Exception"
+  write_file "$MODULE_DIR/exception/${cls}.java" "exception" "\
+package $pkg;
+
+/** ${NAME} 例外。 */
+public class ${cls} extends RuntimeException {
+
+  private static final long serialVersionUID = 1L;
+
+  /** メッセージを指定して例外を生成する。 */
+  public ${cls}(final String message) {
+    super(message);
+  }
+}"
 }
 
 gen_aggregate() {
@@ -614,6 +633,7 @@ public record ${NAME}Response() {}"
 # === メイン: layer に応じて生成関数を呼び出し ===
 case "$LAYER" in
   event)          gen_event ;;
+  exception)      gen_exception ;;
   aggregate)      gen_aggregate ;;
   entity)         gen_entity ;;
   identifier)     gen_identifier ;;
@@ -633,7 +653,7 @@ case "$LAYER" in
   response)       gen_response ;;
   *)
     echo "Error: Unknown layer '$LAYER'" >&2
-    echo "Valid layers: event aggregate entity identifier valueobject repository domainservice factory" >&2
+    echo "Valid layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
     echo "             command commandhandler eventlistener query queryservice" >&2
     echo "             controller request response repositoryimpl queryimpl" >&2
     exit 1

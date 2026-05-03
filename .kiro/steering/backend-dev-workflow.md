@@ -34,6 +34,7 @@ cd backend && ./scripts/create-class.sh <module> <layer> <name> [--aggregate <Ag
 | layer | 配置先 | 生成物 |
 |---|---|---|
 | `event` | `event/` | record（`@DomainEvent`） |
+| `exception` | `exception/` | class（`RuntimeException` 継承、`@NamedInterface("exception")` で公開） |
 | `aggregate` | `domain/model/aggregate/` | class（`AggregateRoot` 実装）+ Identifier + Factory + Repository + RepositoryImpl |
 | `entity` | `domain/model/entity/` | class（`Entity` 実装）+ Identifier + Factory（`@Factory`） + IdGenerator + IdGeneratorImpl（`@Component`） |
 | `identifier` | `domain/model/valueobject/identifier/` | record（`Identifier` 実装） |

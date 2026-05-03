@@ -9,6 +9,7 @@ SRC_ROOT="src/main/java/com/example/demo"
 DIRS=(
   ".|"
   "event|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
+  "exception|"
   "domain|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
   "domain/model|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
   "domain/model/aggregate|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
@@ -42,12 +43,23 @@ generate_package_info() {
   local pkg="$4"
 
   if [ -z "$annotation" ]; then
-    cat << EOF
+    if [ "$rel_path" = "exception" ]; then
+      cat << EOF
+@NullMarked
+@NamedInterface("exception")
+package $pkg;
+
+import org.jspecify.annotations.NullMarked;
+import org.springframework.modulith.NamedInterface;
+EOF
+    else
+      cat << EOF
 @NullMarked
 package $pkg;
 
 import org.jspecify.annotations.NullMarked;
 EOF
+    fi
   elif [ "$rel_path" = "event" ]; then
     cat << EOF
 @NullMarked

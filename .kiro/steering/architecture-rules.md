@@ -10,11 +10,13 @@
 ## モジュール構造
 
 各モジュールは `com.example.demo.<module>` の直下サブパッケージとして配置する。
-モジュールルートパッケージ（`<module>/` 直下）にはモジュール公開 API（例外クラス等）を配置可能。
+モジュールルートパッケージ（`<module>/` 直下）にはモジュール公開 API を配置可能。
+例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置する。
 モジュール内には以下のディレクトリ構成が必須であり、すべてに `package-info.java` を含めること。
 
 ```
 <module>/
+├── exception/
 ├── event/
 ├── domain/
 │   ├── model/
@@ -108,7 +110,7 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
   - `domain/service` と `domain/repository` は jMolecules ByteBuddy プラグインにより Spring ステレオタイプアノテーションがビルド時にバイトコードレベルで付与されるため除外（ソースコード上は jMolecules アノテーションのみ使用）。
   - `AbstractAggregateRoot`（`org.springframework.data.domain.AbstractAggregateRoot`）の継承は許可する。集約ルートは `AbstractAggregateRoot` を継承し、`registerEvent()` でドメインイベントを登録する。
 - **presentation → infrastructure 禁止**: presentation は infrastructure に依存してはいけない。
-- **presentation → domain 禁止**: presentation パッケージは domain パッケージに依存してはいけない。例外クラスはモジュールルートパッケージ（`<module>/` 直下）に配置し、presentation と application の両方から参照可能にする。
+- **presentation → domain 禁止**: presentation パッケージは domain パッケージに依存してはいけない。例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置し、presentation と application の両方から参照可能にする。
 - **子 → 親パッケージ依存禁止**: 子パッケージから親パッケージへの依存を禁止する。
 
 ---
