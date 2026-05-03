@@ -19,7 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>PMD / SpotBugs と重複しないルールを中心に適用。
  */
 @SuppressWarnings("PMD.TestClassWithoutTestCases")
-@AnalyzeClasses(packages = "com.example.demo", importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(
+    packages = "com.example.demo",
+    importOptions = {
+      ImportOption.DoNotIncludeTests.class,
+      ArchUnitBuiltInRulesTest.DoNotIncludeJooqGenerated.class
+    })
 class ArchUnitBuiltInRulesTest {
 
   // === GeneralCodingRules ===
@@ -47,7 +52,7 @@ class ArchUnitBuiltInRulesTest {
 
   // === DependencyRules ===
 
-  /** 子パッケージから親パッケージへの依存を禁止する。 */
+  /** 子パッケージから親パッケージへの依存を禁止する（jOOQ 生成コードは AnalyzeClasses で除外）。 */
   @ArchTest
   /* default */ static final ArchRule NO_UPPER_DEPS =
       DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES
@@ -107,4 +112,12 @@ class ArchUnitBuiltInRulesTest {
           .as("@Setter の使用は禁止")
           .because("@Setter を除去してください。" + " フィールドへの書き込みが必要な場合は明示的な setter メソッドか @Builder を使用してください")
           .allowEmptyShould(true);
+
+  /** jOOQ 生成コードを ArchUnit のスキャン対象から除外する。 */
+  /* default */ static class DoNotIncludeJooqGenerated implements ImportOption {
+    @Override
+    public boolean includes(final com.tngtech.archunit.core.importer.Location location) {
+      return !location.contains("/jooq/");
+    }
+  }
 }

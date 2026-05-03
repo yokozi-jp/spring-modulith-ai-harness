@@ -1,0 +1,1 @@
+../../../../../docker/postgres/initdb/01-create-schema.sql

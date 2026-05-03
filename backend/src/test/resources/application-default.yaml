@@ -14,9 +14,9 @@ spring:
     username: dummy
     password: dummy
     hikari:
-      schema: public
+      schema: demo
   liquibase:
-    default-schema: public
+    default-schema: demo
   security:
     oauth2:
       client:

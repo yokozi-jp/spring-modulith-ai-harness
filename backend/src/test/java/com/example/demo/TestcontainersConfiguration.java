@@ -24,7 +24,8 @@ public class TestcontainersConfiguration {
   @Bean
   @ServiceConnection
   /* default */ PostgreSQLContainer postgresContainer() {
-    return new PostgreSQLContainer(DockerImageName.parse("postgres:18.3"));
+    return new PostgreSQLContainer(DockerImageName.parse("postgres:18.3"))
+        .withInitScript("initdb/01-create-schema.sql");
   }
 
   @Bean
