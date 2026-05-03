@@ -6,7 +6,10 @@
 
     <description>PMD ruleset for Spring Boot project</description>
 
-    <rule ref="category/java/bestpractices.xml"/>
+    <rule ref="category/java/bestpractices.xml">
+        <!-- テストでは複数アサーションが自然なため無効化 -->
+        <exclude name="UnitTestContainsTooManyAsserts"/>
+    </rule>
     <rule ref="category/java/codestyle.xml">
         <!-- Google Java Format がパラメータの final を削除するため無効化 -->
         <exclude name="MethodArgumentCouldBeFinal"/>

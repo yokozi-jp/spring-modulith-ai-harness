@@ -1,4 +1,8 @@
-// jMolecules ByteBuddy プラグインをビルドスクリプトのクラスパスに追加する。
+// --- ビルドスクリプト依存 ---
+// buildscript ブロックの依存は Gradle プラグインやビルドタスクが使用するライブラリ。
+// アプリケーションの dependencies とは別のクラスパスに載る。
+//   - jmolecules-bytebuddy: ByteBuddy プラグインが jMolecules → Spring アノテーション変換に使用
+//   - liquibase-core: Liquibase Gradle プラグインが rollback/status 等の CLI コマンドに使用
 buildscript {
     repositories {
         mavenCentral()
@@ -22,6 +26,7 @@ plugins {
     id 'net.ltgt.errorprone' version '5.1.0'            // Error Prone + NullAway
     id 'net.bytebuddy.byte-buddy-gradle-plugin' version '1.18.8-jdk5' // jMolecules バイトコード変換
     id 'org.liquibase.gradle' version '3.1.0'           // Liquibase CLI コマンド（rollback, status 等）
+    id 'org.jooq.jooq-codegen-gradle' version '3.19.32' // jOOQ コード自動生成
 }
 
 // --- Spotless: コードフォーマット ---
@@ -35,6 +40,7 @@ spotless {
         endWithNewline()
     }
     java {
+        targetExclude 'src/generated/**'
         importOrder()
         removeUnusedImports()
         cleanthat()
@@ -42,6 +48,19 @@ spotless {
         formatAnnotations()
     }
 }
+
+// --- jOOQ 生成コードをソースセットに追加 ---
+sourceSets {
+    main {
+        java {
+            srcDir "src/generated/jooq"
+        }
+    }
+}
+
+// compileJava は jOOQ codegen の生成コードを参照する。
+// codegen はオンデマンド実行（./gradlew jooqCodegen）。DB 起動中に実行すること。
+// 生成コードは src/generated/jooq/ に出力され、Git 管理対象とする。
 
 // --- PMD: 静的解析 ---
 // PMD 7 の全カテゴリを有効化。ルールセットは config/pmd/ruleset.xml で定義。
@@ -52,12 +71,22 @@ pmd {
     ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
+// PMD から jOOQ 生成コードを除外
+tasks.withType(Pmd).configureEach {
+    source = source.minus(fileTree("src/generated/jooq"))
+}
+
 // --- SpotBugs: バグパターン検出 ---
 spotbugs {
     toolVersion = '4.9.8'
     ignoreFailures = false
     showStackTraces = true
     showProgress = true
+}
+
+// SpotBugs から jOOQ 生成コードを除外
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    classes = classes.filter { !it.path.contains('/jooq/') }
 }
 
 // --- PIT: ミューテーションテスト ---
@@ -99,7 +128,7 @@ dependencies {
 
     // OpenTelemetry Logback Appender: ログを OTLP 経由で Loki 等に送信する。
     // Spring Boot 4 は SDK を自動設定するが、Logback appender は別途必要。
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.27.0-alpha'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.21.0-alpha'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
@@ -197,7 +226,7 @@ jacocoTestReport {
     dependsOn test
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class'])
+            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class', '**/jooq/**'])
         }))
     }
     reports {
@@ -212,7 +241,7 @@ jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class'])
+            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class', '**/jooq/**'])
         }))
     }
     violationRules {
@@ -282,7 +311,7 @@ tasks.named('bootRun') {
 def liquibaseDbUrl = System.getenv('DATASOURCE_URL') ?: 'jdbc:postgresql://localhost:5432/demo'
 def liquibaseDbUsername = System.getenv('DATASOURCE_USERNAME') ?: 'demo'
 def liquibaseDbPassword = System.getenv('DATASOURCE_PASSWORD') ?: 'demo'
-def liquibaseDbSchema = System.getenv('DB_SCHEMA') ?: 'public'
+def liquibaseDbSchema = System.getenv('DB_SCHEMA') ?: 'demo'
 
 liquibase {
     activities {
@@ -297,8 +326,68 @@ liquibase {
     }
 }
 
+// --- Liquibase / jOOQ codegen ランタイム依存 ---
 dependencies {
+    // Liquibase Gradle プラグイン用（./gradlew update, rollbackCount 等）
     liquibaseRuntime 'org.liquibase:liquibase-core:5.0.2'
     liquibaseRuntime 'org.postgresql:postgresql'
-    liquibaseRuntime 'info.picocli:picocli:4.7.7'
+    liquibaseRuntime 'info.picocli:picocli:4.7.7'  // Liquibase 5 の CLI パーサーが必要
+
+    // jOOQ codegen 用（./gradlew jooqCodegen）
+    jooqCodegen 'org.postgresql:postgresql'
+}
+
+// --- jOOQ codegen ---
+// docker compose up で起動中の PostgreSQL（Liquibase マイグレーション適用済み）に接続し codegen する。
+// DB 接続情報は環境変数 or -P オプション or デフォルト値（ローカル開発用）から取得。
+// 生成コードは src/generated/jooq/ に出力され、Git 管理対象とする。
+//
+// 使い方:
+//   docker compose up -d          # DB 起動（Liquibase が自動適用）
+//   cd backend && ./gradlew jooqCodegen  # codegen 実行
+//
+// スキーマ変更時:
+//   1. Liquibase changeset を追加
+//   2. docker compose up（マイグレーション適用）
+//   3. ./gradlew jooqCodegen（生成コード更新）
+//   4. git add src/generated/jooq/ && git commit
+def codegenDbUrl = System.getenv('DATASOURCE_URL') ?: findProperty('jooqUrl') ?: 'jdbc:postgresql://localhost:5432/demo'
+def codegenDbUsername = System.getenv('DATASOURCE_USERNAME') ?: findProperty('jooqUser') ?: 'demo'
+def codegenDbPassword = System.getenv('DATASOURCE_PASSWORD') ?: findProperty('jooqPassword') ?: 'demo'
+def codegenDbSchema = System.getenv('DB_SCHEMA') ?: findProperty('jooqSchema') ?: 'demo'
+
+// codegen 実行前に古い生成コードをクリーンする
+tasks.named('jooqCodegen') {
+    doFirst {
+        delete 'src/generated/jooq'
+    }
+}
+
+jooq {
+    configuration {
+        jdbc {
+            driver = 'org.postgresql.Driver'
+            url = codegenDbUrl
+            user = codegenDbUsername
+            password = codegenDbPassword
+        }
+        generator {
+            database {
+                name = 'org.jooq.meta.postgres.PostgresDatabase'
+                inputSchema = codegenDbSchema
+                excludes = 'databasechangelog|databasechangeloglock'
+            }
+            generate {
+                deprecated = false
+                records = true
+                pojos = false
+                fluentSetters = false
+                javaTimeTypes = true
+            }
+            target {
+                packageName = 'com.example.demo.jooq'
+                directory = "src/generated/jooq"
+            }
+        }
+    }
 }

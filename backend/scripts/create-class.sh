@@ -33,9 +33,9 @@ done
 
 if [ "${#POSITIONAL[@]}" -ne 3 ]; then
   echo "Usage: cd backend && $0 <module> <layer> <name> [--aggregate <Aggregate>]" >&2
-  echo "Layers: event aggregate entity identifier valueobject repository domainservice factory" >&2
+  echo "Layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
   echo "        command commandhandler eventlistener query queryservice" >&2
-  echo "        controller request response repositoryimpl queryimpl" >&2
+  echo "        controller exceptionhandler request response repositoryimpl queryimpl" >&2
   exit 1
 fi
 
@@ -103,6 +103,25 @@ import org.jmolecules.event.annotation.DomainEvent;
 public record ${cls}() {}"
 }
 
+gen_exception() {
+  local pkg
+  pkg=$(pkg_for "exception")
+  local cls="${NAME}Exception"
+  write_file "$MODULE_DIR/exception/${cls}.java" "exception" "\
+package $pkg;
+
+/** ${NAME} 例外。 */
+public class ${cls} extends RuntimeException {
+
+  private static final long serialVersionUID = 1L;
+
+  /** メッセージを指定して例外を生成する。 */
+  public ${cls}(final String message) {
+    super(message);
+  }
+}"
+}
+
 gen_aggregate() {
   local pkg
   pkg=$(pkg_for "domain/model/aggregate")
@@ -117,23 +136,29 @@ import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.ddd.types.AggregateRoot;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 /** ${NAME} 集約ルート。 */
-@Slf4j
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(of = \"id\", callSuper = false)
 @ToString
-public class ${NAME} implements AggregateRoot<${NAME}, ${id_cls}> {
+public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements AggregateRoot<${NAME}, ${id_cls}> {
 
   /** 識別子。 */
   private final ${id_cls} id;
 
-  /** コンストラクタ。 */
-  public ${NAME}(final ${id_cls} id) {
+  // フィールドを追加する場合は private final にすること（ArchUnit で検証される）。
+
+  /** 新規作成用コンストラクタ（Factory から呼び出す）。 */
+  ${NAME}(final ${id_cls} id) {
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;
+  }
+
+  /** 永続化データから集約を再構築する。フィールド追加時は引数も追加すること。 */
+  public static ${NAME} reconstitute(final ${id_cls} id) {
+    return new ${NAME}(id);
   }
 
   @Override
@@ -145,6 +170,8 @@ public class ${NAME} implements AggregateRoot<${NAME}, ${id_cls}> {
   gen_identifier_for "$NAME"
   # 自動連鎖: Factory
   gen_factory_for "$NAME" ""
+  # 自動連鎖: Repository + RepositoryImpl
+  gen_repository
 }
 
 gen_entity() {
@@ -174,17 +201,24 @@ import org.jmolecules.ddd.types.Entity;
 /** ${NAME} エンティティ。 */
 @Slf4j
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(of = \"id\")
 @ToString
 public class ${NAME} implements Entity<${AGGREGATE}, ${id_cls}> {
 
   /** 識別子。 */
   private final ${id_cls} id;
 
+  // フィールドを追加する場合は private final にすること（ArchUnit で検証される）。
+
   /** コンストラクタ。 */
-  public ${NAME}(final ${id_cls} id) {
+  ${NAME}(final ${id_cls} id) {
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;
+  }
+
+  /** 永続化データからエンティティを再構築する。フィールド追加時は引数も追加すること。 */
+  public static ${NAME} reconstitute(final ${id_cls} id) {
+    return new ${NAME}(id);
   }
 
   @Override
@@ -220,6 +254,7 @@ package $pkg;
 import ${id_pkg}.${id_cls};
 import ${repo_pkg}.${target}Repository;
 import ${target_pkg}.${target};
+import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 import org.jmolecules.ddd.annotation.Factory;
 
@@ -231,9 +266,12 @@ public class ${target}Factory {
   /** リポジトリ。 */
   private final ${target}Repository repository;
 
+  /** 現在時刻の取得用（ClockConfig が提供する Bean）。 */
+  private final Clock clock;
+
   /** 新規生成。 */
   public ${target} create() {
-    return new ${target}(repository.generateId());
+    return ${target}.reconstitute(repository.generateId());
   }
 }"
   else
@@ -261,7 +299,7 @@ public class ${target}Factory {
 
   /** 新規生成。 */
   public ${target} create() {
-    return new ${target}(idGenerator.generate());
+    return ${target}.reconstitute(idGenerator.generate());
   }
 }"
     # 自動連鎖: IdGenerator + IdGeneratorImpl
@@ -398,6 +436,8 @@ public class ${agg}RepositoryImpl implements ${agg}Repository {
 
   // private final DSLContext dsl; (import org.jooq.DSLContext)
 
+  // 集約の復元には ${agg}.reconstitute(...) を使用すること（直接 new は禁止）。
+
   @Override
   public ${agg}Id generateId() {
     return new ${agg}Id(UUID.randomUUID().toString());
@@ -450,18 +490,20 @@ gen_commandhandler() {
 package $pkg;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.jmolecules.architecture.cqrs.CommandHandler;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /** ${NAME} コマンドハンドラ。 */
-@Slf4j
 @RequiredArgsConstructor
+@Component
 public class ${NAME}CommandHandler {
 
   /** コマンドを処理する。 */
+  @Transactional
   @CommandHandler
-  /* default */ void handle() {
-    // コマンド処理
+  public void handle() {
+    // TODO: 引数にコマンド型を追加すること（例: XxxCommand command）。
   }
 }"
 }
@@ -475,16 +517,18 @@ package $pkg;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.stereotype.Component;
 
 /** ${NAME} イベントリスナー。 */
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class ${NAME}EventListener {
 
   /** イベントを処理する。 */
   @ApplicationModuleListener
   /* default */ void handle() {
-    // イベント処理
+    // TODO: 引数にイベント型を追加すること（例: XxxEvent event）。引数なしだと起動時エラーになる。
   }
 }"
 }
@@ -566,6 +610,37 @@ public class ${NAME}Controller {
 }"
 }
 
+gen_exceptionhandler() {
+  local pkg
+  pkg=$(pkg_for "presentation/controller")
+  write_file "$MODULE_DIR/presentation/controller/${NAME}ExceptionHandler.java" "presentation/controller" "\
+package $pkg;
+
+import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+/** ${NAME} モジュールの例外ハンドラ。 */
+@Slf4j
+@RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
+public class ${NAME}ExceptionHandler {
+
+  // TODO: モジュール固有の例外ハンドラを追加する。ProblemDetail を返すこと。
+  // 例:
+  // @ExceptionHandler(XxxNotFoundException.class)
+  // /* default */ ProblemDetail handleNotFound(final XxxNotFoundException ex) {
+  //   final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+  //   problem.setTitle(\"Not Found\");
+  //   problem.setDetail(ex.getMessage());
+  //   problem.setType(URI.create(\"about:blank\"));
+  //   return problem;
+  // }
+}"
+}
+
 gen_request() {
   local pkg
   pkg=$(pkg_for "presentation/request")
@@ -589,6 +664,7 @@ public record ${NAME}Response() {}"
 # === メイン: layer に応じて生成関数を呼び出し ===
 case "$LAYER" in
   event)          gen_event ;;
+  exception)      gen_exception ;;
   aggregate)      gen_aggregate ;;
   entity)         gen_entity ;;
   identifier)     gen_identifier ;;
@@ -603,14 +679,15 @@ case "$LAYER" in
   query)          gen_query ;;
   queryservice)   gen_queryservice ;;
   queryimpl)      gen_queryimpl ;;
-  controller)     gen_controller ;;
+  controller)        gen_controller ;;
+  exceptionhandler)  gen_exceptionhandler ;;
   request)        gen_request ;;
   response)       gen_response ;;
   *)
     echo "Error: Unknown layer '$LAYER'" >&2
-    echo "Valid layers: event aggregate entity identifier valueobject repository domainservice factory" >&2
+    echo "Valid layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
     echo "             command commandhandler eventlistener query queryservice" >&2
-    echo "             controller request response repositoryimpl queryimpl" >&2
+    echo "             controller exceptionhandler request response repositoryimpl queryimpl" >&2
     exit 1
     ;;
 esac

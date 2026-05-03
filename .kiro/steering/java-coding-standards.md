@@ -1,7 +1,17 @@
 # Java コーディング規約 — PMD 7 準拠
 
-本プロジェクトでは PMD 7 の全カテゴリを除外なしで有効化している。
-すべてのルールが適用されるため、以下の規約に従い違反を防ぐこと。
+本プロジェクトでは PMD 7 の全カテゴリを有効化している。
+以下のルールのみ除外（`backend/config/pmd/ruleset.xml` 参照）:
+
+- `MethodArgumentCouldBeFinal` — Google Java Format がパラメータの final を削除するため
+- `AtLeastOneConstructor` — Lombok がコンストラクタを生成し、record は暗黙コンストラクタを持つため
+- `ShortVariable` — DDD では `id` 等の短い変数名が頻出するため
+- `LongVariable` — 長い変数名は説明的で可読性が高いため
+- `ShortClassName` — DDD ではドメインモデル名が短くなることがあるため
+- `CommentSize` — Javadoc の行数・行長制限は Google Java Format に委ねるため
+- `UnitTestContainsTooManyAsserts` — テストでは複数アサーションが自然なため
+
+上記以外のすべてのルールが適用されるため、以下の規約に従い違反を防ぐこと。
 
 参考: <https://docs.pmd-code.org/pmd-doc-7.1.0/pmd_rules_java.html>
 
@@ -390,3 +400,12 @@
 - すべてのデータベースクエリに jOOQ DSL を使用する — 生の SQL 文字列を書かない。
 - jOOQ 生成コードはビルドディレクトリにあり、PMD 解析から除外されている。
 - jOOQ の `Record` 型をドメインオブジェクトに明示的にマッピングする — jOOQ 型を API レイヤーに漏洩させない。
+
+## REST API 規約
+
+- POSTは `201 Created` + `Location` ヘッダーのみ返す — レスポンスボディで作成結果を read-back しない（CQRS の Command/Query 分離を維持）。
+- エラーレスポンスは RFC 9457 `ProblemDetail` を使用する — Spring Boot 4 ではデフォルト有効。カスタマイズが必要な場合のみ `@ExceptionHandler` で `ProblemDetail` を返す。
+- 例外ハンドラは 2 層構成とする:
+  - **グローバルハンドラ**（`com.example.demo.GlobalExceptionHandler`）: `IllegalStateException` → 409、`IllegalArgumentException` → 400 等のアプリ共通例外を処理。
+  - **モジュール別ハンドラ**（`<module>/presentation/controller/<Name>ExceptionHandler`）: モジュール固有の業務例外（`XxxNotFoundException` 等）を処理。`@RestControllerAdvice(basePackages = "...")` でスコープを限定する。
+- `Instant.now()` をドメイン層やファクトリで直接呼ばない — `ClockConfig`（`com.example.demo.ClockConfig`）が `Clock.systemUTC()` を Bean として提供するので、`java.time.Clock` をコンストラクタインジェクションで受け取り `clock.instant()` で現在時刻を取得する。テストでは `Clock.fixed(...)` で時刻を固定する。

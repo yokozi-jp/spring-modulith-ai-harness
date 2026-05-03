@@ -54,6 +54,10 @@ spring:
             scope: openid,profile,email
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        # issuer-uri は設定しない。Spring Boot が起動時に OIDC Discovery を実行するが、
+        # コンテナ内から localhost にアクセスできず Connection refused になるため。
+        # 全エンドポイントを手動設定し、KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true で
+        # バックチャネル通信のトークン検証を許可している。
         provider:
           keycloak:
             authorization-uri: ${OAUTH2_AUTHORIZATION_URI}

@@ -22,6 +22,7 @@
 - YAML 形式で記述する（XML は使わない）
 - Liquibase ネイティブの change type（`createTable`, `createIndex` 等）を優先する
 - ネイティブで表現できない場合のみ `sql` を使用する
+- 使用不可の change type: `addCheckConstraint` は Liquibase 5 の YAML パーサーで ParsedNodeException を起こすため使用不可。CHECK 制約は `sql` change type で記述し、`rollback` を明示すること
 
 ## ロールバック
 

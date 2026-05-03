@@ -2,15 +2,17 @@ package com.example.demo.architecture.custom;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 /**
@@ -34,20 +36,27 @@ class CustomArchRulesTest {
   /** domain/service パッケージパターン。 */
   private static final String PKG_SVC = "..domain.service..";
 
+  /** domain/repository パッケージパターン。 */
+  private static final String PKG_REPO = "..domain.repository..";
+
   /** {@code @CommandHandler} メソッド判定用。 */
-  @SuppressWarnings("unchecked")
   private static final DescribedPredicate<JavaMethod> HAS_CMD_HANDLER =
-      (DescribedPredicate<JavaMethod>)
-          (DescribedPredicate<?>)
-              Predicates.annotatedWith(org.jmolecules.architecture.cqrs.CommandHandler.class);
+      new DescribedPredicate<>("annotated with @CommandHandler") {
+        @Override
+        public boolean test(final JavaMethod method) {
+          return method.isAnnotatedWith(org.jmolecules.architecture.cqrs.CommandHandler.class);
+        }
+      };
 
   /** {@code @ApplicationModuleListener} メソッド判定用。 */
-  @SuppressWarnings("unchecked")
   private static final DescribedPredicate<JavaMethod> HAS_MOD_LISTENER =
-      (DescribedPredicate<JavaMethod>)
-          (DescribedPredicate<?>)
-              Predicates.annotatedWith(
-                  org.springframework.modulith.events.ApplicationModuleListener.class);
+      new DescribedPredicate<>("annotated with @ApplicationModuleListener") {
+        @Override
+        public boolean test(final JavaMethod method) {
+          return method.isAnnotatedWith(
+              org.springframework.modulith.events.ApplicationModuleListener.class);
+        }
+      };
 
   /** aggregate パッケージへのコンストラクタ呼び出し判定用。 */
   private static final DescribedPredicate<JavaConstructorCall> TARGET_IN_AGG =
@@ -79,18 +88,6 @@ class CustomArchRulesTest {
           .resideInAPackage("..command.dto..")
           .as("@Command アノテーション付きクラスは ..command.dto.. パッケージにのみ配置可能")
           .because("CQRS 制約: 対象クラスを ..command.dto.. パッケージに移動してください")
-          .allowEmptyShould(true);
-
-  /** {@code @CommandHandler} は command/handler にのみ配置可能。 */
-  @ArchTest
-  /* default */ static final ArchRule CMD_H_PLACEMENT =
-      classes()
-          .that()
-          .areAnnotatedWith(org.jmolecules.architecture.cqrs.CommandHandler.class)
-          .should()
-          .resideInAPackage("..command.handler..")
-          .as("@CommandHandler アノテーション付きクラスは ..command.handler.. パッケージにのみ配置可能")
-          .because("CQRS 制約: 対象クラスを ..command.handler.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** {@code @QueryModel} は query/dto にのみ配置可能。 */
@@ -157,7 +154,7 @@ class CustomArchRulesTest {
 
   // === パッケージ依存制約 ===
 
-  /** query パッケージは domain パッケージに依存してはいけない。 */
+  /** query パッケージはプロジェクトの domain パッケージに依存してはいけない。 */
   @ArchTest
   /* default */ static final ArchRule QRY_NO_DOMAIN =
       noClasses()
@@ -165,7 +162,7 @@ class CustomArchRulesTest {
           .resideInAPackage("..query..")
           .should()
           .dependOnClassesThat()
-          .resideInAPackage("..domain..")
+          .resideInAnyPackage("com.example.demo..domain..")
           .as("query パッケージは domain パッケージに依存してはいけない")
           .because("CQRS 依存制約: query から domain への import を除去し、query 用の DTO/インターフェースを使用してください")
           .allowEmptyShould(true);
@@ -175,6 +172,8 @@ class CustomArchRulesTest {
    *
    * <p>domain/service と domain/repository は jMolecules ByteBuddy プラグインにより Spring ステレオタイプ
    * アノテーションがバイトコードレベルで付与されるため除外する。
+   *
+   * <p>AbstractAggregateRoot の継承は許可する（集約ルートのイベント登録に必要）。
    */
   @ArchTest
   /* default */ static final ArchRule DOMAIN_NO_SPRING =
@@ -184,13 +183,17 @@ class CustomArchRulesTest {
           .and()
           .resideOutsideOfPackage("..domain.service..")
           .and()
-          .resideOutsideOfPackage("..domain.repository..")
+          .resideOutsideOfPackage(PKG_REPO)
+          .and()
+          .areNotAssignableTo(org.springframework.data.domain.AbstractAggregateRoot.class)
           .should()
           .dependOnClassesThat()
           .resideInAPackage("org.springframework..")
-          .as("domain パッケージ(service/repository 除く)は Spring に依存してはいけない")
+          .as("domain パッケージ(service/repository/集約ルート 除く)は Spring に依存してはいけない")
           .because(
-              "DDD 制約: domain 内の Spring import を除去してください。DI は jMolecules ByteBuddy 経由で自動付与されます")
+              "DDD 制約: domain 内の Spring import を除去してください。"
+                  + " AbstractAggregateRoot の継承のみ許可されます。"
+                  + " DI は jMolecules ByteBuddy 経由で自動付与されます")
           .allowEmptyShould(true);
 
   /** presentation は infrastructure に依存してはいけない。 */
@@ -206,6 +209,21 @@ class CustomArchRulesTest {
           .because("レイヤー制約: presentation から infrastructure への直接参照を除去し、application 層経由にしてください")
           .allowEmptyShould(true);
 
+  /** presentation は domain に依存してはいけない。例外クラスはモジュールルートに配置する。 */
+  @ArchTest
+  /* default */ static final ArchRule PRES_NO_DOMAIN =
+      noClasses()
+          .that()
+          .resideInAPackage("..presentation..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAnyPackage("com.example.demo..domain..")
+          .as("presentation は domain に依存してはいけない")
+          .because(
+              "レイヤー制約: presentation から domain への直接参照を除去してください。"
+                  + " 例外クラスはモジュールルートに配置し、そこから参照してください")
+          .allowEmptyShould(true);
+
   // === インターフェースのみ制約 ===
 
   /** domain/repository にはインターフェースのみ配置可能。 */
@@ -213,7 +231,7 @@ class CustomArchRulesTest {
   /* default */ static final ArchRule REPO_IFACE =
       classes()
           .that()
-          .resideInAPackage("..domain.repository..")
+          .resideInAPackage(PKG_REPO)
           .should()
           .beInterfaces()
           .as("domain/repository にはインターフェースのみ配置可能")
@@ -409,7 +427,7 @@ class CustomArchRulesTest {
           .and()
           .areInterfaces()
           .should()
-          .resideInAPackage("..domain.repository..")
+          .resideInAPackage(PKG_REPO)
           .as("Repository インターフェースは ..domain.repository.. パッケージにのみ配置可能")
           .because("対象インターフェースを ..domain.repository.. パッケージに移動してください")
           .allowEmptyShould(true);
@@ -504,6 +522,68 @@ class CustomArchRulesTest {
 
   // === コンストラクタ呼び出し制約 ===
 
+  /** domain パッケージから {@code Instant.now()} を直接呼び出してはいけない。Clock を DI すること。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_INSTANT_NOW_IN_DOMAIN =
+      noClasses()
+          .that()
+          .resideInAPackage("..domain..")
+          .should()
+          .callMethod(java.time.Instant.class, "now")
+          .as("domain パッケージから Instant.now() を呼び出してはいけない")
+          .because(
+              "テスタビリティ制約: java.time.Clock を DI し clock.instant() を使用してください。"
+                  + " テストでは Clock.fixed(...) で時刻を固定できます")
+          .allowEmptyShould(true);
+
+  /** IdGenerator インターフェースは domain/repository にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule ID_GEN_IFACE_PKG =
+      classes()
+          .that()
+          .haveSimpleNameEndingWith("IdGenerator")
+          .and()
+          .areInterfaces()
+          .should()
+          .resideInAPackage(PKG_REPO)
+          .as("*IdGenerator インターフェースは ..domain.repository.. パッケージにのみ配置可能")
+          .because("IdGenerator インターフェースを ..domain.repository.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  /** IdGeneratorImpl クラスは infrastructure/db/repository にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule ID_GEN_IMPL_PKG =
+      classes()
+          .that()
+          .haveSimpleNameEndingWith("IdGeneratorImpl")
+          .should()
+          .resideInAPackage("..infrastructure.db.repository..")
+          .as("*IdGeneratorImpl クラスは ..infrastructure.db.repository.. パッケージにのみ配置可能")
+          .because("IdGeneratorImpl を ..infrastructure.db.repository.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  /** {@code @Transactional} メソッド判定用。 */
+  private static final DescribedPredicate<JavaMethod> HAS_TRANSACTIONAL =
+      new DescribedPredicate<>("annotated with @Transactional") {
+        @Override
+        public boolean test(final JavaMethod method) {
+          return method.isAnnotatedWith(
+              org.springframework.transaction.annotation.Transactional.class);
+        }
+      };
+
+  /** {@code @Transactional} は command/handler にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule TX_PLACEMENT =
+      classes()
+          .that()
+          .containAnyMethodsThat(HAS_TRANSACTIONAL)
+          .should()
+          .resideInAPackage("..command.handler..")
+          .as("@Transactional メソッドを持つクラスは ..command.handler.. パッケージにのみ配置可能")
+          .because("トランザクション制約: @Transactional は CommandHandler の public メソッドにのみ付与してください")
+          .allowEmptyShould(true);
+
   /** aggregate のコンストラクタは aggregate 自身と domain/service からのみ呼び出し可能。 */
   @ArchTest
   /* default */ static final ArchRule AGG_CTOR =
@@ -515,7 +595,8 @@ class CustomArchRulesTest {
           .as("aggregate のコンストラクタは model/aggregate と domain/service からのみ呼び出し可能")
           .because(
               "aggregate の生成には Factory を使用してください。"
-                  + " 直接 new は model/aggregate 内と domain/service 内でのみ許可されます")
+                  + " 直接 new は model/aggregate 内と domain/service 内でのみ許可されます。"
+                  + " 永続化からの再構築には aggregate 内の static reconstitute メソッドを使用してください")
           .allowEmptyShould(true);
 
   /** entity のコンストラクタは entity 自身と domain/service からのみ呼び出し可能。 */
@@ -530,5 +611,136 @@ class CustomArchRulesTest {
           .because(
               "entity の生成には Factory を使用してください。"
                   + " 直接 new は model/entity 内と domain/service 内でのみ許可されます")
+          .allowEmptyShould(true);
+
+  // === valueobject 正方向制約 ===
+
+  /** valueobject パッケージ（identifier 除く）には ValueObject 実装のみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule VO_TYPE =
+      classes()
+          .that()
+          .resideInAPackage("..model.valueobject..")
+          .and()
+          .resideOutsideOfPackage("..valueobject.identifier..")
+          .and()
+          .haveSimpleNameNotContaining(PKG_INFO)
+          .should()
+          .beAssignableTo(org.jmolecules.ddd.types.ValueObject.class)
+          .as("model/valueobject(identifier 除く)には ValueObject 実装のみ配置可能(package-info 除く)")
+          .because("対象クラスに ValueObject を実装するか、適切なパッケージに移動してください")
+          .allowEmptyShould(true);
+
+  // === @Transactional public メソッド制約 ===
+
+  /** {@code @Transactional} メソッドは public でなければならない。 */
+  @ArchTest
+  /* default */ static final ArchRule TX_PUBLIC =
+      methods()
+          .that()
+          .areAnnotatedWith(org.springframework.transaction.annotation.Transactional.class)
+          .should()
+          .bePublic()
+          .as("@Transactional メソッドは public でなければならない")
+          .because(
+              "トランザクション制約: @Transactional は public メソッドにのみ付与してください。"
+                  + " Spring AOP プロキシは public メソッドでのみ機能します")
+          .allowEmptyShould(true);
+
+  // === Clock.systemUTC() / Clock.system() 直接呼び出し禁止 ===
+
+  /** {@code Clock.systemUTC()} / {@code Clock.system()} の直接呼び出しを禁止する。ClockConfig のみ許可。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_CLOCK_SYSTEM =
+      noClasses()
+          .that()
+          .haveSimpleNameNotEndingWith("ClockConfig")
+          .should()
+          .callMethod(java.time.Clock.class, "systemUTC")
+          .orShould()
+          .callMethod(java.time.Clock.class, "system", java.time.ZoneId.class)
+          .orShould()
+          .callMethod(java.time.Clock.class, "systemDefaultZone")
+          .as("ClockConfig 以外で Clock.systemUTC()/system()/systemDefaultZone() を呼び出してはいけない")
+          .because(
+              "テスタビリティ制約: Clock は ClockConfig Bean から DI してください。"
+                  + " 直接 Clock.systemUTC() を呼ぶとテストで時刻を固定できません")
+          .allowEmptyShould(true);
+
+  // === reconstitute メソッド存在検証 ===
+
+  /** reconstitute メソッド存在検証用の条件。 */
+  private static final ArchCondition<com.tngtech.archunit.core.domain.JavaClass> HAVE_RECONSTITUTE =
+      new ArchCondition<>("have a public static reconstitute method") {
+        @Override
+        public void check(
+            final com.tngtech.archunit.core.domain.JavaClass item,
+            final com.tngtech.archunit.lang.ConditionEvents events) {
+          final boolean found =
+              item.getMethods().stream()
+                  .anyMatch(
+                      m ->
+                          "reconstitute".equals(m.getName())
+                              && m.getModifiers().contains(JavaModifier.PUBLIC)
+                              && m.getModifiers().contains(JavaModifier.STATIC));
+          if (!found) {
+            events.add(
+                com.tngtech.archunit.lang.SimpleConditionEvent.violated(
+                    item, item.getName() + " に public static reconstitute メソッドがありません"));
+          }
+        }
+      };
+
+  /** AggregateRoot 実装クラスに public static reconstitute メソッドが存在すること。 */
+  @ArchTest
+  /* default */ static final ArchRule AGG_RECONSTITUTE =
+      classes()
+          .that()
+          .areAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
+          .should(HAVE_RECONSTITUTE)
+          .as("AggregateRoot 実装クラスに public static reconstitute メソッドが必要")
+          .because(
+              "再構築制約: RepositoryImpl からの再構築用に" + " public static reconstitute(...) メソッドを定義してください")
+          .allowEmptyShould(true);
+
+  // === jOOQ 型漏洩防止 ===
+
+  /** presentation 層から jOOQ への依存を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule PRES_NO_JOOQ =
+      noClasses()
+          .that()
+          .resideInAPackage("..presentation..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.jooq..")
+          .as("presentation は jOOQ に依存してはいけない")
+          .because("jOOQ 型漏洩防止: jOOQ の Record/DSLContext を infrastructure 層に閉じ込めてください")
+          .allowEmptyShould(true);
+
+  /** application 層から jOOQ への依存を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule APP_NO_JOOQ =
+      noClasses()
+          .that()
+          .resideInAPackage("..application..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.jooq..")
+          .as("application は jOOQ に依存してはいけない")
+          .because("jOOQ 型漏洩防止: jOOQ の Record/DSLContext を infrastructure 層に閉じ込めてください")
+          .allowEmptyShould(true);
+
+  /** domain 層から jOOQ への依存を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule DOMAIN_NO_JOOQ =
+      noClasses()
+          .that()
+          .resideInAPackage("..domain..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.jooq..")
+          .as("domain は jOOQ に依存してはいけない")
+          .because("jOOQ 型漏洩防止: jOOQ の Record/DSLContext を infrastructure 層に閉じ込めてください")
           .allowEmptyShould(true);
 }
