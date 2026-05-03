@@ -27,14 +27,14 @@ cd backend && ./scripts/create-class.sh <module> <layer> <name> [--aggregate <Ag
 - 必ず `create-module.sh` でモジュールを先に作成してから実行する
 - ディレクトリと `package-info.java` は自動生成される（手動作成しない）
 - `aggregate` 生成時は Identifier・Factory・Repository・RepositoryImpl が自動連鎖生成される
-- `entity` 生成時は `--aggregate` 必須。Identifier・Factory・IdGenerator が自動連鎖生成される
+- `entity` 生成時は `--aggregate` 必須。Identifier・Factory・IdGenerator・IdGeneratorImpl が自動連鎖生成される
 
 #### layer 一覧
 
 | layer | 配置先 | 生成物 |
 |---|---|---|
 | `event` | `event/` | record（`@DomainEvent`） |
-| `aggregate` | `domain/model/aggregate/` | class（`AggregateRoot` 実装）+ Identifier + Factory + Repository + RepositoryImpl + IdGenerator + IdGeneratorImpl |
+| `aggregate` | `domain/model/aggregate/` | class（`AggregateRoot` 実装）+ Identifier + Factory + Repository + RepositoryImpl |
 | `entity` | `domain/model/entity/` | class（`Entity` 実装）+ Identifier + Factory（`@Factory`） + IdGenerator + IdGeneratorImpl（`@Component`） |
 | `identifier` | `domain/model/valueobject/identifier/` | record（`Identifier` 実装） |
 | `valueobject` | `domain/model/valueobject/` | record（`ValueObject` 実装） |

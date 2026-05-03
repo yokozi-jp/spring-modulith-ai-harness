@@ -129,13 +129,15 @@ public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements Aggregate
   /** 識別子。 */
   private final ${id_cls} id;
 
-  /** コンストラクタ。 */
+  // フィールドを追加する場合は private final にすること（ArchUnit で検証される）。
+
+  /** 新規作成用コンストラクタ（Factory から呼び出す）。 */
   ${NAME}(final ${id_cls} id) {
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;
   }
 
-  /** 永続化データから集約を再構築する。 */
+  /** 永続化データから集約を再構築する。フィールド追加時は引数も追加すること。 */
   public static ${NAME} reconstitute(final ${id_cls} id) {
     return new ${NAME}(id);
   }
@@ -149,6 +151,8 @@ public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements Aggregate
   gen_identifier_for "$NAME"
   # 自動連鎖: Factory
   gen_factory_for "$NAME" ""
+  # 自動連鎖: Repository + RepositoryImpl
+  gen_repository
 }
 
 gen_entity() {
@@ -178,17 +182,24 @@ import org.jmolecules.ddd.types.Entity;
 /** ${NAME} エンティティ。 */
 @Slf4j
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(of = \"id\")
 @ToString
 public class ${NAME} implements Entity<${AGGREGATE}, ${id_cls}> {
 
   /** 識別子。 */
   private final ${id_cls} id;
 
+  // フィールドを追加する場合は private final にすること（ArchUnit で検証される）。
+
   /** コンストラクタ。 */
-  public ${NAME}(final ${id_cls} id) {
+  ${NAME}(final ${id_cls} id) {
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;
+  }
+
+  /** 永続化データからエンティティを再構築する。フィールド追加時は引数も追加すること。 */
+  public static ${NAME} reconstitute(final ${id_cls} id) {
+    return new ${NAME}(id);
   }
 
   @Override
@@ -224,6 +235,7 @@ package $pkg;
 import ${id_pkg}.${id_cls};
 import ${repo_pkg}.${target}Repository;
 import ${target_pkg}.${target};
+import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 import org.jmolecules.ddd.annotation.Factory;
 
@@ -235,9 +247,12 @@ public class ${target}Factory {
   /** リポジトリ。 */
   private final ${target}Repository repository;
 
+  /** 現在時刻の取得用（ClockConfig が提供する Bean）。 */
+  private final Clock clock;
+
   /** 新規生成。 */
   public ${target} create() {
-    return new ${target}(repository.generateId());
+    return ${target}.reconstitute(repository.generateId());
   }
 }"
   else
@@ -265,7 +280,7 @@ public class ${target}Factory {
 
   /** 新規生成。 */
   public ${target} create() {
-    return new ${target}(idGenerator.generate());
+    return ${target}.reconstitute(idGenerator.generate());
   }
 }"
     # 自動連鎖: IdGenerator + IdGeneratorImpl
@@ -402,6 +417,8 @@ public class ${agg}RepositoryImpl implements ${agg}Repository {
 
   // private final DSLContext dsl; (import org.jooq.DSLContext)
 
+  // 集約の復元には ${agg}.reconstitute(...) を使用すること（直接 new は禁止）。
+
   @Override
   public ${agg}Id generateId() {
     return new ${agg}Id(UUID.randomUUID().toString());
@@ -466,8 +483,8 @@ public class ${NAME}CommandHandler {
   /** コマンドを処理する。 */
   @Transactional
   @CommandHandler
-  /* default */ void handle() {
-    // コマンド処理
+  public void handle() {
+    // TODO: 引数にコマンド型を追加すること（例: XxxCommand command）。
   }
 }"
 }
@@ -481,16 +498,18 @@ package $pkg;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.stereotype.Component;
 
 /** ${NAME} イベントリスナー。 */
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class ${NAME}EventListener {
 
   /** イベントを処理する。 */
   @ApplicationModuleListener
   /* default */ void handle() {
-    // イベント処理
+    // TODO: 引数にイベント型を追加すること（例: XxxEvent event）。引数なしだと起動時エラーになる。
   }
 }"
 }

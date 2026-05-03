@@ -113,6 +113,7 @@ private static final String PRODUCT_ID_VALUE = "product-1";
 
 - `@ExtendWith(MockitoExtension.class)` + `@Mock` / `@InjectMocks` を使用する
 - `@InjectMocks` はコンストラクタインジェクションを自動解決するため、フィールド宣言で問題ない
+- `@MockitoBean` はフィールド宣言で使用する（コンストラクタインジェクションに置き換え不可）。フィールドインジェクション禁止の例外として許容する
 
 ---
 

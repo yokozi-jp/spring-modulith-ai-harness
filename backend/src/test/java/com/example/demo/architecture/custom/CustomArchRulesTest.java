@@ -2,14 +2,17 @@ package com.example.demo.architecture.custom;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 /**
@@ -608,5 +611,136 @@ class CustomArchRulesTest {
           .because(
               "entity の生成には Factory を使用してください。"
                   + " 直接 new は model/entity 内と domain/service 内でのみ許可されます")
+          .allowEmptyShould(true);
+
+  // === valueobject 正方向制約 ===
+
+  /** valueobject パッケージ（identifier 除く）には ValueObject 実装のみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule VO_TYPE =
+      classes()
+          .that()
+          .resideInAPackage("..model.valueobject..")
+          .and()
+          .resideOutsideOfPackage("..valueobject.identifier..")
+          .and()
+          .haveSimpleNameNotContaining(PKG_INFO)
+          .should()
+          .beAssignableTo(org.jmolecules.ddd.types.ValueObject.class)
+          .as("model/valueobject(identifier 除く)には ValueObject 実装のみ配置可能(package-info 除く)")
+          .because("対象クラスに ValueObject を実装するか、適切なパッケージに移動してください")
+          .allowEmptyShould(true);
+
+  // === @Transactional public メソッド制約 ===
+
+  /** {@code @Transactional} メソッドは public でなければならない。 */
+  @ArchTest
+  /* default */ static final ArchRule TX_PUBLIC =
+      methods()
+          .that()
+          .areAnnotatedWith(org.springframework.transaction.annotation.Transactional.class)
+          .should()
+          .bePublic()
+          .as("@Transactional メソッドは public でなければならない")
+          .because(
+              "トランザクション制約: @Transactional は public メソッドにのみ付与してください。"
+                  + " Spring AOP プロキシは public メソッドでのみ機能します")
+          .allowEmptyShould(true);
+
+  // === Clock.systemUTC() / Clock.system() 直接呼び出し禁止 ===
+
+  /** {@code Clock.systemUTC()} / {@code Clock.system()} の直接呼び出しを禁止する。ClockConfig のみ許可。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_CLOCK_SYSTEM =
+      noClasses()
+          .that()
+          .haveSimpleNameNotEndingWith("ClockConfig")
+          .should()
+          .callMethod(java.time.Clock.class, "systemUTC")
+          .orShould()
+          .callMethod(java.time.Clock.class, "system", java.time.ZoneId.class)
+          .orShould()
+          .callMethod(java.time.Clock.class, "systemDefaultZone")
+          .as("ClockConfig 以外で Clock.systemUTC()/system()/systemDefaultZone() を呼び出してはいけない")
+          .because(
+              "テスタビリティ制約: Clock は ClockConfig Bean から DI してください。"
+                  + " 直接 Clock.systemUTC() を呼ぶとテストで時刻を固定できません")
+          .allowEmptyShould(true);
+
+  // === reconstitute メソッド存在検証 ===
+
+  /** reconstitute メソッド存在検証用の条件。 */
+  private static final ArchCondition<com.tngtech.archunit.core.domain.JavaClass> HAVE_RECONSTITUTE =
+      new ArchCondition<>("have a public static reconstitute method") {
+        @Override
+        public void check(
+            final com.tngtech.archunit.core.domain.JavaClass item,
+            final com.tngtech.archunit.lang.ConditionEvents events) {
+          final boolean found =
+              item.getMethods().stream()
+                  .anyMatch(
+                      m ->
+                          "reconstitute".equals(m.getName())
+                              && m.getModifiers().contains(JavaModifier.PUBLIC)
+                              && m.getModifiers().contains(JavaModifier.STATIC));
+          if (!found) {
+            events.add(
+                com.tngtech.archunit.lang.SimpleConditionEvent.violated(
+                    item, item.getName() + " に public static reconstitute メソッドがありません"));
+          }
+        }
+      };
+
+  /** AggregateRoot 実装クラスに public static reconstitute メソッドが存在すること。 */
+  @ArchTest
+  /* default */ static final ArchRule AGG_RECONSTITUTE =
+      classes()
+          .that()
+          .areAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
+          .should(HAVE_RECONSTITUTE)
+          .as("AggregateRoot 実装クラスに public static reconstitute メソッドが必要")
+          .because(
+              "再構築制約: RepositoryImpl からの再構築用に" + " public static reconstitute(...) メソッドを定義してください")
+          .allowEmptyShould(true);
+
+  // === jOOQ 型漏洩防止 ===
+
+  /** presentation 層から jOOQ への依存を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule PRES_NO_JOOQ =
+      noClasses()
+          .that()
+          .resideInAPackage("..presentation..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.jooq..")
+          .as("presentation は jOOQ に依存してはいけない")
+          .because("jOOQ 型漏洩防止: jOOQ の Record/DSLContext を infrastructure 層に閉じ込めてください")
+          .allowEmptyShould(true);
+
+  /** application 層から jOOQ への依存を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule APP_NO_JOOQ =
+      noClasses()
+          .that()
+          .resideInAPackage("..application..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.jooq..")
+          .as("application は jOOQ に依存してはいけない")
+          .because("jOOQ 型漏洩防止: jOOQ の Record/DSLContext を infrastructure 層に閉じ込めてください")
+          .allowEmptyShould(true);
+
+  /** domain 層から jOOQ への依存を禁止する。 */
+  @ArchTest
+  /* default */ static final ArchRule DOMAIN_NO_JOOQ =
+      noClasses()
+          .that()
+          .resideInAPackage("..domain..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.jooq..")
+          .as("domain は jOOQ に依存してはいけない")
+          .because("jOOQ 型漏洩防止: jOOQ の Record/DSLContext を infrastructure 層に閉じ込めてください")
           .allowEmptyShould(true);
 }
