@@ -10,7 +10,7 @@
 ### 新規モジュール
 
 ```bash
-cd backend && ./scripts/create-module.sh <module-name>
+cd backend && ./scripts/scaffold module <module-name>
 ```
 
 - モジュール名は小文字英数字のみ（例: `order`, `shipping`）
@@ -21,10 +21,10 @@ cd backend && ./scripts/create-module.sh <module-name>
 ### 新規クラス
 
 ```bash
-cd backend && ./scripts/create-class.sh <module> <layer> <name> [--aggregate <Aggregate>]
+cd backend && ./scripts/scaffold class <module> <layer> <name> [--aggregate <Aggregate>]
 ```
 
-- 必ず `create-module.sh` でモジュールを先に作成してから実行する
+- 必ず `scaffold module` でモジュールを先に作成してから実行する
 - ディレクトリと `package-info.java` は自動生成される（手動作成しない）
 - `aggregate` 生成時は Identifier・Factory・Repository・RepositoryImpl が自動連鎖生成される
 - `entity` 生成時は `--aggregate` 必須。Identifier・Factory・IdGenerator・IdGeneratorImpl が自動連鎖生成される
@@ -63,7 +63,7 @@ cd backend && ./scripts/create-class.sh <module> <layer> <name> [--aggregate <Ag
 ### テスト生成スクリプト
 
 ```bash
-cd backend && ./scripts/create-test.sh <module> <type> <target-class>
+cd backend && ./scripts/scaffold test <module> <type> <target-class>
 ```
 
 - `<type>` はテスト種別: `unit`, `integration`, `controller`
@@ -131,9 +131,9 @@ cd backend && ./gradlew check
 ## 5. ワークフローまとめ
 
 ```
-1. モジュール作成   → create-module.sh
-2. クラス作成       → create-class.sh
-3. テスト作成       → create-test.sh
+1. モジュール作成   → scaffold module
+2. クラス作成       → scaffold class
+3. テスト作成       → scaffold test
 4. ビジネスロジック実装
 5. spotlessApply    → フォーマット適用
 6. gradlew check    → 全検証パス確認

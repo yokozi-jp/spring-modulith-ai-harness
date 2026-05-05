@@ -26,7 +26,6 @@ plugins {
     id 'net.ltgt.errorprone' version '5.1.0'            // Error Prone + NullAway
     id 'net.bytebuddy.byte-buddy-gradle-plugin' version '1.18.8-jdk5' // jMolecules バイトコード変換
     id 'org.liquibase.gradle' version '3.1.0'           // Liquibase CLI コマンド（rollback, status 等）
-    id 'org.jooq.jooq-codegen-gradle' version '3.19.32' // jOOQ コード自動生成
 }
 
 // --- Spotless: コードフォーマット ---
@@ -50,17 +49,24 @@ spotless {
 }
 
 // --- jOOQ 生成コードをソースセットに追加 ---
+def jooqGeneratedDir = layout.projectDirectory.dir("src/generated/java")
+
 sourceSets {
     main {
         java {
-            srcDir "src/generated/jooq"
+            srcDir(jooqGeneratedDir)
         }
     }
 }
 
-// compileJava は jOOQ codegen の生成コードを参照する。
-// codegen はオンデマンド実行（./gradlew jooqCodegen）。DB 起動中に実行すること。
-// 生成コードは src/generated/jooq/ に出力され、Git 管理対象とする。
+// --- jOOQ codegen: Testcontainers + Liquibase + jOOQ ---
+// Testcontainers が一時的な PostgreSQL を起動し、Liquibase でマイグレーション後に codegen する。
+// 使い方: ./gradlew --no-daemon generateJooq（または ./gradlew build で自動実行）
+tasks.register('generateJooq', jooq.GenerateJooqTask) {
+    group = 'jooq'
+    description = 'Start PostgreSQL Testcontainer, run Liquibase, then generate jOOQ classes'
+    outputDirectory.set(jooqGeneratedDir)
+}
 
 // --- PMD: 静的解析 ---
 // PMD 7 の全カテゴリを有効化。ルールセットは config/pmd/ruleset.xml で定義。
@@ -73,7 +79,7 @@ pmd {
 
 // PMD から jOOQ 生成コードを除外
 tasks.withType(Pmd).configureEach {
-    source = source.minus(fileTree("src/generated/jooq"))
+    source = source.minus(fileTree(jooqGeneratedDir))
 }
 
 // --- SpotBugs: バグパターン検出 ---
@@ -332,62 +338,4 @@ dependencies {
     liquibaseRuntime 'org.liquibase:liquibase-core:5.0.2'
     liquibaseRuntime 'org.postgresql:postgresql'
     liquibaseRuntime 'info.picocli:picocli:4.7.7'  // Liquibase 5 の CLI パーサーが必要
-
-    // jOOQ codegen 用（./gradlew jooqCodegen）
-    jooqCodegen 'org.postgresql:postgresql'
-}
-
-// --- jOOQ codegen ---
-// docker compose up で起動中の PostgreSQL（Liquibase マイグレーション適用済み）に接続し codegen する。
-// DB 接続情報は環境変数 or -P オプション or デフォルト値（ローカル開発用）から取得。
-// 生成コードは src/generated/jooq/ に出力され、Git 管理対象とする。
-//
-// 使い方:
-//   docker compose up -d          # DB 起動（Liquibase が自動適用）
-//   cd backend && ./gradlew jooqCodegen  # codegen 実行
-//
-// スキーマ変更時:
-//   1. Liquibase changeset を追加
-//   2. docker compose up（マイグレーション適用）
-//   3. ./gradlew jooqCodegen（生成コード更新）
-//   4. git add src/generated/jooq/ && git commit
-def codegenDbUrl = System.getenv('DATASOURCE_URL') ?: findProperty('jooqUrl') ?: 'jdbc:postgresql://localhost:5432/demo'
-def codegenDbUsername = System.getenv('DATASOURCE_USERNAME') ?: findProperty('jooqUser') ?: 'demo'
-def codegenDbPassword = System.getenv('DATASOURCE_PASSWORD') ?: findProperty('jooqPassword') ?: 'demo'
-def codegenDbSchema = System.getenv('DB_SCHEMA') ?: findProperty('jooqSchema') ?: 'demo'
-
-// codegen 実行前に古い生成コードをクリーンする
-tasks.named('jooqCodegen') {
-    doFirst {
-        delete 'src/generated/jooq'
-    }
-}
-
-jooq {
-    configuration {
-        jdbc {
-            driver = 'org.postgresql.Driver'
-            url = codegenDbUrl
-            user = codegenDbUsername
-            password = codegenDbPassword
-        }
-        generator {
-            database {
-                name = 'org.jooq.meta.postgres.PostgresDatabase'
-                inputSchema = codegenDbSchema
-                excludes = 'databasechangelog|databasechangeloglock'
-            }
-            generate {
-                deprecated = false
-                records = true
-                pojos = false
-                fluentSetters = false
-                javaTimeTypes = true
-            }
-            target {
-                packageName = 'com.example.demo.jooq'
-                directory = "src/generated/jooq"
-            }
-        }
-    }
 }

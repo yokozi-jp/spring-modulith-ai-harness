@@ -5,35 +5,15 @@
 BASE_PKG="com.example.demo"
 SRC_ROOT="src/main/java/com/example/demo"
 
-# ディレクトリ構成定義: "相対パス|Onionアノテーション|import文"
-DIRS=(
-  ".|"
-  "event|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "exception|"
-  "domain|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "domain/model|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "domain/model/aggregate|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "domain/model/entity|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "domain/model/valueobject|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "domain/model/valueobject/identifier|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "domain/repository|@DomainModelRing|org.jmolecules.architecture.onion.classical.DomainModelRing"
-  "domain/service|@DomainServiceRing|org.jmolecules.architecture.onion.classical.DomainServiceRing"
-  "application|@ApplicationServiceRing|org.jmolecules.architecture.onion.classical.ApplicationServiceRing"
-  "application/command|@ApplicationServiceRing|org.jmolecules.architecture.onion.classical.ApplicationServiceRing"
-  "application/command/dto|@ApplicationServiceRing|org.jmolecules.architecture.onion.classical.ApplicationServiceRing"
-  "application/command/handler|@ApplicationServiceRing|org.jmolecules.architecture.onion.classical.ApplicationServiceRing"
-  "application/query|@ApplicationServiceRing|org.jmolecules.architecture.onion.classical.ApplicationServiceRing"
-  "application/query/dto|@ApplicationServiceRing|org.jmolecules.architecture.onion.classical.ApplicationServiceRing"
-  "application/query/service|@ApplicationServiceRing|org.jmolecules.architecture.onion.classical.ApplicationServiceRing"
-  "presentation|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-  "presentation/controller|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-  "presentation/request|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-  "presentation/response|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-  "infrastructure|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-  "infrastructure/db|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-  "infrastructure/db/repository|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-  "infrastructure/db/query|@InfrastructureRing|org.jmolecules.architecture.onion.classical.InfrastructureRing"
-)
+# ディレクトリ構成定義: TSV ファイルから読み込み
+# フォーマット: "相対パス|Onionアノテーション|import文"
+TSV_FILE="$(cd "$(dirname "$0")/.." && pwd)/config/layer-annotations.tsv"
+DIRS=()
+while IFS=$'\t' read -r rel ann imp; do
+  # コメント行・空行をスキップ
+  [[ "$rel" =~ ^#.*$ || -z "$rel" ]] && continue
+  DIRS+=("${rel}|${ann}|${imp}")
+done < "$TSV_FILE"
 
 # package-info.java の内容を生成する
 generate_package_info() {

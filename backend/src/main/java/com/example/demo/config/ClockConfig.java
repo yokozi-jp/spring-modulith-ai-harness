@@ -1,10 +1,10 @@
-package com.example.demo;
+package com.example.demo.config;
 
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/** 時計の Bean 定義。テストでは Clock.fixed() に差し替え可能。 */
+/** {@link Clock} Bean の構成。テストでは {@code Clock.fixed()} に差し替え可能。 */
 @Configuration
 class ClockConfig {
 

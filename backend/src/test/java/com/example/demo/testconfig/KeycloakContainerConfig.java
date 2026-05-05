@@ -1,40 +1,15 @@
-package com.example.demo;
+package com.example.demo.testconfig;
 
-import com.redis.testcontainers.RedisContainer;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistrar;
-import org.testcontainers.grafana.LgtmStackContainer;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
 
-/** ローカル開発・テスト用の Testcontainers 設定 */
-@SuppressWarnings("PMD.TestClassWithoutTestCases")
+/** Keycloak コンテナ設定。OAuth2 認証フローを使用するテストで必要。 */
 @TestConfiguration(proxyBeanMethods = false)
-public class TestcontainersConfiguration {
+public class KeycloakContainerConfig {
 
-  @Bean
-  @ServiceConnection
-  /* default */ LgtmStackContainer grafanaLgtmContainer() {
-    return new LgtmStackContainer(DockerImageName.parse("grafana/otel-lgtm:0.26.0"));
-  }
-
-  @Bean
-  @ServiceConnection
-  @SuppressWarnings("resource")
-  /* default */ PostgreSQLContainer postgresContainer() {
-    return new PostgreSQLContainer(DockerImageName.parse("postgres:18.3"))
-        .withInitScript("initdb/01-create-schema.sql");
-  }
-
-  @Bean
-  @ServiceConnection
-  /* default */ RedisContainer redisContainer() {
-    return new RedisContainer(DockerImageName.parse("redis:8.6.2"));
-  }
-
+  /** Keycloak コンテナ。demo レルムをインポートする。 */
   @Bean
   @SuppressWarnings("resource")
   /* default */ KeycloakContainer keycloakContainer() {
@@ -42,6 +17,7 @@ public class TestcontainersConfiguration {
         .withRealmImportFile("/keycloak/demo-realm.json");
   }
 
+  /** Keycloak の OAuth2 プロパティを動的に登録する。 */
   @Bean
   /* default */ DynamicPropertyRegistrar keycloakProperties(KeycloakContainer keycloak) {
     return registry -> {
