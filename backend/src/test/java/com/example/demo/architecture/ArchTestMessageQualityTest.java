@@ -35,9 +35,7 @@ class ArchTestMessageQualityTest {
   /** violations メッセージに修正指示を含むべきテストソース一覧。 */
   private static final List<Path> VIOLATION_SOURCES =
       List.of(
-          TEST_SRC.resolve("packageinfo/NullMarkedPackageInfoTest.java"),
-          TEST_SRC.resolve("packageinfo/OnionRingAnnotationTest.java"),
-          TEST_SRC.resolve("packageinfo/ModuleStructureTest.java"),
+          TEST_SRC.resolve("packageinfo/PackageInfoComplianceTest.java"),
           TEST_SRC.resolve("modulith/ModularStructureTest.java"));
 
   /** {@code @ArchTest} フィールド名を抽出するパターン。 */
