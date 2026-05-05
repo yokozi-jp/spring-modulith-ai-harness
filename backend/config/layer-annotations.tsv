@@ -1,0 +1,30 @@
+# レイヤー→Onion Architecture アノテーション マッピング
+# フォーマット: 相対パス<TAB>アノテーション<TAB>import文
+# アノテーションが空の行は Onion アノテーションなし（@NullMarked のみ）
+# このファイルは module-common.sh と PackageInfoComplianceTest の両方から参照される
+.		
+event	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+exception		
+domain	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+domain/model	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+domain/model/aggregate	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+domain/model/entity	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+domain/model/valueobject	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+domain/model/valueobject/identifier	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+domain/repository	@DomainModelRing	org.jmolecules.architecture.onion.classical.DomainModelRing
+domain/service	@DomainServiceRing	org.jmolecules.architecture.onion.classical.DomainServiceRing
+application	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/command	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/command/dto	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/command/handler	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/query	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/query/dto	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/query/service	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+presentation	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
+presentation/controller	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
+presentation/request	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
+presentation/response	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
+infrastructure	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
+infrastructure/db	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
+infrastructure/db/repository	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
+infrastructure/db/query	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing

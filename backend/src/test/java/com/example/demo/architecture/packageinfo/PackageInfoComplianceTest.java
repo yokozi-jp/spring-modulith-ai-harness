@@ -23,57 +23,50 @@ class PackageInfoComplianceTest {
   /** ソースルートパス。 */
   private static final Path SRC_ROOT = Path.of("src/main/java/com/example/demo");
 
-  /** Onion アノテーション名の定数。 */
-  private static final String DOMAIN_MODEL = "@DomainModelRing";
+  /** レイヤー→アノテーション マッピング TSV ファイル。 */
+  private static final Path LAYER_TSV = Path.of("config/layer-annotations.tsv");
 
-  /** Onion アノテーション名の定数。 */
-  private static final String DOMAIN_SVC = "@DomainServiceRing";
+  /** アノテーション名から FQCN を導出するマッピング。TSV から構築する。 */
+  private static final Map<String, String> IMPORT_MAP = loadImportMap();
 
-  /** Onion アノテーション名の定数。 */
-  private static final String APP_SVC = "@ApplicationServiceRing";
+  /** パッケージ末尾名と期待する Onion アノテーションの対応。TSV から読み込む。 */
+  private static final List<Map.Entry<String, String>> LAYER_RULES = loadLayerRules();
 
-  /** Onion アノテーション名の定数。 */
-  private static final String INFRA = "@InfrastructureRing";
+  private static Map<String, String> loadImportMap() {
+    try {
+      final Map<String, String> map = new java.util.concurrent.ConcurrentHashMap<>();
+      for (final String line : Files.readAllLines(LAYER_TSV)) {
+        if (line.startsWith("#") || line.isBlank()) {
+          continue;
+        }
+        final String[] parts = line.split("\t", -1);
+        if (parts.length >= 3 && !parts[1].isBlank() && !parts[2].isBlank()) {
+          map.putIfAbsent(parts[1], parts[2]);
+        }
+      }
+      return Map.copyOf(map);
+    } catch (IOException exception) {
+      throw new java.io.UncheckedIOException(
+          "Failed to load " + LAYER_TSV + ": " + exception.getMessage(), exception);
+    }
+  }
 
-  /** アノテーション名から FQCN を導出するマッピング。 */
-  private static final Map<String, String> IMPORT_MAP =
-      Map.of(
-          DOMAIN_MODEL,
-          "org.jmolecules.architecture.onion.classical.DomainModelRing",
-          DOMAIN_SVC,
-          "org.jmolecules.architecture.onion.classical.DomainServiceRing",
-          APP_SVC,
-          "org.jmolecules.architecture.onion.classical.ApplicationServiceRing",
-          INFRA,
-          "org.jmolecules.architecture.onion.classical.InfrastructureRing");
-
-  /** パッケージ末尾名と期待する Onion アノテーションの対応。具体的なパスから先にマッチさせる。 */
-  private static final List<Map.Entry<String, String>> LAYER_RULES =
-      List.of(
-          Map.entry("event", DOMAIN_MODEL),
-          Map.entry("domain/model/aggregate", DOMAIN_MODEL),
-          Map.entry("domain/model/entity", DOMAIN_MODEL),
-          Map.entry("domain/model/valueobject/identifier", DOMAIN_MODEL),
-          Map.entry("domain/model/valueobject", DOMAIN_MODEL),
-          Map.entry("domain/model", DOMAIN_MODEL),
-          Map.entry("domain/repository", DOMAIN_MODEL),
-          Map.entry("domain/service", DOMAIN_SVC),
-          Map.entry("domain", DOMAIN_MODEL),
-          Map.entry("application/command/dto", APP_SVC),
-          Map.entry("application/command/handler", APP_SVC),
-          Map.entry("application/command", APP_SVC),
-          Map.entry("application/query/dto", APP_SVC),
-          Map.entry("application/query/service", APP_SVC),
-          Map.entry("application/query", APP_SVC),
-          Map.entry("application", APP_SVC),
-          Map.entry("presentation/controller", INFRA),
-          Map.entry("presentation/request", INFRA),
-          Map.entry("presentation/response", INFRA),
-          Map.entry("presentation", INFRA),
-          Map.entry("infrastructure/db/repository", INFRA),
-          Map.entry("infrastructure/db/query", INFRA),
-          Map.entry("infrastructure/db", INFRA),
-          Map.entry("infrastructure", INFRA));
+  private static List<Map.Entry<String, String>> loadLayerRules() {
+    try {
+      return Files.readAllLines(LAYER_TSV).stream()
+          .filter(line -> !line.startsWith("#") && !line.isBlank())
+          .filter(line -> line.split("\t", -1).length >= 2 && !line.split("\t", -1)[1].isBlank())
+          .map(
+              line -> {
+                final String[] parts = line.split("\t", -1);
+                return Map.entry(parts[0], parts[1]);
+              })
+          .toList();
+    } catch (IOException exception) {
+      throw new java.io.UncheckedIOException(
+          "Failed to load " + LAYER_TSV + ": " + exception.getMessage(), exception);
+    }
+  }
 
   /** モジュール配下の全ディレクトリに package-info.java が存在することを検証する。 */
   @Test

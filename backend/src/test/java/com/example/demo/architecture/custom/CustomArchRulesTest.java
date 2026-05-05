@@ -5,6 +5,7 @@ import com.example.demo.architecture.custom.policy.CqrsPolicy;
 import com.example.demo.architecture.custom.policy.DddPolicy;
 import com.example.demo.architecture.custom.policy.JooqPolicy;
 import com.example.demo.architecture.custom.policy.LayerPolicy;
+import com.example.demo.architecture.custom.policy.SecurityPolicy;
 import com.example.demo.architecture.custom.policy.TimePolicy;
 import com.example.demo.architecture.custom.policy.TransactionPolicy;
 import com.example.demo.architecture.custom.policy.TypePolicy;
@@ -46,4 +47,7 @@ class CustomArchRulesTest {
 
   /** メソッドアノテーション: @CommandHandler, @ApplicationModuleListener の配置。 */
   @ArchTest /* default */ static final ArchTests ANNOTATION = ArchTests.in(AnnotationPolicy.class);
+
+  /** セキュリティ: SecurityFilterChain の順序・数・ADR-0004 ワークアラウンド。 */
+  @ArchTest /* default */ static final ArchTests SECURITY = ArchTests.in(SecurityPolicy.class);
 }

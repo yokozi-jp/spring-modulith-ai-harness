@@ -37,6 +37,7 @@ class ArchTestMessageQualityTest {
           TEST_SRC.resolve("custom/policy/JooqPolicy.java"),
           TEST_SRC.resolve("custom/policy/TypePolicy.java"),
           TEST_SRC.resolve("custom/policy/AnnotationPolicy.java"),
+          TEST_SRC.resolve("custom/policy/SecurityPolicy.java"),
           TEST_SRC.resolve("framework/ArchUnitBuiltInRulesTest.java"),
           TEST_SRC.resolve("framework/JMoleculesRulesTest.java"));
 
