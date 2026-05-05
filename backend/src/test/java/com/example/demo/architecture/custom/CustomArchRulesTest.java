@@ -743,4 +743,41 @@ class CustomArchRulesTest {
           .as("domain は jOOQ に依存してはいけない")
           .because("jOOQ 型漏洩防止: jOOQ の Record/DSLContext を infrastructure 層に閉じ込めてください")
           .allowEmptyShould(true);
+
+  // === レガシー日時 API / LocalDateTime 使用禁止 ===
+
+  /** {@code java.util.Date} の使用を禁止する。{@code java.time.Instant} を使用すること。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_JAVA_UTIL_DATE =
+      noClasses()
+          .should()
+          .dependOnClassesThat()
+          .haveFullyQualifiedName("java.util.Date")
+          .as("java.util.Date の使用は禁止")
+          .because("日時制約: java.util.Date ではなく java.time.Instant を使用してください")
+          .allowEmptyShould(true);
+
+  /** {@code java.util.Calendar} の使用を禁止する。{@code java.time} API を使用すること。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_JAVA_UTIL_CALENDAR =
+      noClasses()
+          .should()
+          .dependOnClassesThat()
+          .haveFullyQualifiedName("java.util.Calendar")
+          .as("java.util.Calendar の使用は禁止")
+          .because("日時制約: java.util.Calendar ではなく java.time API を使用してください")
+          .allowEmptyShould(true);
+
+  /** {@code LocalDateTime} の使用を禁止する。DB の timestamptz と対応しないため。 */
+  @ArchTest
+  /* default */ static final ArchRule NO_LOCAL_DATE_TIME =
+      noClasses()
+          .should()
+          .dependOnClassesThat()
+          .haveFullyQualifiedName("java.time.LocalDateTime")
+          .as("LocalDateTime の使用は禁止")
+          .because(
+              "日時制約: LocalDateTime は DB の timestamptz と対応しません。"
+                  + " Instant または OffsetDateTime を使用してください")
+          .allowEmptyShould(true);
 }
