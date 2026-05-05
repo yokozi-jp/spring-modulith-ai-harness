@@ -25,7 +25,8 @@ class GlobalExceptionHandlerTest {
 
   @Test
   void shouldReturn400ForIllegalArgument() {
-    final ProblemDetail result = handler.handleIllegalArgument(new IllegalArgumentException("bad arg"));
+    final ProblemDetail result =
+        handler.handleIllegalArgument(new IllegalArgumentException("bad arg"));
 
     assertEquals(HttpStatus.BAD_REQUEST.value(), result.getStatus(), "status should be 400");
     assertEquals("Bad Request", result.getTitle(), "title should be Bad Request");
