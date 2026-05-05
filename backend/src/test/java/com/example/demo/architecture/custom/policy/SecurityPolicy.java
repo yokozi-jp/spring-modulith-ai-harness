@@ -68,7 +68,8 @@ public final class SecurityPolicy {
               + EXPECTED_FILTER_CHAIN_COUNT
               + " SecurityFilterChain beans") {
 
-        /** 検出された SecurityFilterChain Bean の総数。 */
+        /* 検出された SecurityFilterChain Bean の総数。 */
+        @SuppressWarnings("PMD.CommentRequired")
         private int totalCount;
 
         @Override
