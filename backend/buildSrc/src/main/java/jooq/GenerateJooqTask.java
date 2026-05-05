@@ -48,8 +48,21 @@ import org.testcontainers.containers.PostgreSQLContainer;
  */
 public abstract class GenerateJooqTask extends DefaultTask {
 
+    /** コンストラクタ。プロジェクト規約に基づくデフォルト値を設定する。 */
+    @javax.inject.Inject
+    protected GenerateJooqTask() {
+        getPostgresImage().convention("postgres:18.3");
+        getDatabaseName().convention("jooq-codegen");
+        getUsername().convention("jooq-codegen");
+        getPassword().convention("jooq-codegen");
+        getLiquibaseSearchPath().convention("src/main/resources");
+        getLiquibaseChangelog().convention("db/changelog/db.changelog-master.yaml");
+        getPackageName().convention("com.example.demo.jooq");
+        getInputSchema().convention("demo");
+    }
+
     // ========================================================================
-    // 入力プロパティ — build.gradle から設定される
+    // 入力プロパティ — convention デフォルト値を持つ。build.gradle でオーバーライド可能
     // Gradle はこれらの値をキャッシュキーに使い、変更時のみタスクを再実行する
     // ========================================================================
 

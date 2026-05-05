@@ -65,18 +65,7 @@ sourceSets {
 tasks.register('generateJooq', jooq.GenerateJooqTask) {
     group = 'jooq'
     description = 'Start PostgreSQL Testcontainer, run Liquibase, then generate jOOQ classes'
-
-    postgresImage.set('postgres:18.3')
-    databaseName.set('jooq-codegen')
-    username.set('jooq-codegen')
-    password.set('jooq-codegen')
-
-    liquibaseSearchPath.set('src/main/resources')
-    liquibaseChangelog.set('db/changelog/db.changelog-master.yaml')
-
     outputDirectory.set(jooqGeneratedDir)
-    packageName.set('com.example.demo.jooq')
-    inputSchema.set('demo')
 }
 
 // --- PMD: 静的解析 ---
