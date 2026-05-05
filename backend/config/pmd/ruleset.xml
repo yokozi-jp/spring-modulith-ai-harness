@@ -9,6 +9,8 @@
     <rule ref="category/java/bestpractices.xml">
         <!-- テストでは複数アサーションが自然なため無効化 -->
         <exclude name="UnitTestContainsTooManyAsserts"/>
+        <!-- SLF4J のプレースホルダーで遅延評価されるためガード不要 -->
+        <exclude name="GuardLogStatement"/>
     </rule>
     <rule ref="category/java/codestyle.xml">
         <!-- Google Java Format がパラメータの final を削除するため無効化 -->
