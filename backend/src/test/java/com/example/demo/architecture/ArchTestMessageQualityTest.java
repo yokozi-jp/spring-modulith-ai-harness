@@ -29,6 +29,14 @@ class ArchTestMessageQualityTest {
       List.of(
           TEST_SRC.resolve("custom/CustomArchRulesTest.java"),
           TEST_SRC.resolve("custom/TestCodingRulesTest.java"),
+          TEST_SRC.resolve("custom/policy/CqrsPolicy.java"),
+          TEST_SRC.resolve("custom/policy/DddPolicy.java"),
+          TEST_SRC.resolve("custom/policy/LayerPolicy.java"),
+          TEST_SRC.resolve("custom/policy/TransactionPolicy.java"),
+          TEST_SRC.resolve("custom/policy/TimePolicy.java"),
+          TEST_SRC.resolve("custom/policy/JooqPolicy.java"),
+          TEST_SRC.resolve("custom/policy/TypePolicy.java"),
+          TEST_SRC.resolve("custom/policy/AnnotationPolicy.java"),
           TEST_SRC.resolve("framework/ArchUnitBuiltInRulesTest.java"),
           TEST_SRC.resolve("framework/JMoleculesRulesTest.java"));
 
