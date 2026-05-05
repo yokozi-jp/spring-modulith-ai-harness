@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.config;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
