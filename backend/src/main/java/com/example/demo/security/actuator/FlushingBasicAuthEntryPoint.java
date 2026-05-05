@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package com.example.demo.security.actuator;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,7 +19,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  * に置き換えること。
  *
  * @see <a
- *     href="../../../../../../docs/adr/0004-basic-auth-entrypoint-flush-workaround.md">ADR-0004</a>
+ *     href="../../../../../../../docs/adr/0004-basic-auth-entrypoint-flush-workaround.md">ADR-0004</a>
  */
 final class FlushingBasicAuthEntryPoint implements AuthenticationEntryPoint {
 

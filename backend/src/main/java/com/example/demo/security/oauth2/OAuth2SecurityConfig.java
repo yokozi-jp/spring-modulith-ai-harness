@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package com.example.demo.security.oauth2;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 

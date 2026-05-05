@@ -142,7 +142,11 @@ public abstract class GenerateJooqTask extends DefaultTask {
     private void createSchema(String jdbcUrl, String username, String password) throws Exception {
         try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
                 Statement stmt = connection.createStatement()) {
-            stmt.execute("CREATE SCHEMA IF NOT EXISTS " + getInputSchema().get());
+            String schemaName = getInputSchema().get();
+            if (!schemaName.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+                throw new IllegalArgumentException("Invalid schema name: " + schemaName);
+            }
+            stmt.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
         }
     }
 
