@@ -120,6 +120,78 @@ public class ${cls} extends RuntimeException {
     super(message);
   }
 }"
+  # 自動連鎖: ExceptionHandler
+  gen_exceptionhandler_for_exception "$NAME"
+}
+
+# 例外名から HTTP ステータスを推測する
+infer_http_status() {
+  local name="$1"
+  case "$name" in
+    *NotFound)      echo "404|NOT_FOUND|Not Found" ;;
+    *AlreadyExists) echo "409|CONFLICT|Conflict" ;;
+    *Conflict)      echo "409|CONFLICT|Conflict" ;;
+    *)              echo "400|BAD_REQUEST|Bad Request" ;;
+  esac
+}
+
+# 例外に対応する ExceptionHandler を連鎖生成する
+gen_exceptionhandler_for_exception() {
+  local exc_name="$1"
+  local exc_cls="${exc_name}Exception"
+  local exc_pkg
+  exc_pkg=$(pkg_for "exception")
+  local ctrl_pkg
+  ctrl_pkg=$(pkg_for "presentation/controller")
+
+  # モジュール名の先頭を大文字にしてハンドラクラス名を生成
+  local module_cap
+  module_cap="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
+  local handler_cls="${module_cap}ExceptionHandler"
+  local handler_file="$MODULE_DIR/presentation/controller/${handler_cls}.java"
+
+  # 既存ならスキップ
+  if [ -f "$handler_file" ]; then
+    echo "[SKIP] $handler_file (already exists — add @ExceptionHandler for ${exc_cls} manually)"
+    return
+  fi
+
+  # HTTP ステータスを推測
+  local status_info
+  status_info=$(infer_http_status "$exc_name")
+  local status_code status_enum status_title
+  IFS='|' read -r status_code status_enum status_title <<< "$status_info"
+
+  # メソッド名を生成（例: handleOrderNotFound）
+  local method_name="handle${exc_name}"
+
+  write_file "$handler_file" "presentation/controller" "\
+package $ctrl_pkg;
+
+import ${exc_pkg}.${exc_cls};
+import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+/** ${module_cap} モジュールの例外ハンドラ。 */
+@Slf4j
+@RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
+public class ${handler_cls} {
+
+  /** ${exc_cls} を処理する。 */
+  @ExceptionHandler(${exc_cls}.class)
+  /* default */ ProblemDetail ${method_name}(final ${exc_cls} ex) {
+    log.warn(\"${exc_cls}: {}\", ex.getMessage());
+    final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.${status_enum});
+    problem.setTitle(\"${status_title}\");
+    problem.setDetail(ex.getMessage());
+    problem.setType(URI.create(\"about:blank\"));
+    return problem;
+  }
+}"
 }
 
 gen_aggregate() {
