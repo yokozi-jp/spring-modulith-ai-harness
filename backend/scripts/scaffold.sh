@@ -30,7 +30,7 @@ Usage: cd backend && ./scripts/scaffold <subcommand> [options] [args]
 Subcommands:
   module <module-name>
       Create a new module (package-info.java at module root).
-      Options: --dry-run, --no-test
+      Options: --display-name <name>, --dry-run, --no-test
 
   class <module> <layer> <name> [--aggregate <Aggregate>]
       Create a class/record/interface in the specified layer.
@@ -77,11 +77,20 @@ cmd_module() {
   # shellcheck source=module-common.sh
   source "$SCRIPT_DIR/module-common.sh"
 
-  if [ $# -ne 1 ]; then
-    echo "Usage: scaffold module <module-name>" >&2
+  local display_name=""
+  local positional=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --display-name) display_name="$2"; shift 2 ;;
+      *) positional+=("$1"); shift ;;
+    esac
+  done
+
+  if [ "${#positional[@]}" -ne 1 ]; then
+    echo "Usage: scaffold module <module-name> [--display-name <name>]" >&2
     exit 1
   fi
-  local module="$1"
+  local module="${positional[0]}"
 
   if [[ ! "$module" =~ ^[a-z][a-z0-9]*$ ]]; then
     echo "Error: Module name must start with a lowercase letter and contain only lowercase letters and digits." >&2
@@ -104,7 +113,7 @@ cmd_module() {
 
   mkdir -p "$module_dir"
   local local_pkg="$BASE_PKG.$module"
-  generate_package_info "." "" "" "$local_pkg" > "$module_dir/package-info.java"
+  generate_package_info "." "" "" "$local_pkg" "$display_name" > "$module_dir/package-info.java"
 
   echo "Module '$module' created at $module_dir"
   echo "  Created: $module_dir/package-info.java"
