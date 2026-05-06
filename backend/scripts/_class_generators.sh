@@ -174,7 +174,7 @@ public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements Aggregate
   private final ${id_cls} id;
 
   /** 新規作成用コンストラクタ（Factory から呼び出す）。 */
-  /* default */ ${NAME}(final ${id_cls} id) {
+  public ${NAME}(final ${id_cls} id) {
     super();
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;

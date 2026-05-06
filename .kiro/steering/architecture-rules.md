@@ -193,7 +193,13 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
 ## 集約の再構築パターン
 
 `RepositoryImpl` から集約を再構築する場合は、集約クラス内に `public static reconstitute(...)` メソッドを定義する。
-直接 `new` による集約の生成は `model/aggregate/` 内と `domain/service/` 内でのみ許可する。
+直接 `new` による集約の生成は `model/aggregate/` 内と `domain/service/` 内でのみ許可する（ArchUnit `AGG_CTOR` ルールで検証）。
+
+### コンストラクタの可視性
+
+- 新規作成用コンストラクタは `public` とする。Factory が `domain/service/` パッケージにあるため package-private ではアクセスできない。
+- ArchUnit の `AGG_CTOR` ルールにより、呼び出し元は `model/aggregate/` と `domain/service/` に制限されるため、`public` でも安全性は担保される。
+- `reconstitute` 用の全フィールドコンストラクタは `private` とする。
 
 ```java
 @Getter
@@ -204,8 +210,8 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
   private final String customerName;
   private final OrderStatus status;
 
-  // Factory から呼び出す新規作成用コンストラクタ
-  Order(final OrderId id, final String customerName) {
+  // Factory から呼び出す新規作成用コンストラクタ（public）
+  public Order(final OrderId id, final String customerName) {
     this.id = id;
     this.customerName = customerName;
     this.status = OrderStatus.CREATED;

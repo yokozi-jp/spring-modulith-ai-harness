@@ -435,11 +435,16 @@ class ${test_class_name} {
 EOF
       ;;
     controller)
+      local agg_name="${target%Controller}"
+      local handler_pkg="${base_pkg}.${module}.application.command.handler"
+      local qry_svc_pkg="${base_pkg}.${module}.application.query.service"
       cat > "$test_file" << EOF
 package $target_pkg;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import ${handler_pkg}.${agg_name}CommandHandler;
+import ${qry_svc_pkg}.${agg_name}QueryService;
 import com.example.demo.config.WebMvcConfig;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -467,9 +472,11 @@ class ${test_class_name} {
   /** MockMvc。 */
   private final MockMvc mockMvc;
 
-  // TODO: Controller の依存を @MockitoBean で宣言する
-  // @MockitoBean private XxxCommandHandler commandHandler;
-  // @MockitoBean private XxxQueryService queryService;
+  /** コマンドハンドラモック。 */
+  @MockitoBean private ${agg_name}CommandHandler commandHandler;
+
+  /** クエリサービスモック。 */
+  @MockitoBean private ${agg_name}QueryService queryService;
 
   // TODO: 以下の観点でテストを実装する
   // - POST: 201 Created + Location ヘッダー（when + csrf()）
@@ -489,11 +496,16 @@ class ${test_class_name} {
 EOF
       ;;
     security)
+      local agg_name="${target%Controller}"
+      local handler_pkg="${base_pkg}.${module}.application.command.handler"
+      local qry_svc_pkg="${base_pkg}.${module}.application.query.service"
       cat > "$test_file" << EOF
 package $target_pkg;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import ${handler_pkg}.${agg_name}CommandHandler;
+import ${qry_svc_pkg}.${agg_name}QueryService;
 import com.example.demo.config.WebMvcConfig;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -522,9 +534,11 @@ class ${test_class_name} {
   /** MockMvc。 */
   private final MockMvc mockMvc;
 
-  // TODO: Controller の依存を @MockitoBean で宣言する
-  // @MockitoBean private XxxCommandHandler commandHandler;
-  // @MockitoBean private XxxQueryService queryService;
+  /** コマンドハンドラモック。 */
+  @MockitoBean private ${agg_name}CommandHandler commandHandler;
+
+  /** クエリサービスモック。 */
+  @MockitoBean private ${agg_name}QueryService queryService;
 
   // TODO: 以下の観点でテストを実装する
   // - @WithAnonymousUser: 未認証で 302 リダイレクト（OAuth2 Login）
@@ -690,7 +704,7 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.jooq.JooqTest;
+import org.springframework.boot.jooq.test.autoconfigure.JooqTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 

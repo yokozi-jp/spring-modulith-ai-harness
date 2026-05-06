@@ -50,7 +50,7 @@ public abstract class GenerateJooqTask extends DefaultTask {
 
     /** コンストラクタ。プロジェクト規約に基づくデフォルト値を設定する。 */
     @javax.inject.Inject
-    protected GenerateJooqTask() {
+    public GenerateJooqTask() {
         getPostgresImage().convention("postgres:18.3");
         getDatabaseName().convention("jooq-codegen");
         getUsername().convention("jooq-codegen");
