@@ -413,8 +413,8 @@ public class ${NAME}DomainService {}"
 }
 
 gen_command() {
-  local pkg; pkg=$(pkg_for "application/command/dto")
-  write_file "$MODULE_DIR/application/command/dto/${NAME}Command.java" "application/command/dto" "\
+  local pkg; pkg=$(pkg_for "application/command/command")
+  write_file "$MODULE_DIR/application/command/command/${NAME}Command.java" "application/command/command" "\
 package $pkg;
 
 import org.jmolecules.architecture.cqrs.Command;
@@ -422,6 +422,30 @@ import org.jmolecules.architecture.cqrs.Command;
 /** ${NAME} コマンド。 */
 @Command
 public record ${NAME}Command() {}"
+}
+
+gen_commandresult() {
+  local pkg; pkg=$(pkg_for "application/command/dto")
+  write_file "$MODULE_DIR/application/command/dto/${NAME}Dto.java" "application/command/dto" "\
+package $pkg;
+
+import com.example.demo.annotation.CommandResult;
+
+/** ${NAME} コマンド実行結果。 */
+@CommandResult
+public record ${NAME}Dto() {}"
+}
+
+gen_param() {
+  local pkg; pkg=$(pkg_for "application/query/param")
+  write_file "$MODULE_DIR/application/query/param/${NAME}Param.java" "application/query/param" "\
+package $pkg;
+
+import com.example.demo.annotation.QueryParam;
+
+/** ${NAME} クエリパラメータ。 */
+@QueryParam
+public record ${NAME}Param() {}"
 }
 
 gen_commandhandler() {
@@ -564,4 +588,340 @@ package $pkg;
 
 /** ${NAME} レスポンス。 */
 public record ${NAME}Response() {}"
+}
+
+gen_api() {
+  # aggregate が存在するか確認
+  local agg_file="$MODULE_DIR/domain/model/aggregate/${NAME}.java"
+  if [ ! -f "$agg_file" ]; then
+    echo "Error: Aggregate '${NAME}' not found at $agg_file" >&2
+    echo "Run 'scaffold class $MODULE aggregate $NAME' first." >&2
+    exit 1
+  fi
+
+  local module_cap; module_cap="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
+  local id_cls="${NAME}Id"
+  local id_pkg; id_pkg=$(pkg_for "domain/model/valueobject/identifier")
+
+  # --- presentation/request ---
+  local req_pkg; req_pkg=$(pkg_for "presentation/request")
+  write_file "$MODULE_DIR/presentation/request/Create${NAME}Request.java" "presentation/request" "\
+package $req_pkg;
+
+// import jakarta.validation.constraints.NotBlank;
+
+/** ${NAME} 作成リクエスト。 */
+public record Create${NAME}Request(
+    // @NotBlank(message = \"FIXME: バリデーションメッセージを設定\")
+    // String name // FIXME: フィールドを定義する
+) {}"
+
+  # --- presentation/response (Summary + Detail) ---
+  local res_pkg; res_pkg=$(pkg_for "presentation/response")
+  local summary_dto_pkg; summary_dto_pkg=$(pkg_for "application/query/dto")
+  local detail_dto_pkg; detail_dto_pkg=$(pkg_for "application/query/dto")
+
+  write_file "$MODULE_DIR/presentation/response/${NAME}SummaryResponse.java" "presentation/response" "\
+package $res_pkg;
+
+import ${summary_dto_pkg}.${NAME}SummaryDto;
+
+/** ${NAME} 一覧レスポンス。 */
+public record ${NAME}SummaryResponse(String id) {
+
+  /** DTO から変換する。 */
+  public static ${NAME}SummaryResponse from(final ${NAME}SummaryDto dto) {
+    return new ${NAME}SummaryResponse(dto.id());
+  }
+}"
+
+  write_file "$MODULE_DIR/presentation/response/${NAME}DetailResponse.java" "presentation/response" "\
+package $res_pkg;
+
+import ${detail_dto_pkg}.${NAME}DetailDto;
+
+/** ${NAME} 詳細レスポンス。 */
+public record ${NAME}DetailResponse(String id) {
+
+  /** DTO から変換する。 */
+  public static ${NAME}DetailResponse from(final ${NAME}DetailDto dto) {
+    return new ${NAME}DetailResponse(dto.id());
+  }
+}"
+
+  # --- application/command/command ---
+  local cmd_pkg; cmd_pkg=$(pkg_for "application/command/command")
+  write_file "$MODULE_DIR/application/command/command/Create${NAME}Command.java" "application/command/command" "\
+package $cmd_pkg;
+
+import org.jmolecules.architecture.cqrs.Command;
+
+/** ${NAME} 作成コマンド。 */
+@Command
+public record Create${NAME}Command(
+    // FIXME: フィールドを定義する
+) {}"
+
+  # --- application/command/dto (CommandResult) ---
+  local cmd_dto_pkg; cmd_dto_pkg=$(pkg_for "application/command/dto")
+  write_file "$MODULE_DIR/application/command/dto/Created${NAME}Dto.java" "application/command/dto" "\
+package $cmd_dto_pkg;
+
+import com.example.demo.annotation.CommandResult;
+
+/** ${NAME} 作成結果。 */
+@CommandResult
+public record Created${NAME}Dto(String id) {}"
+
+  # --- application/command/handler ---
+  local handler_pkg; handler_pkg=$(pkg_for "application/command/handler")
+  local factory_pkg; factory_pkg=$(pkg_for "domain/service")
+  local agg_pkg; agg_pkg=$(pkg_for "domain/model/aggregate")
+  local repo_pkg; repo_pkg=$(pkg_for "domain/repository")
+  write_file "$MODULE_DIR/application/command/handler/${NAME}CommandHandler.java" "application/command/handler" "\
+package $handler_pkg;
+
+import ${cmd_dto_pkg}.Created${NAME}Dto;
+import ${cmd_pkg}.Create${NAME}Command;
+import ${factory_pkg}.${NAME}Factory;
+import ${agg_pkg}.${NAME};
+import lombok.RequiredArgsConstructor;
+import org.jmolecules.architecture.cqrs.CommandHandler;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/** ${NAME} コマンドハンドラ。 */
+@RequiredArgsConstructor
+@Component
+public class ${NAME}CommandHandler {
+
+  /** ファクトリ。 */
+  private final ${NAME}Factory factory;
+
+  /** 作成コマンドを処理する。 */
+  @Transactional
+  @CommandHandler
+  public Created${NAME}Dto handle(final Create${NAME}Command command) {
+    final ${NAME} aggregate = factory.create();
+    return new Created${NAME}Dto(aggregate.getId().value());
+  }
+}"
+
+  # --- application/query/param ---
+  local param_pkg; param_pkg=$(pkg_for "application/query/param")
+  write_file "$MODULE_DIR/application/query/param/${NAME}ListParam.java" "application/query/param" "\
+package $param_pkg;
+
+import com.example.demo.annotation.QueryParam;
+
+/** ${NAME} 一覧検索パラメータ。 */
+@QueryParam
+public record ${NAME}ListParam(
+    // FIXME: フィルタ条件を定義する
+) {}"
+
+  # --- application/query/dto (QueryModel) ---
+  local qry_dto_pkg; qry_dto_pkg=$(pkg_for "application/query/dto")
+  write_file "$MODULE_DIR/application/query/dto/${NAME}SummaryDto.java" "application/query/dto" "\
+package $qry_dto_pkg;
+
+import org.jmolecules.architecture.cqrs.QueryModel;
+
+/** ${NAME} 一覧用クエリモデル。 */
+@QueryModel
+public record ${NAME}SummaryDto(String id) {}"
+
+  write_file "$MODULE_DIR/application/query/dto/${NAME}DetailDto.java" "application/query/dto" "\
+package $qry_dto_pkg;
+
+import org.jmolecules.architecture.cqrs.QueryModel;
+
+/** ${NAME} 詳細クエリモデル。 */
+@QueryModel
+public record ${NAME}DetailDto(String id) {}"
+
+  # --- application/query/service ---
+  local qry_svc_pkg; qry_svc_pkg=$(pkg_for "application/query/service")
+  write_file "$MODULE_DIR/application/query/service/${NAME}QueryService.java" "application/query/service" "\
+package $qry_svc_pkg;
+
+import ${param_pkg}.${NAME}ListParam;
+import ${qry_dto_pkg}.${NAME}DetailDto;
+import ${qry_dto_pkg}.${NAME}SummaryDto;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+/** ${NAME} クエリサービス。 */
+public interface ${NAME}QueryService {
+
+  /** 一覧取得。 */
+  Page<${NAME}SummaryDto> findAll(${NAME}ListParam param, Pageable pageable);
+
+  /** ID で取得。 */
+  Optional<${NAME}DetailDto> findById(String id);
+}"
+
+  # --- infrastructure/db/query ---
+  local infra_qry_pkg; infra_qry_pkg=$(pkg_for "infrastructure/db/query")
+  write_file "$MODULE_DIR/infrastructure/db/query/${NAME}QueryServiceImpl.java" "infrastructure/db/query" "\
+package $infra_qry_pkg;
+
+import ${param_pkg}.${NAME}ListParam;
+import ${qry_dto_pkg}.${NAME}DetailDto;
+import ${qry_dto_pkg}.${NAME}SummaryDto;
+import ${qry_svc_pkg}.${NAME}QueryService;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+/** ${NAME} クエリサービス実装。 */
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class ${NAME}QueryServiceImpl implements ${NAME}QueryService {
+
+  @Override
+  public Page<${NAME}SummaryDto> findAll(final ${NAME}ListParam param, final Pageable pageable) {
+    // FIXME: jOOQ でクエリを実装する
+    return new PageImpl<>(java.util.List.of(), pageable, 0);
+  }
+
+  @Override
+  public Optional<${NAME}DetailDto> findById(final String id) {
+    // FIXME: jOOQ でクエリを実装する
+    return Optional.empty();
+  }
+}"
+
+  # --- exception ---
+  local exc_pkg; exc_pkg=$(pkg_for "exception")
+  local exc_cls="${NAME}NotFoundException"
+  write_file "$MODULE_DIR/exception/${exc_cls}.java" "exception" "\
+package $exc_pkg;
+
+/** ${NAME} が見つからない場合の例外。 */
+public class ${exc_cls} extends RuntimeException {
+
+  private static final long serialVersionUID = 1L;
+
+  /** ID を指定して例外を生成する。 */
+  public ${exc_cls}(final String id) {
+    super(\"${NAME} not found: \" + id);
+  }
+}"
+
+  # --- presentation/controller (ExceptionHandler) ---
+  local ctrl_pkg; ctrl_pkg=$(pkg_for "presentation/controller")
+  local handler_cls="${module_cap}ExceptionHandler"
+  write_file "$MODULE_DIR/presentation/controller/${handler_cls}.java" "presentation/controller" "\
+package $ctrl_pkg;
+
+import ${exc_pkg}.${exc_cls};
+import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+/** ${module_cap} モジュールの例外ハンドラ。 */
+@Slf4j
+@RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
+public class ${handler_cls} {
+
+  /** ${exc_cls} を処理する。 */
+  @ExceptionHandler(${exc_cls}.class)
+  /* default */ ProblemDetail handleNotFound(final ${exc_cls} ex) {
+    log.warn(\"${exc_cls}: {}\", ex.getMessage());
+    final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+    problem.setTitle(\"Not Found\");
+    problem.setDetail(ex.getMessage());
+    problem.setType(URI.create(\"about:blank\"));
+    return problem;
+  }
+}"
+
+  # --- presentation/controller (main controller) ---
+  local path="/${MODULE}s"
+  write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "\
+package $ctrl_pkg;
+
+import ${cmd_dto_pkg}.Created${NAME}Dto;
+import ${cmd_pkg}.Create${NAME}Command;
+import ${exc_pkg}.${exc_cls};
+import ${handler_pkg}.${NAME}CommandHandler;
+import ${param_pkg}.${NAME}ListParam;
+import ${qry_svc_pkg}.${NAME}QueryService;
+import ${req_pkg}.Create${NAME}Request;
+import ${res_pkg}.${NAME}DetailResponse;
+import ${res_pkg}.${NAME}SummaryResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.net.URI;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+/** ${NAME} コントローラ。 */
+@Tag(name = \"${NAME}\", description = \"FIXME: ${NAME} API の説明を記述する\")
+@RestController
+@RequestMapping(\"${path}\")
+@Slf4j
+@RequiredArgsConstructor
+public class ${NAME}Controller {
+
+  /** コマンドハンドラ。 */
+  private final ${NAME}CommandHandler commandHandler;
+
+  /** クエリサービス。 */
+  private final ${NAME}QueryService queryService;
+
+  /** ${NAME} を作成する。 */
+  @Operation(summary = \"FIXME: ${NAME} 作成の説明を記述する\")
+  @ApiResponse(responseCode = \"201\", description = \"作成成功\")
+  @PostMapping
+  public ResponseEntity<Void> create(@RequestBody @Valid final Create${NAME}Request request) {
+    final Created${NAME}Dto result = commandHandler.handle(
+        new Create${NAME}Command());
+    final URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+        .path(\"/{id}\").buildAndExpand(result.id()).toUri();
+    return ResponseEntity.created(location).build();
+  }
+
+  /** ${NAME} 一覧を取得する。 */
+  @Operation(summary = \"FIXME: ${NAME} 一覧取得の説明を記述する\")
+  @ApiResponse(responseCode = \"200\", description = \"取得成功\")
+  @GetMapping
+  public Page<${NAME}SummaryResponse> list(
+      final ${NAME}ListParam param, final Pageable pageable) {
+    return queryService.findAll(param, pageable).map(${NAME}SummaryResponse::from);
+  }
+
+  /** ${NAME} 詳細を取得する。 */
+  @Operation(summary = \"FIXME: ${NAME} 詳細取得の説明を記述する\")
+  @ApiResponse(responseCode = \"200\", description = \"取得成功\")
+  @ApiResponse(responseCode = \"404\", description = \"見つからない\")
+  @GetMapping(\"/{id}\")
+  public ${NAME}DetailResponse findById(@PathVariable final String id) {
+    return queryService.findById(id)
+        .map(${NAME}DetailResponse::from)
+        .orElseThrow(() -> new ${exc_cls}(id));
+  }
+}"
 }

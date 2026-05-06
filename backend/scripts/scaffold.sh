@@ -36,8 +36,9 @@ Subcommands:
       Create a class/record/interface in the specified layer.
       Layers: event exception aggregate entity identifier valueobject
               repository repositoryimpl factory domainservice
-              command commandhandler eventlistener query queryservice queryimpl
-              controller exceptionhandler request response
+              command commandresult commandhandler eventlistener
+              query param queryservice queryimpl
+              controller exceptionhandler request response api
 
   test <module> <type> <target-class>
       Create a test skeleton for an existing class.
@@ -302,8 +303,8 @@ cmd_class() {
   if [ "${#positional[@]}" -ne 3 ]; then
     echo "Usage: scaffold class <module> <layer> <name> [--aggregate <Aggregate>]" >&2
     echo "Layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
-    echo "        command commandhandler eventlistener query queryservice" >&2
-    echo "        controller exceptionhandler request response repositoryimpl queryimpl" >&2
+    echo "        command commandresult commandhandler eventlistener query param queryservice" >&2
+    echo "        controller exceptionhandler request response repositoryimpl queryimpl api" >&2
     exit 1
   fi
 
@@ -343,20 +344,23 @@ cmd_class() {
     factory)        gen_factory ;;
     domainservice)  gen_domainservice ;;
     command)        gen_command ;;
+    commandresult)  gen_commandresult ;;
     commandhandler) gen_commandhandler ;;
     eventlistener)  gen_eventlistener ;;
     query)          gen_query ;;
+    param)          gen_param ;;
     queryservice)   gen_queryservice ;;
     queryimpl)      gen_queryimpl ;;
     controller)        gen_controller ;;
     exceptionhandler)  gen_exceptionhandler ;;
     request)        gen_request ;;
     response)       gen_response ;;
+    api)            gen_api ;;
     *)
       echo "Error: Unknown layer '$layer'" >&2
       echo "Valid layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
-      echo "             command commandhandler eventlistener query queryservice" >&2
-      echo "             controller exceptionhandler request response repositoryimpl queryimpl" >&2
+      echo "             command commandresult commandhandler eventlistener query param queryservice" >&2
+      echo "             controller exceptionhandler request response repositoryimpl queryimpl api" >&2
       exit 1
       ;;
   esac

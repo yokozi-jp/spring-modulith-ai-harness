@@ -28,9 +28,11 @@
 │   └── service/
 ├── application/
 │   ├── command/
+│   │   ├── command/
 │   │   ├── dto/
 │   │   └── handler/
 │   └── query/
+│       ├── param/
 │       ├── dto/
 │       └── service/
 ├── presentation/
@@ -67,7 +69,7 @@ import org.jspecify.annotations.NullMarked;
 | `event/` | `@DomainModelRing` |
 | `domain/` およびそのサブパッケージ全体 (`model/`, `aggregate/`, `entity/`, `valueobject/`, `identifier/`, `repository/`) | `@DomainModelRing` |
 | `domain/service/` | `@DomainServiceRing` |
-| `application/` およびそのサブパッケージ全体 (`command/`, `command/dto/`, `command/handler/`, `query/`, `query/dto/`, `query/service/`) | `@ApplicationServiceRing` |
+| `application/` およびそのサブパッケージ全体 (`command/`, `command/command/`, `command/dto/`, `command/handler/`, `query/`, `query/param/`, `query/dto/`, `query/service/`) | `@ApplicationServiceRing` |
 | `presentation/` およびそのサブパッケージ全体 (`controller/`, `request/`, `response/`) | `@InfrastructureRing` |
 | `infrastructure/` およびそのサブパッケージ全体 (`db/`, `db/repository/`, `db/query/`) | `@InfrastructureRing` |
 
@@ -79,7 +81,9 @@ import org.jspecify.annotations.NullMarked;
 
 | アノテーション | 配置先パッケージ |
 |---|---|
-| `@Command` | `..command.dto..` のみ |
+| `@Command` | `..command.command..` のみ |
+| `@CommandResult` | `..command.dto..` のみ |
+| `@QueryParam` | `..query.param..` のみ |
 | `@QueryModel` | `..query.dto..` のみ |
 | `@DomainEvent` | `..event..` のみ |
 | `@RestController` | `..presentation.controller..` のみ |
@@ -98,6 +102,8 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 - `org.jmolecules.architecture.cqrs.QueryModel`（非 deprecated）
 - `org.jmolecules.architecture.cqrs.CommandHandler`（メソッドレベル、非 deprecated）
 - `org.jmolecules.event.annotation.DomainEvent`
+- `com.example.demo.annotation.CommandResult`（コマンド戻り値 DTO 用）
+- `com.example.demo.annotation.QueryParam`（クエリ入力パラメータ用）
 
 **使用禁止**: `org.jmolecules.architecture.cqrs.annotation.*`（deprecated）
 
@@ -124,7 +130,9 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 
 ### record のみ（package-info を除く）
 
+- `command/command/` — record のみ
 - `command/dto/` — record のみ
+- `query/param/` — record のみ
 - `query/dto/` — record のみ
 - `event/` — record のみ
 - `presentation/request/` — record のみ

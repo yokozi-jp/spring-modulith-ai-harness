@@ -15,9 +15,11 @@ domain/repository	@DomainModelRing	org.jmolecules.architecture.onion.classical.D
 domain/service	@DomainServiceRing	org.jmolecules.architecture.onion.classical.DomainServiceRing
 application	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
 application/command	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/command/command	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
 application/command/dto	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
 application/command/handler	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
 application/query	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
+application/query/param	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
 application/query/dto	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
 application/query/service	@ApplicationServiceRing	org.jmolecules.architecture.onion.classical.ApplicationServiceRing
 presentation	@InfrastructureRing	org.jmolecules.architecture.onion.classical.InfrastructureRing
