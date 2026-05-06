@@ -30,14 +30,15 @@ Usage: cd backend && ./scripts/scaffold <subcommand> [options] [args]
 Subcommands:
   module <module-name>
       Create a new module (package-info.java at module root).
-      Options: --dry-run, --no-test
+      Options: --display-name <name>, --dry-run, --no-test
 
   class <module> <layer> <name> [--aggregate <Aggregate>]
       Create a class/record/interface in the specified layer.
       Layers: event exception aggregate entity identifier valueobject
               repository repositoryimpl factory domainservice
-              command commandhandler eventlistener query queryservice queryimpl
-              controller exceptionhandler request response
+              command commandresult commandhandler eventlistener
+              query param queryservice queryimpl
+              controller exceptionhandler request response api
 
   test <module> <type> <target-class>
       Create a test skeleton for an existing class.
@@ -77,11 +78,20 @@ cmd_module() {
   # shellcheck source=module-common.sh
   source "$SCRIPT_DIR/module-common.sh"
 
-  if [ $# -ne 1 ]; then
-    echo "Usage: scaffold module <module-name>" >&2
+  local display_name=""
+  local positional=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --display-name) display_name="$2"; shift 2 ;;
+      *) positional+=("$1"); shift ;;
+    esac
+  done
+
+  if [ "${#positional[@]}" -ne 1 ]; then
+    echo "Usage: scaffold module <module-name> [--display-name <name>]" >&2
     exit 1
   fi
-  local module="$1"
+  local module="${positional[0]}"
 
   if [[ ! "$module" =~ ^[a-z][a-z0-9]*$ ]]; then
     echo "Error: Module name must start with a lowercase letter and contain only lowercase letters and digits." >&2
@@ -104,7 +114,7 @@ cmd_module() {
 
   mkdir -p "$module_dir"
   local local_pkg="$BASE_PKG.$module"
-  generate_package_info "." "" "" "$local_pkg" > "$module_dir/package-info.java"
+  generate_package_info "." "" "" "$local_pkg" "$display_name" > "$module_dir/package-info.java"
 
   echo "Module '$module' created at $module_dir"
   echo "  Created: $module_dir/package-info.java"
@@ -293,8 +303,8 @@ cmd_class() {
   if [ "${#positional[@]}" -ne 3 ]; then
     echo "Usage: scaffold class <module> <layer> <name> [--aggregate <Aggregate>]" >&2
     echo "Layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
-    echo "        command commandhandler eventlistener query queryservice" >&2
-    echo "        controller exceptionhandler request response repositoryimpl queryimpl" >&2
+    echo "        command commandresult commandhandler eventlistener query param queryservice" >&2
+    echo "        controller exceptionhandler request response repositoryimpl queryimpl api" >&2
     exit 1
   fi
 
@@ -334,20 +344,23 @@ cmd_class() {
     factory)        gen_factory ;;
     domainservice)  gen_domainservice ;;
     command)        gen_command ;;
+    commandresult)  gen_commandresult ;;
     commandhandler) gen_commandhandler ;;
     eventlistener)  gen_eventlistener ;;
     query)          gen_query ;;
+    param)          gen_param ;;
     queryservice)   gen_queryservice ;;
     queryimpl)      gen_queryimpl ;;
     controller)        gen_controller ;;
     exceptionhandler)  gen_exceptionhandler ;;
     request)        gen_request ;;
     response)       gen_response ;;
+    api)            gen_api ;;
     *)
       echo "Error: Unknown layer '$layer'" >&2
       echo "Valid layers: event exception aggregate entity identifier valueobject repository domainservice factory" >&2
-      echo "             command commandhandler eventlistener query queryservice" >&2
-      echo "             controller exceptionhandler request response repositoryimpl queryimpl" >&2
+      echo "             command commandresult commandhandler eventlistener query param queryservice" >&2
+      echo "             controller exceptionhandler request response repositoryimpl queryimpl api" >&2
       exit 1
       ;;
   esac

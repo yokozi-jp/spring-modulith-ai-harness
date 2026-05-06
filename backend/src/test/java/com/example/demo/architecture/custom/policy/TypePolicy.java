@@ -39,6 +39,20 @@ public final class TypePolicy {
           .because("実装クラスを infrastructure/db/query に移動してください")
           .allowEmptyShould(true);
 
+  /** command/command には record のみ配置可能（package-info を除く）。 */
+  @ArchTest
+  /* default */ static final ArchRule CMD_CMD_REC =
+      classes()
+          .that()
+          .resideInAPackage("..command.command..")
+          .and()
+          .haveSimpleNameNotContaining(PKG_INFO)
+          .should()
+          .beRecords()
+          .as("command/command には record のみ配置可能(package-info 除く)")
+          .because("対象クラスを record に変換してください (例: public record XxxCommand(...))")
+          .allowEmptyShould(true);
+
   /** command/dto には record のみ配置可能（package-info を除く）。 */
   @ArchTest
   /* default */ static final ArchRule CMD_DTO_REC =
@@ -50,7 +64,21 @@ public final class TypePolicy {
           .should()
           .beRecords()
           .as("command/dto には record のみ配置可能(package-info 除く)")
-          .because("対象クラスを record に変換してください (例: public record XxxCommand(...))")
+          .because("対象クラスを record に変換してください (例: public record XxxDto(...))")
+          .allowEmptyShould(true);
+
+  /** query/param には record のみ配置可能（package-info を除く）。 */
+  @ArchTest
+  /* default */ static final ArchRule QRY_PARAM_REC =
+      classes()
+          .that()
+          .resideInAPackage("..query.param..")
+          .and()
+          .haveSimpleNameNotContaining(PKG_INFO)
+          .should()
+          .beRecords()
+          .as("query/param には record のみ配置可能(package-info 除く)")
+          .because("対象クラスを record に変換してください (例: public record XxxParam(...))")
           .allowEmptyShould(true);
 
   /** query/dto には record のみ配置可能（package-info を除く）。 */

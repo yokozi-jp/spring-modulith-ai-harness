@@ -10,42 +10,46 @@
 ### 新規モジュール
 
 ```bash
-cd backend && ./scripts/scaffold module <module-name>
+cd backend && ./scripts/scaffold.sh module <module-name> [--display-name <表示名>]
 ```
 
 - モジュール名は小文字英数字のみ（例: `order`, `shipping`）
 - `package-info.java`（`@NullMarked` 付き）が自動生成される
+- `--display-name` を指定すると `@ApplicationModule(displayName = "...")` が付与される（ドキュメント生成時の表示名）
 - 作成後にアーキテクチャテストが自動実行される（`--no-test` でスキップ可）
 - `--dry-run` で作成予定ファイルのプレビューが可能
 
 ### 新規クラス
 
 ```bash
-cd backend && ./scripts/scaffold class <module> <layer> <name> [--aggregate <Aggregate>]
+cd backend && ./scripts/scaffold.sh class <module> <layer> <name> [--aggregate <Aggregate>]
 ```
 
-- 必ず `scaffold module` でモジュールを先に作成してから実行する
+- 必ず `scaffold.sh module` でモジュールを先に作成してから実行する
 - ディレクトリと `package-info.java` は自動生成される（手動作成しない）
 - `aggregate` 生成時は Identifier・Factory・Repository・RepositoryImpl が自動連鎖生成される
 - `entity` 生成時は `--aggregate` 必須。Identifier・Factory・IdGenerator・IdGeneratorImpl が自動連鎖生成される
+- `exception` 生成時は ExceptionHandler（`@RestControllerAdvice`）が自動連鎖生成される
 
 #### layer 一覧
 
 | layer | 配置先 | 生成物 |
 |---|---|---|
 | `event` | `event/` | record（`@DomainEvent`） |
-| `exception` | `exception/` | class（`RuntimeException` 継承、`@NamedInterface("exception")` で公開） |
+| `exception` | `exception/` | class（`RuntimeException` 継承、`@NamedInterface("exception")` で公開）+ ExceptionHandler |
 | `aggregate` | `domain/model/aggregate/` | class（`AggregateRoot` 実装）+ Identifier + Factory + Repository + RepositoryImpl |
-| `entity` | `domain/model/entity/` | class（`Entity` 実装）+ Identifier + Factory（`@Factory`） + IdGenerator + IdGeneratorImpl（`@Component`） |
+| `entity` | `domain/model/entity/` | class（`Entity` 実装）+ Identifier + Factory（`@Factory`）+ IdGenerator + IdGeneratorImpl（`@Component`） |
 | `identifier` | `domain/model/valueobject/identifier/` | record（`Identifier` 実装） |
 | `valueobject` | `domain/model/valueobject/` | record（`ValueObject` 実装） |
 | `repository` | `domain/repository/` | interface（`Repository`）+ RepositoryImpl（`@Repository`） |
 | `repositoryimpl` | `infrastructure/db/repository/` | class（`@Repository`） |
 | `factory` | `domain/service/` | class（`@Factory`） |
 | `domainservice` | `domain/service/` | class（`@Service`） |
-| `command` | `application/command/dto/` | record（`@Command`） |
+| `command` | `application/command/command/` | record（`@Command`） |
+| `commandresult` | `application/command/dto/` | record（`@CommandResult`） |
 | `commandhandler` | `application/command/handler/` | class（`@Component`、メソッドに `@CommandHandler`） |
-| `eventlistener` | `application/command/handler/` | class（`@ApplicationModuleListener`） |
+| `eventlistener` | `application/command/handler/` | class（`@Component`、メソッドに `@ApplicationModuleListener`） |
+| `param` | `application/query/param/` | record（`@QueryParam`） |
 | `query` | `application/query/dto/` | record（`@QueryModel`） |
 | `queryservice` | `application/query/service/` | interface + QueryServiceImpl（`@Component`） |
 | `queryimpl` | `infrastructure/db/query/` | class（`@Component`） |
@@ -53,6 +57,7 @@ cd backend && ./scripts/scaffold class <module> <layer> <name> [--aggregate <Agg
 | `exceptionhandler` | `presentation/controller/` | class（`@RestControllerAdvice`、`ProblemDetail` を返却） |
 | `request` | `presentation/request/` | record |
 | `response` | `presentation/response/` | record |
+| `api` | 複数パッケージ | Controller + Request + 2 Response + Command + CommandResult DTO + CommandHandler + Param + 2 QueryDto + QueryService + QueryServiceImpl + Exception + ExceptionHandler（14ファイル連鎖生成、aggregate 必須） |
 
 ---
 
@@ -63,19 +68,20 @@ cd backend && ./scripts/scaffold class <module> <layer> <name> [--aggregate <Agg
 ### テスト生成スクリプト
 
 ```bash
-cd backend && ./scripts/scaffold test <module> <type> <target-class>
+cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 ```
 
 - `<type>` はテスト種別: `unit`, `integration`, `controller`
 - テストクラスのスケルトンが `src/test/java` の対応パッケージに生成される
+- `--dry-run` で作成予定ファイルのプレビューが可能
 
 ### テスト種別
 
 | type | 用途 | 特徴 |
 |---|---|---|
 | `unit` | ドメインロジック・ハンドラ等の単体テスト | `@ExtendWith(MockitoExtension.class)` + `@Mock` / `@InjectMocks` |
-| `integration` | リポジトリ・クエリサービスの統合テスト | `@SpringBootTest` + `@Import(TestcontainersConfiguration.class)` |
-| `controller` | REST API のコントローラテスト | `@WebMvcTest` + `@MockitoBean` + `@WithMockUser` |
+| `integration` | リポジトリ・クエリサービスの統合テスト | `@SpringBootTest` + `@Import(TestcontainersConfiguration.class)` + コンストラクタインジェクション |
+| `controller` | REST API のコントローラテスト | `@WebMvcTest` + `@MockitoBean` + `@WithMockUser` + コンストラクタインジェクション |
 
 ### 参照
 
@@ -131,12 +137,21 @@ cd backend && ./gradlew check
 ## 5. ワークフローまとめ
 
 ```
-1. モジュール作成   → scaffold module
-2. クラス作成       → scaffold class
-3. テスト作成       → scaffold test
-4. ビジネスロジック実装
-5. spotlessApply    → フォーマット適用
-6. gradlew check    → 全検証パス確認
+1. モジュール作成   → scaffold.sh module [--display-name]
+2. 集約作成         → scaffold.sh class <module> aggregate <Name>
+3. API 一式作成     → scaffold.sh class <module> api <Name>（aggregate 必須）
+4. テスト作成       → scaffold.sh test
+5. ビジネスロジック実装
+6. spotlessApply    → フォーマット適用
+7. gradlew check    → 全検証パス確認
+```
+
+典型的な実行例:
+
+```bash
+./scripts/scaffold.sh module order --display-name "注文管理"
+./scripts/scaffold.sh class order aggregate Order
+./scripts/scaffold.sh class order api Order
 ```
 
 すべてのステップを完了してからコミットする。

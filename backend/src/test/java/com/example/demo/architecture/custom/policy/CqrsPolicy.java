@@ -13,16 +13,40 @@ import com.tngtech.archunit.lang.ArchRule;
  */
 public final class CqrsPolicy {
 
-  /** {@code @Command} は command/dto にのみ配置可能。 */
+  /** {@code @Command} は command/command にのみ配置可能。 */
   @ArchTest
   /* default */ static final ArchRule CMD_PLACEMENT =
       classes()
           .that()
           .areAnnotatedWith(org.jmolecules.architecture.cqrs.Command.class)
           .should()
+          .resideInAPackage("..command.command..")
+          .as("@Command アノテーション付きクラスは ..command.command.. パッケージにのみ配置可能")
+          .because("CQRS 制約: 対象クラスを ..command.command.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  /** {@code @CommandResult} は command/dto にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule CMD_RESULT_PLACEMENT =
+      classes()
+          .that()
+          .areAnnotatedWith(com.example.demo.annotation.CommandResult.class)
+          .should()
           .resideInAPackage("..command.dto..")
-          .as("@Command アノテーション付きクラスは ..command.dto.. パッケージにのみ配置可能")
+          .as("@CommandResult アノテーション付きクラスは ..command.dto.. パッケージにのみ配置可能")
           .because("CQRS 制約: 対象クラスを ..command.dto.. パッケージに移動してください")
+          .allowEmptyShould(true);
+
+  /** {@code @QueryParam} は query/param にのみ配置可能。 */
+  @ArchTest
+  /* default */ static final ArchRule QRY_PARAM_PLACEMENT =
+      classes()
+          .that()
+          .areAnnotatedWith(com.example.demo.annotation.QueryParam.class)
+          .should()
+          .resideInAPackage("..query.param..")
+          .as("@QueryParam アノテーション付きクラスは ..query.param.. パッケージにのみ配置可能")
+          .because("CQRS 制約: 対象クラスを ..query.param.. パッケージに移動してください")
           .allowEmptyShould(true);
 
   /** {@code @QueryModel} は query/dto にのみ配置可能。 */
@@ -82,7 +106,7 @@ public final class CqrsPolicy {
           .should()
           .beAnnotatedWith(org.jmolecules.architecture.cqrs.Command.class)
           .as("query パッケージに @Command を配置してはいけない")
-          .because("CQRS 分離違反: @Command を ..command.dto.. パッケージに移動するか、アノテーションを除去してください")
+          .because("CQRS 分離違反: @Command を ..command.command.. パッケージに移動するか、アノテーションを除去してください")
           .allowEmptyShould(true);
 
   /** query パッケージはプロジェクトの domain パッケージに依存してはいけない。 */

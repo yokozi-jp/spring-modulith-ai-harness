@@ -16,14 +16,25 @@ while IFS=$'\t' read -r rel ann imp; do
 done < "$TSV_FILE"
 
 # package-info.java の内容を生成する
+# 引数: $1=rel_path, $2=annotation, $3=import_stmt, $4=pkg, $5=displayName(optional)
 generate_package_info() {
   local rel_path="$1"
   local annotation="$2"
   local import_stmt="$3"
   local pkg="$4"
+  local display_name="${5:-}"
 
   if [ -z "$annotation" ]; then
-    if [ "$rel_path" = "exception" ]; then
+    if [ "$rel_path" = "." ] && [ -n "$display_name" ]; then
+      cat << EOF
+@NullMarked
+@ApplicationModule(displayName = "$display_name")
+package $pkg;
+
+import org.jspecify.annotations.NullMarked;
+import org.springframework.modulith.ApplicationModule;
+EOF
+    elif [ "$rel_path" = "exception" ]; then
       cat << EOF
 @NullMarked
 @NamedInterface("exception")
