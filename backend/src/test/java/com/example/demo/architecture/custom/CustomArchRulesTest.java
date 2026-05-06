@@ -5,6 +5,7 @@ import com.example.demo.architecture.custom.policy.CqrsPolicy;
 import com.example.demo.architecture.custom.policy.DddPolicy;
 import com.example.demo.architecture.custom.policy.JooqPolicy;
 import com.example.demo.architecture.custom.policy.LayerPolicy;
+import com.example.demo.architecture.custom.policy.RestApiPolicy;
 import com.example.demo.architecture.custom.policy.SecurityPolicy;
 import com.example.demo.architecture.custom.policy.TimePolicy;
 import com.example.demo.architecture.custom.policy.TransactionPolicy;
@@ -50,4 +51,7 @@ class CustomArchRulesTest {
 
   /** セキュリティ: SecurityFilterChain の順序・数・ADR-0004 ワークアラウンド。 */
   @ArchTest /* default */ static final ArchTests SECURITY = ArchTests.in(SecurityPolicy.class);
+
+  /** REST API: POST/DELETE の戻り値型規約。 */
+  @ArchTest /* default */ static final ArchTests REST_API = ArchTests.in(RestApiPolicy.class);
 }
