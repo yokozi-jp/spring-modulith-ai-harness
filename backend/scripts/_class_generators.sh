@@ -901,6 +901,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping(\"${path}\")
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings(\"PMD.AvoidDuplicateLiterals\")
 public class ${NAME}Controller {
 
   /** コマンドハンドラ。 */
