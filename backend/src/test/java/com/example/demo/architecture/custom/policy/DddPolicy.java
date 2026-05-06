@@ -84,9 +84,11 @@ public final class DddPolicy {
           .resideInAPackage(PKG_AGG)
           .and()
           .haveSimpleNameNotContaining(PKG_INFO)
+          .and()
+          .areNotEnums()
           .should()
           .beAssignableTo(org.jmolecules.ddd.types.AggregateRoot.class)
-          .as("model/aggregate には AggregateRoot 実装のみ配置可能(package-info 除く)")
+          .as("model/aggregate には AggregateRoot 実装のみ配置可能(package-info, enum 除く)")
           .because("対象クラスに AggregateRoot<T, ID> を実装するか、適切なパッケージに移動してください")
           .allowEmptyShould(true);
 

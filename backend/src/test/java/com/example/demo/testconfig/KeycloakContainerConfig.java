@@ -19,7 +19,7 @@ public class KeycloakContainerConfig {
 
   /** Keycloak の OAuth2 プロパティを動的に登録する。 */
   @Bean
-  /* default */ DynamicPropertyRegistrar keycloakProperties(KeycloakContainer keycloak) {
+  /* default */ DynamicPropertyRegistrar keycloakProperties(final KeycloakContainer keycloak) {
     return registry -> {
       final String oidcBase = keycloak.getAuthServerUrl() + "/realms/demo/protocol/openid-connect";
       registry.add(

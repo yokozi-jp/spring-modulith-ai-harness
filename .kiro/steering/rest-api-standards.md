@@ -209,13 +209,13 @@ public record CreateOrderRequest(
 | `@Parameter` | パラメータレベル | 任意 |
 | `@Schema` | DTO フィールドレベル | 任意 |
 
-### scaffold 生成時の FIXME
+### scaffold 生成時の TODO
 
-scaffold の `api` layer で生成されるコードには、機械的に決められない箇所に `FIXME:` コメントが付与される。開発者は実装時にこれらを解消すること。
+scaffold の `api` layer で生成されるコードには、機械的に決められない箇所に `TODO:` コメントが付与される。開発者は実装時にこれらを解消すること。
 
 ```java
-@Tag(name = "Order", description = "FIXME: Order API の説明を記述する")
-@Operation(summary = "FIXME: Order 作成の説明を記述する")
+@Tag(name = "Order", description = "TODO: Order API の説明を記述する")
+@Operation(summary = "TODO: Order 作成の説明を記述する")
 ```
 
 ---
