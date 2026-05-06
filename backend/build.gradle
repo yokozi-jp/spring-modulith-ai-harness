@@ -185,6 +185,7 @@ dependencies {
 
     // テスト: Spring Boot テストスターター
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
+    testImplementation 'org.springframework.boot:spring-boot-resttestclient'
     testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-opentelemetry-test'
@@ -221,18 +222,48 @@ dependencyManagement {
 }
 
 // --- テスト設定 ---
+// デフォルトの test タスクは integration / e2e タグを除外（高速な unit + slice のみ）
 tasks.named('test') {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport  // テスト後にカバレッジレポート生成
+    useJUnitPlatform {
+        excludeTags 'integration', 'e2e'
+    }
+    finalizedBy jacocoTestReport
+}
+
+// --- integrationTest タスク ---
+// @Tag("integration") が付いたテストのみ実行（PostgreSQL コンテナ必要）
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests (requires PostgreSQL container).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter tasks.named('test')
+}
+
+// --- e2eTest タスク ---
+// @Tag("e2e") が付いたテストのみ実行（全コンテナ必要）
+tasks.register('e2eTest', Test) {
+    description = 'Runs E2E tests (requires all containers: PostgreSQL, Redis, Keycloak).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'e2e'
+    }
+    shouldRunAfter tasks.named('integrationTest')
 }
 
 // --- JaCoCo: カバレッジレポート ---
 // DemoApplication（main メソッドのみ）はカバレッジ対象から除外。
 jacocoTestReport {
-    dependsOn test
+    dependsOn test, tasks.named('integrationTest')
+    executionData.setFrom(fileTree(layout.buildDirectory).include("jacoco/*.exec"))
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class', '**/jooq/**'])
+            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class', '**/jooq/**', '**/sample/**'])
         }))
     }
     reports {
@@ -245,9 +276,10 @@ jacocoTestReport {
 // 命令カバレッジ 85% 以上を要求。
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
+    executionData.setFrom(fileTree(layout.buildDirectory).include("jacoco/*.exec"))
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class', '**/jooq/**'])
+            fileTree(dir: it, exclude: ['**/DemoApplication.class', '**/SecurityConfig*.class', '**/jooq/**', '**/sample/**'])
         }))
     }
     violationRules {
@@ -260,8 +292,10 @@ jacocoTestCoverageVerification {
 }
 
 // check タスク実行時にカバレッジ閾値も検証する。
+// integrationTest も check に含める。e2eTest は重いため手動実行（./gradlew e2eTest）。
 tasks.named('check') {
     dependsOn jacocoTestCoverageVerification
+    dependsOn tasks.named('integrationTest')
 }
 
 // --- Error Prone + NullAway ---

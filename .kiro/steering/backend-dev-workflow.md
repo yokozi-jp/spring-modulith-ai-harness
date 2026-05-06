@@ -71,17 +71,27 @@ cd backend && ./scripts/scaffold.sh class <module> <layer> <name> [--aggregate <
 cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 ```
 
-- `<type>` はテスト種別: `unit`, `integration`, `controller`
+- `<type>` はテスト種別（下記参照）
 - テストクラスのスケルトンが `src/test/java` の対応パッケージに生成される
 - `--dry-run` で作成予定ファイルのプレビューが可能
 
 ### テスト種別
 
-| type | 用途 | 特徴 |
+| type | 配置先 | 用途 |
 |---|---|---|
-| `unit` | ドメインロジック・ハンドラ等の単体テスト | `@ExtendWith(MockitoExtension.class)` + `@Mock` / `@InjectMocks` |
-| `integration` | リポジトリ・クエリサービスの統合テスト | `@SpringBootTest` + `@Import(TestcontainersConfiguration.class)` + コンストラクタインジェクション |
-| `controller` | REST API のコントローラテスト | `@WebMvcTest` + `@MockitoBean` + `@WithMockUser` + コンストラクタインジェクション |
+| `domain` | `src/test/` | Aggregate/Entity/VO/Identifier の plain JUnit テスト |
+| `factory` | `src/test/` | Factory の Mockito テスト |
+| `handler` | `src/test/` | CommandHandler/EventListener の Mockito テスト |
+| `exceptionhandler` | `src/test/` | ExceptionHandler の ProblemDetail 検証 |
+| `response` | `src/test/` | Response record の `from()` 変換テスト |
+| `exception` | `src/test/` | Exception のメッセージ検証 |
+| `controller` | `src/test/` | `@WebMvcTest` + `@MockitoBean` + `@WithMockUser` |
+| `security` | `src/test/` | `@WebMvcTest` + 認証・認可・CSRF 検証 |
+| `integration` | `src/test/` | `@SpringBootTest` + `@Tag("integration")` + PostgreSQL コンテナ |
+| `usecase` | `src/test/` | `@SpringBootTest` + `@Tag("integration")` + UseCase→DB結合 |
+| `moduletest` | `src/test/` | `@ApplicationModuleTest` + `@Tag("integration")` + イベント検証 |
+| `jooqquery` | `src/test/` | `@JooqTest` + `@Tag("integration")` + SQL クエリ検証 |
+| `e2e` | `src/test/` | `@SpringBootTest(RANDOM_PORT)` + `@Tag("e2e")` + 全コンテナ |
 
 ### 参照
 
@@ -122,7 +132,8 @@ cd backend && ./gradlew check
 - コンパイル（NullAway 検証含む）
 - PMD 静的解析
 - アーキテクチャテスト（ArchUnit / jMolecules / Spring Modulith）
-- ユニットテスト
+- ユニットテスト（`src/test/`、タグなし）
+- 統合テスト（`src/test/`、`@Tag("integration")` — PostgreSQL コンテナ自動起動）
 
 ### 4-3. 失敗時の対応
 
@@ -139,11 +150,14 @@ cd backend && ./gradlew check
 ```
 1. モジュール作成   → scaffold.sh module [--display-name]
 2. 集約作成         → scaffold.sh class <module> aggregate <Name>
+                      （テスト自動連鎖: domain×2 + factory + integration）
 3. API 一式作成     → scaffold.sh class <module> api <Name>（aggregate 必須）
-4. テスト作成       → scaffold.sh test
-5. ビジネスロジック実装
-6. spotlessApply    → フォーマット適用
-7. gradlew check    → 全検証パス確認
+                      （テスト自動連鎖: handler + exceptionhandler + response×2
+                       + exception + controller + security + integration
+                       + usecase + moduletest + jooqquery + e2e）
+4. ビジネスロジック実装（TODO を解消）
+5. spotlessApply    → フォーマット適用
+6. gradlew check    → 全検証パス確認
 ```
 
 典型的な実行例:
@@ -152,6 +166,10 @@ cd backend && ./gradlew check
 ./scripts/scaffold.sh module order --display-name "注文管理"
 ./scripts/scaffold.sh class order aggregate Order
 ./scripts/scaffold.sh class order api Order
+# → main 29ファイル + test 16ファイルが自動生成される
+# → TODO コメントを解消してビジネスロジックを実装
+./gradlew spotlessApply
+./gradlew check
 ```
 
 すべてのステップを完了してからコミットする。

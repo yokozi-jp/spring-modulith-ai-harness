@@ -31,7 +31,7 @@
 
 - `PMD.UseUtilityClass` — `@SpringBootApplication` クラスおよびテストランチャークラス
 - `PMD.UnitTestShouldIncludeAssert` — コンテキストロードのスモークテスト
-- `PMD.TestClassWithoutTestCases` — テストサポートクラス（例: `TestcontainersConfiguration`）
+- `PMD.TestClassWithoutTestCases` — テストサポートクラス（例: `PostgresContainerConfig`）
 
 `@SuppressWarnings` を追加する際は、必ず `"PMD.RuleName"` 形式を使用し、必要なルールのみを指定すること。
 

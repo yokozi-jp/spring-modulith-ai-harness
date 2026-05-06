@@ -193,6 +193,16 @@ public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements Aggregate
   gen_identifier_for "$NAME"
   gen_factory_for "$NAME" ""
   gen_repository
+
+  # --- テスト連鎖生成 ---
+  if [ "$DRY_RUN" != true ]; then
+    echo ""
+    echo "Generating test skeletons..."
+    ./scripts/scaffold.sh test "$MODULE" domain "$NAME" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" domain "${NAME}Id" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" factory "${NAME}Factory" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" integration "${NAME}RepositoryImpl" 2>/dev/null || true
+  fi
 }
 
 gen_entity() {
@@ -617,8 +627,8 @@ package $req_pkg;
 
 /** ${NAME} 作成リクエスト。 */
 public record Create${NAME}Request(
-    // @NotBlank(message = \"FIXME: バリデーションメッセージを設定\")
-    // String name // FIXME: フィールドを定義する
+    // @NotBlank(message = \"TODO: バリデーションメッセージを設定\")
+    // String name // TODO: フィールドを定義する
 ) {}"
 
   # --- presentation/response (Summary + Detail) ---
@@ -664,7 +674,7 @@ import org.jmolecules.architecture.cqrs.Command;
 /** ${NAME} 作成コマンド。 */
 @Command
 public record Create${NAME}Command(
-    // FIXME: フィールドを定義する
+    // TODO: フィールドを定義する
 ) {}"
 
   # --- application/command/dto (CommandResult) ---
@@ -724,7 +734,7 @@ import com.example.demo.annotation.QueryParam;
 /** ${NAME} 一覧検索パラメータ。 */
 @QueryParam
 public record ${NAME}ListParam(
-    // FIXME: フィルタ条件を定義する
+    // TODO: フィルタ条件を定義する
 ) {}"
 
   # --- application/query/dto (QueryModel) ---
@@ -794,13 +804,13 @@ public class ${NAME}QueryServiceImpl implements ${NAME}QueryService {
 
   @Override
   public Page<${NAME}SummaryDto> findAll(final ${NAME}ListParam param, final Pageable pageable) {
-    // FIXME: jOOQ でクエリを実装する
+    // TODO: jOOQ でクエリを実装する
     return new PageImpl<>(java.util.List.of(), pageable, 0);
   }
 
   @Override
   public Optional<${NAME}DetailDto> findById(final String id) {
-    // FIXME: jOOQ でクエリを実装する
+    // TODO: jOOQ でクエリを実装する
     return Optional.empty();
   }
 }"
@@ -886,7 +896,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /** ${NAME} コントローラ。 */
-@Tag(name = \"${NAME}\", description = \"FIXME: ${NAME} API の説明を記述する\")
+@Tag(name = \"${NAME}\", description = \"TODO: ${NAME} API の説明を記述する\")
 @RestController
 @RequestMapping(\"${path}\")
 @Slf4j
@@ -900,7 +910,7 @@ public class ${NAME}Controller {
   private final ${NAME}QueryService queryService;
 
   /** ${NAME} を作成する。 */
-  @Operation(summary = \"FIXME: ${NAME} 作成の説明を記述する\")
+  @Operation(summary = \"TODO: ${NAME} 作成の説明を記述する\")
   @ApiResponse(responseCode = \"201\", description = \"作成成功\")
   @PostMapping
   public ResponseEntity<Void> create(@RequestBody @Valid final Create${NAME}Request request) {
@@ -912,7 +922,7 @@ public class ${NAME}Controller {
   }
 
   /** ${NAME} 一覧を取得する。 */
-  @Operation(summary = \"FIXME: ${NAME} 一覧取得の説明を記述する\")
+  @Operation(summary = \"TODO: ${NAME} 一覧取得の説明を記述する\")
   @ApiResponse(responseCode = \"200\", description = \"取得成功\")
   @GetMapping
   public Page<${NAME}SummaryResponse> list(
@@ -921,7 +931,7 @@ public class ${NAME}Controller {
   }
 
   /** ${NAME} 詳細を取得する。 */
-  @Operation(summary = \"FIXME: ${NAME} 詳細取得の説明を記述する\")
+  @Operation(summary = \"TODO: ${NAME} 詳細取得の説明を記述する\")
   @ApiResponse(responseCode = \"200\", description = \"取得成功\")
   @ApiResponse(responseCode = \"404\", description = \"見つからない\")
   @GetMapping(\"/{id}\")
@@ -931,4 +941,22 @@ public class ${NAME}Controller {
         .orElseThrow(() -> new ${exc_cls}(id));
   }
 }"
+
+  # --- テスト連鎖生成 ---
+  if [ "$DRY_RUN" != true ]; then
+    echo ""
+    echo "Generating test skeletons..."
+    ./scripts/scaffold.sh test "$MODULE" handler "${NAME}CommandHandler" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" exceptionhandler "${handler_cls}" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" response "${NAME}DetailResponse" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" response "${NAME}SummaryResponse" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" exception "${exc_cls}" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" controller "${NAME}Controller" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" security "${NAME}Controller" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" integration "${NAME}QueryServiceImpl" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" usecase "${NAME}CommandHandler" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" moduletest "${NAME}CommandHandler" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" jooqquery "${NAME}QueryServiceImpl" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" e2e "${NAME}Controller" 2>/dev/null || true
+  fi
 }
