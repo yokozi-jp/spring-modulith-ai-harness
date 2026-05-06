@@ -14,6 +14,8 @@
 例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置する。
 モジュール内には以下のディレクトリ構成が必須であり、すべてに `package-info.java` を含めること。
 
+> **Query-only モジュール**（例: dashboard）は domain 層を持たず、`application/query/` + `presentation/` + `infrastructure/db/query/` のみで構成してよい。
+
 ```
 <module>/
 ├── exception/
@@ -147,6 +149,7 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 | `Identifier` 実装 | `model/valueobject/identifier/` のみ |
 | `ValueObject` 実装 | `model/valueobject/` のみ |
 | `Repository` 実装 | `domain/repository/` のみ |
+| enum（集約の状態・区分値） | `model/aggregate/` に集約と同居 |
 
 逆方向も検証される: 各パッケージには対応する型の実装のみ配置可能。
 
