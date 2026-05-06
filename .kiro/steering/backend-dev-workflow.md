@@ -138,11 +138,20 @@ cd backend && ./gradlew check
 
 ```
 1. モジュール作成   → scaffold.sh module [--display-name]
-2. クラス作成       → scaffold.sh class
-3. テスト作成       → scaffold.sh test
-4. ビジネスロジック実装
-5. spotlessApply    → フォーマット適用
-6. gradlew check    → 全検証パス確認
+2. 集約作成         → scaffold.sh class <module> aggregate <Name>
+3. API 一式作成     → scaffold.sh class <module> api <Name>（aggregate 必須）
+4. テスト作成       → scaffold.sh test
+5. ビジネスロジック実装
+6. spotlessApply    → フォーマット適用
+7. gradlew check    → 全検証パス確認
+```
+
+典型的な実行例:
+
+```bash
+./scripts/scaffold.sh module order --display-name "注文管理"
+./scripts/scaffold.sh class order aggregate Order
+./scripts/scaffold.sh class order api Order
 ```
 
 すべてのステップを完了してからコミットする。

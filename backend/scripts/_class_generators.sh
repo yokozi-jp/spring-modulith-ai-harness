@@ -174,7 +174,8 @@ public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements Aggregate
   private final ${id_cls} id;
 
   /** 新規作成用コンストラクタ（Factory から呼び出す）。 */
-  ${NAME}(final ${id_cls} id) {
+  /* default */ ${NAME}(final ${id_cls} id) {
+    super();
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;
   }
@@ -224,7 +225,7 @@ public class ${NAME} implements Entity<${AGGREGATE}, ${id_cls}> {
   private final ${id_cls} id;
 
   /** コンストラクタ。 */
-  ${NAME}(final ${id_cls} id) {
+  /* default */ ${NAME}(final ${id_cls} id) {
     Objects.requireNonNull(id, \"id must not be null\");
     this.id = id;
   }
@@ -267,7 +268,10 @@ import org.jmolecules.ddd.annotation.Factory;
 @Factory
 public class ${target}Factory {
 
+  /** リポジトリ。 */
   private final ${target}Repository repository;
+
+  /** 時計。 */
   private final Clock clock;
 
   /** 新規生成。 */
@@ -292,6 +296,7 @@ import org.jmolecules.ddd.annotation.Factory;
 @Factory
 public class ${target}Factory {
 
+  /** ID ジェネレータ。 */
   private final ${gen_iface} idGenerator;
 
   /** 新規生成。 */
@@ -699,11 +704,13 @@ public class ${NAME}CommandHandler {
   private final ${NAME}Factory factory;
 
   /** 作成コマンドを処理する。 */
+  @SuppressWarnings(\"PMD.LawOfDemeter\")
   @Transactional
   @CommandHandler
   public Created${NAME}Dto handle(final Create${NAME}Command command) {
     final ${NAME} aggregate = factory.create();
-    return new Created${NAME}Dto(aggregate.getId().value());
+    final String id = aggregate.getId().value();
+    return new Created${NAME}Dto(id);
   }
 }"
 
