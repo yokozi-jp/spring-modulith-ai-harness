@@ -8,6 +8,8 @@ export default defineConfig({
     tanstackRouter({
       target: "react",
       autoCodeSplitting: true,
+      semicolons: true,
+      quoteStyle: "double",
     }),
     react(),
     tailwindcss(),
@@ -17,6 +19,6 @@ export default defineConfig({
       "@": new URL("./src", import.meta.url).pathname,
     },
   },
-  fmt: {},
+  fmt: { ignorePath: ".oxfmtignore" },
   lint: { options: { typeAware: true, typeCheck: true } },
 });
