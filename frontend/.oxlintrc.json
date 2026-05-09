@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "warn",
+    "perf": "warn",
+    "style": "warn",
+    "restriction": "off"
+  },
+  "plugins": ["typescript", "react", "unicorn", "import", "jsx-a11y", "oxc"],
+  "rules": {
+    "no-console": "error",
+    "no-alert": "error",
+    "no-debugger": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": "error",
+    "curly": "error",
+
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/consistent-type-imports": "error",
+
+    "react/no-array-index-key": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/no-danger": "error",
+    "react/no-unstable-default-props": "error",
+
+    "unicorn/no-null": "off",
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }],
+    "unicorn/prefer-node-protocol": "error",
+
+    "import/no-default-export": "error",
+    "import/no-cycle": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/routes/**/*.tsx"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["*.config.ts", "vite.config.ts"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    }
+  ],
+  "settings": {
+    "react": {
+      "linkComponents": [{ "name": "Link", "attribute": "to" }]
+    }
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  }
+}

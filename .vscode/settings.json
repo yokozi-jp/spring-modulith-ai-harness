@@ -1,4 +1,11 @@
 {
+  "css.validate": false,
+  "files.readonlyInclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "search.exclude": {
+    "**/routeTree.gen.ts": true
+  },
   "npm.scriptRunner": "vp",
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,

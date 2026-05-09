@@ -8,9 +8,23 @@
     "build": "tsc && vp build",
     "preview": "vp preview"
   },
+  "dependencies": {
+    "@tanstack/react-router": "^1.169.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwind-merge": "^3.5.0"
+  },
   "devDependencies": {
-    "typescript": "~6.0.2",
-    "vite": "catalog:",
+    "@tailwindcss/vite": "^4.3.0",
+    "@tanstack/router-plugin": "^1.167.35",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~6.0.3",
+    "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.20",
     "vite-plus": "catalog:"
   },
   "packageManager": "pnpm@10.33.0"
