@@ -3,21 +3,13 @@
   "categories": {
     "correctness": "error",
     "suspicious": "error",
-    "pedantic": "warn",
-    "perf": "warn",
-    "style": "warn",
-    "restriction": "off"
+    "pedantic": "error",
+    "perf": "error",
+    "style": "error",
+    "restriction": "error"
   },
   "plugins": ["typescript", "react", "unicorn", "import", "jsx-a11y", "oxc"],
   "rules": {
-    "no-console": "error",
-    "no-alert": "error",
-    "no-debugger": "error",
-    "no-var": "error",
-    "prefer-const": "error",
-    "eqeqeq": "error",
-    "curly": "error",
-
     "typescript/no-explicit-any": "error",
     "typescript/no-non-null-assertion": "error",
     "typescript/consistent-type-imports": "error",
@@ -27,7 +19,6 @@
     "react/no-danger": "error",
     "react/no-unstable-default-props": "error",
 
-    "unicorn/no-null": "off",
     "unicorn/filename-case": ["error", { "case": "kebabCase" }],
     "unicorn/prefer-node-protocol": "error",
 
@@ -44,7 +35,28 @@
           }
         ]
       }
-    ]
+    ],
+
+    "unicorn/no-null": "off",
+    "unicorn/no-negated-condition": "off",
+    "unicorn/prevent-abbreviations": "off",
+    "unicorn/no-keyword-prefix": "off",
+    "unicorn/string-content": "off",
+    "unicorn/no-useless-undefined": "off",
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "max-params": "off",
+    "id-length": "off",
+    "no-undefined": "off",
+    "no-magic-numbers": "off",
+    "no-ternary": "off",
+    "no-plusplus": "off",
+    "sort-keys": "off",
+    "sort-imports": "off",
+    "react/no-set-state": "off",
+    "typescript/no-magic-numbers": "off",
+    "oxc/no-optional-chaining": "off",
+    "jsx-a11y/no-autofocus": "off"
   },
   "overrides": [
     {
@@ -62,22 +74,6 @@
               {
                 "group": ["@/lib/api-*"],
                 "message": "routesファイル内でAPI呼び出しを直接importしないでください。loaderまたはcomponents/features内のHookで行ってください。"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "files": ["src/components/ui/**/*.tsx"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "regex": "^\\.\\.?/",
-                "message": "相対パスでのimportは禁止です。@/ エイリアスを使用してください。"
               }
             ]
           }
