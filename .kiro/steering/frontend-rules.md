@@ -36,19 +36,21 @@ vp build        # 本番ビルド
 ```
 frontend/src/
 ├── routes/              # ページ（TanStack Router が自動検出）
-├── features/            # 機能単位（表示 + Hook のペア）
+├── features/            # 機能単位
 │   └── <feature>/
-│       ├── <feature>.tsx       # 表示（プレゼンテーション）
-│       └── use-<feature>.ts    # ロジック（Hook）
+│       ├── components/  # 機能固有コンポーネント
+│       ├── hooks/       # 機能固有 Hook
+│       └── types/       # 機能固有型（必要な場合のみ）
 ├── components/
-│   ├── shadcn/         # Shadcn/ui コンポーネント（自動生成、編集禁止）
-│   └── app/            # 自作の共通コンポーネント（複数 feature で使うもの）
+│   └── ui/             # Shadcn/ui コンポーネント（自動生成、編集禁止）
 ├── hooks/              # 汎用 Hooks（機能横断）
 ├── lib/                # ユーティリティ・API クライアント
 ├── types/              # 共有型定義
 └── styles/
     └── globals.css     # Tailwind エントリポイント + デザイントークン
 ```
+
+共通コンポーネント（複数 feature で使うもの）は `components/` 直下に配置する。
 
 ---
 
@@ -133,9 +135,9 @@ cd frontend
 vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 ```
 
-- `src/components/shadcn/` に生成される
+- `src/components/ui/` に生成される
 - 生成されたファイルは原則編集しない
-- カスタマイズが必要な場合は `components/app/` にラッパーを作る
+- カスタマイズが必要な場合は `components/` 直下または `features/` 内に作成する
 
 ---
 
