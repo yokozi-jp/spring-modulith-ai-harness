@@ -11,7 +11,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-UI_DIR="src/components/ui"
+UI_DIR="src/components/shadcn"
 
 if [[ "${1:-}" == "--diff" ]]; then
   changed=$(git diff --name-only -- "$UI_DIR" | grep -v '.gitkeep' || true)
@@ -20,9 +20,9 @@ else
 fi
 
 if [[ -n "$changed" ]]; then
-  echo "ERROR: components/ui/ 内のファイルが変更されています。"
+  echo "ERROR: components/shadcn/ 内のファイルが変更されています。"
   echo "Shadcn/ui コンポーネントは直接編集しないでください。"
-  echo "カスタマイズが必要な場合は components/features/ にラッパーを作成してください。"
+  echo "カスタマイズが必要な場合は components/app/ にラッパーを作成してください。"
   echo ""
   echo "変更されたファイル:"
   echo "$changed" | sed 's/^/  /'

@@ -27,9 +27,10 @@ vp dev        # http://localhost:5173 で起動
 ```
 src/
 ├── routes/              # ページ（ファイル構造 = URL構造）
+├── features/            # 機能単位（表示 + Hook のペア）
 ├── components/
-│   ├── ui/             # Shadcn/ui（自動生成、編集禁止）
-│   └── features/       # 機能単位（表示 + Hook のペア）
+│   ├── shadcn/         # Shadcn/ui（自動生成、編集禁止）
+│   └── app/            # 自作の共通コンポーネント
 ├── hooks/              # 汎用 Hooks
 ├── lib/                # ユーティリティ
 ├── types/              # 共有型定義
@@ -39,7 +40,7 @@ src/
 ## コンポーネント追加
 
 ```bash
-vp dlx shadcn@latest add button
+vp dlx shadcn@latest add button     # → src/components/shadcn/ に生成
 vp dlx shadcn@latest add dialog
 ```
 
