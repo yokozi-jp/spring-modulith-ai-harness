@@ -29,7 +29,7 @@ repositories {
 // ルート build.gradle 側や pluginManagement 側での対処が別途必要になる場合がある。
 configurations.all {
     resolutionStrategy {
-        force 'org.apache.commons:commons-compress:1.27.1'
+        force 'org.apache.commons:commons-compress:1.28.0'
     }
 }
 
