@@ -141,7 +141,8 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 コード変更後は必ず以下を実行する:
 
 ```bash
-vp check    # Lint + 型チェック + フォーマット
+./scripts/verify.sh    # Lint + 型チェック + フォーマット + カスタムチェック全実行
 ```
 
 エラーが出た場合は修正してからコミットする。
+自動修正可能なものは `./scripts/verify.sh --fix` で修正できる。
