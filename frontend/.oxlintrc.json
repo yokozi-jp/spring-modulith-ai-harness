@@ -32,8 +32,29 @@
           {
             "regex": "^\\.\\.?/",
             "message": "相対パスでのimportは禁止です。@/ エイリアスを使用してください。"
+          },
+          {
+            "group": ["*/index", "*/index.*"],
+            "message": "barrel export (index.ts) からのimportは禁止です。モジュールを直接importしてください。"
           }
         ]
+      }
+    ],
+
+    "typescript/no-restricted-types": [
+      "error",
+      {
+        "types": {
+          "React.FC": {
+            "message": "React.FC は使用禁止です。通常の関数宣言を使用してください。"
+          },
+          "React.FunctionComponent": {
+            "message": "React.FunctionComponent は使用禁止です。通常の関数宣言を使用してください。"
+          },
+          "FC": {
+            "message": "FC は使用禁止です。通常の関数宣言を使用してください。"
+          }
+        }
       }
     ],
 
