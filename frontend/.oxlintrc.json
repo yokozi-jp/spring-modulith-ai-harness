@@ -94,7 +94,11 @@
               },
               {
                 "group": ["@/lib/api-*"],
-                "message": "routesファイル内でAPI呼び出しを直接importしないでください。loaderまたはcomponents/features内のHookで行ってください。"
+                "message": "routesファイル内でAPI呼び出しを直接importしないでください。loaderまたはfeatures内のHookで行ってください。"
+              },
+              {
+                "group": ["@/api/*"],
+                "message": "routesファイル内でAPI Hookを直接importしないでください。features内のHookで行ってください。"
               }
             ]
           }
@@ -102,10 +106,18 @@
       }
     },
     {
-      "files": ["*.config.ts", "vite.config.ts"],
+      "files": ["*.config.ts", "vite.config.ts", "orval.config.ts"],
       "rules": {
         "import/no-default-export": "off",
         "no-restricted-imports": "off"
+      }
+    },
+    {
+      "files": ["src/api/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": "off",
+        "typescript/no-explicit-any": "off",
+        "import/no-default-export": "off"
       }
     }
   ],
