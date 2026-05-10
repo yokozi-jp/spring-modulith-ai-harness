@@ -12,15 +12,15 @@ vp dev        # http://localhost:5173 で起動
 
 ## コマンド一覧
 
-| コマンド | 用途 |
-|---|---|
-| `vp install` | 依存インストール |
-| `vp dev` | 開発サーバー起動 |
-| `vp check` | Lint + 型チェック + フォーマットチェック |
-| `vp check --fix` | 自動修正 |
-| `./scripts/verify.sh` | 全検証（vp check + カスタムチェック） |
-| `vp test` | テスト実行 |
-| `vp build` | 本番ビルド |
+| コマンド              | 用途                                     |
+| --------------------- | ---------------------------------------- |
+| `vp install`          | 依存インストール                         |
+| `vp dev`              | 開発サーバー起動                         |
+| `vp check`            | Lint + 型チェック + フォーマットチェック |
+| `vp check --fix`      | 自動修正                                 |
+| `./scripts/verify.sh` | 全検証（vp check + カスタムチェック）    |
+| `vp test`             | テスト実行                               |
+| `vp build`            | 本番ビルド                               |
 
 ## ディレクトリ構成
 
