@@ -37,7 +37,7 @@ dependencies {
     // GenerateJooqTask 内で PostgreSQL の Testcontainer を起動するために必要。
     // jOOQ codegen 用の一時DBを立ち上げ、Liquibase migration を適用してから
     // そのDBを introspection して jOOQ のコードを生成する。
-    implementation 'org.testcontainers:postgresql:1.21.3'
+    implementation 'org.testcontainers:postgresql:1.21.4'
 
     // Testcontainers で起動した PostgreSQL に JDBC 接続するためのドライバ。
     // Liquibase と jOOQ codegen の両方がこの JDBC ドライバを使う。
