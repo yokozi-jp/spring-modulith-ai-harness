@@ -95,9 +95,11 @@ components/features/member-list/
 
 ## import ルール
 
-- パスエイリアス `@/` を使う（`../../` のような相対パスは禁止）
+- パスエイリアス `@/` を使う（`../` のような親ディレクトリへの相対パスは禁止）
+- 同一ディレクトリ内の `./` は許可（例: `./use-member-list`）
 - 型の import は `import type { X }` を使う（oxlint で強制）
 - default export 禁止（ルートファイルと設定ファイルを除く）
+- barrel export（`index.ts` からの re-export）禁止
 - 循環 import 禁止（oxlint で強制）
 
 ---
