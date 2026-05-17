@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.jmolecules.integrations:jmolecules-bytebuddy:1.6.0'
-        classpath 'org.liquibase:liquibase-core:5.0.2'
+        classpath 'org.liquibase:liquibase-core:5.0.3'
     }
 }
 
@@ -369,7 +369,7 @@ liquibase {
 // --- Liquibase / jOOQ codegen ランタイム依存 ---
 dependencies {
     // Liquibase Gradle プラグイン用（./gradlew update, rollbackCount 等）
-    liquibaseRuntime 'org.liquibase:liquibase-core:5.0.2'
+    liquibaseRuntime 'org.liquibase:liquibase-core:5.0.3'
     liquibaseRuntime 'org.postgresql:postgresql'
     liquibaseRuntime 'info.picocli:picocli:4.7.7'  // Liquibase 5 の CLI パーサーが必要
 }

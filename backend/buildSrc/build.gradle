@@ -46,7 +46,7 @@ dependencies {
     // GenerateJooqTask 内で Liquibase migration を実行するために必要。
     // Gradle の liquibase plugin をタスクとして呼ぶのではなく、
     // Liquibase Java API を直接呼び出して、Testcontainers の同一DBに migration を流す。
-    implementation 'org.liquibase:liquibase-core:5.0.2'
+    implementation 'org.liquibase:liquibase-core:5.0.3'
 
     // jOOQ のコード生成エンジン本体。
     // GenerateJooqTask 内の GenerationTool.generate(...) を使うために必要。
