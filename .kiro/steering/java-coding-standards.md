@@ -10,6 +10,7 @@
 - `ShortClassName` — DDD ではドメインモデル名が短くなることがあるため
 - `CommentSize` — Javadoc の行数・行長制限は Google Java Format に委ねるため
 - `UnitTestContainsTooManyAsserts` — テストでは複数アサーションが自然なため
+- `OnlyOneReturn` — DDD のガード節（早期 return/throw）を自然に書くため
 
 上記以外のすべてのルールが適用されるため、以下の規約に従い違反を防ぐこと。
 
