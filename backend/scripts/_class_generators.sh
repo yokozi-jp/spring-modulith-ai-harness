@@ -31,6 +31,16 @@ pkg_for() {
   echo "$BASE_PKG.$MODULE.$sub"
 }
 
+# === PascalCase を kebab-case 複数形パスに変換 ===
+# 例: PerformanceIdea → /performance-ideas, Schedule → /schedules
+to_kebab_path() {
+  local name="$1"
+  # PascalCase → kebab-case: 大文字の前にハイフンを挿入し小文字化
+  local kebab
+  kebab=$(echo "$name" | sed 's/\([a-z]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  echo "/${kebab}s"
+}
+
 # === 生成関数 ===
 
 gen_event() {
@@ -80,8 +90,7 @@ gen_exceptionhandler_for_exception() {
   local exc_cls="${exc_name}Exception"
   local exc_pkg; exc_pkg=$(pkg_for "exception")
   local ctrl_pkg; ctrl_pkg=$(pkg_for "presentation/controller")
-  local module_cap; module_cap="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
-  local handler_cls="${module_cap}ExceptionHandler"
+  local handler_cls="${NAME}ExceptionHandler"
   local handler_file="$MODULE_DIR/presentation/controller/${handler_cls}.java"
 
   if [ -f "$handler_file" ]; then
@@ -105,7 +114,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/** ${module_cap} モジュールの例外ハンドラ。 */
+/** ${NAME} モジュールの例外ハンドラ。 */
 @Slf4j
 @RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
 public class ${handler_cls} {
@@ -556,7 +565,7 @@ gen_queryimpl() { gen_queryimpl_for "$NAME"; }
 
 gen_controller() {
   local pkg; pkg=$(pkg_for "presentation/controller")
-  local path="/${MODULE}s"
+  local path; path=$(to_kebab_path "$NAME")
   write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "\
 package $pkg;
 
@@ -614,7 +623,6 @@ gen_api() {
     exit 1
   fi
 
-  local module_cap; module_cap="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
   local id_cls="${NAME}Id"
   local id_pkg; id_pkg=$(pkg_for "domain/model/valueobject/identifier")
 
@@ -714,7 +722,6 @@ public class ${NAME}CommandHandler {
   private final ${NAME}Factory factory;
 
   /** 作成コマンドを処理する。 */
-  @SuppressWarnings(\"PMD.LawOfDemeter\")
   @Transactional
   @CommandHandler
   public Created${NAME}Dto handle(final Create${NAME}Command command) {
@@ -834,7 +841,7 @@ public class ${exc_cls} extends RuntimeException {
 
   # --- presentation/controller (ExceptionHandler) ---
   local ctrl_pkg; ctrl_pkg=$(pkg_for "presentation/controller")
-  local handler_cls="${module_cap}ExceptionHandler"
+  local handler_cls="${NAME}ExceptionHandler"
   write_file "$MODULE_DIR/presentation/controller/${handler_cls}.java" "presentation/controller" "\
 package $ctrl_pkg;
 
@@ -846,7 +853,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/** ${module_cap} モジュールの例外ハンドラ。 */
+/** ${NAME} モジュールの例外ハンドラ。 */
 @Slf4j
 @RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
 public class ${handler_cls} {
@@ -864,7 +871,7 @@ public class ${handler_cls} {
 }"
 
   # --- presentation/controller (main controller) ---
-  local path="/${MODULE}s"
+  local path; path=$(to_kebab_path "$NAME")
   write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "\
 package $ctrl_pkg;
 

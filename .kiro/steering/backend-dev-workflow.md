@@ -59,6 +59,8 @@ cd backend && ./scripts/scaffold.sh class <module> <layer> <name> [--aggregate <
 | `response` | `presentation/response/` | record |
 | `api` | 複数パッケージ | Controller + Request + 2 Response + Command + CommandResult DTO + CommandHandler + Param + 2 QueryDto + QueryService + QueryServiceImpl + Exception + ExceptionHandler（14ファイル連鎖生成、aggregate 必須） |
 
+> **ExceptionHandler 命名規則**: モジュール別 ExceptionHandler のクラス名は `<Aggregate名>ExceptionHandler`（例: `ScheduleExceptionHandler`, `PerformanceIdeaExceptionHandler`）とする。モジュール名ではなく集約名（PascalCase）を使う。scaffold が自動生成する。
+
 ---
 
 ## 2. テスト作成（TDD: Red）

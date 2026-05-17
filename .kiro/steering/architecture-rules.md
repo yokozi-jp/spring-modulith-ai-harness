@@ -14,7 +14,7 @@
 例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置する。
 モジュール内には以下のディレクトリ構成が必須であり、すべてに `package-info.java` を含めること。
 
-> **Query-only モジュール**（例: dashboard）は domain 層を持たず、`application/query/` + `presentation/` + `infrastructure/db/query/` のみで構成してよい。
+> **Query-only モジュール**は domain 層を持たず、`application/query/` + `presentation/` + `infrastructure/db/query/` のみで構成してよい。
 
 ```
 <module>/
@@ -66,14 +66,14 @@ import org.jspecify.annotations.NullMarked;
 
 各パッケージの `package-info.java` に、以下の対応に従って jMolecules Onion Architecture アノテーションを付与すること。
 
-| パッケージ | アノテーション |
-|---|---|
-| `event/` | `@DomainModelRing` |
-| `domain/` およびそのサブパッケージ全体 (`model/`, `aggregate/`, `entity/`, `valueobject/`, `identifier/`, `repository/`) | `@DomainModelRing` |
-| `domain/service/` | `@DomainServiceRing` |
+| パッケージ                                                                                                                                                                 | アノテーション            |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `event/`                                                                                                                                                                   | `@DomainModelRing`        |
+| `domain/` およびそのサブパッケージ全体 (`model/`, `aggregate/`, `entity/`, `valueobject/`, `identifier/`, `repository/`)                                                   | `@DomainModelRing`        |
+| `domain/service/`                                                                                                                                                          | `@DomainServiceRing`      |
 | `application/` およびそのサブパッケージ全体 (`command/`, `command/command/`, `command/dto/`, `command/handler/`, `query/`, `query/param/`, `query/dto/`, `query/service/`) | `@ApplicationServiceRing` |
-| `presentation/` およびそのサブパッケージ全体 (`controller/`, `request/`, `response/`) | `@InfrastructureRing` |
-| `infrastructure/` およびそのサブパッケージ全体 (`db/`, `db/repository/`, `db/query/`) | `@InfrastructureRing` |
+| `presentation/` およびそのサブパッケージ全体 (`controller/`, `request/`, `response/`)                                                                                      | `@InfrastructureRing`     |
+| `infrastructure/` およびそのサブパッケージ全体 (`db/`, `db/repository/`, `db/query/`)                                                                                      | `@InfrastructureRing`     |
 
 ---
 
@@ -81,21 +81,21 @@ import org.jspecify.annotations.NullMarked;
 
 ### クラスレベルアノテーション
 
-| アノテーション | 配置先パッケージ |
-|---|---|
-| `@Command` | `..command.command..` のみ |
-| `@CommandResult` | `..command.dto..` のみ |
-| `@QueryParam` | `..query.param..` のみ |
-| `@QueryModel` | `..query.dto..` のみ |
-| `@DomainEvent` | `..event..` のみ |
+| アノテーション    | 配置先パッケージ                   |
+| ----------------- | ---------------------------------- |
+| `@Command`        | `..command.command..` のみ         |
+| `@CommandResult`  | `..command.dto..` のみ             |
+| `@QueryParam`     | `..query.param..` のみ             |
+| `@QueryModel`     | `..query.dto..` のみ               |
+| `@DomainEvent`    | `..event..` のみ                   |
 | `@RestController` | `..presentation.controller..` のみ |
 
 command パッケージに `@QueryModel` を、query パッケージに `@Command` を配置してはいけない。
 
 ### メソッドレベルアノテーション
 
-| アノテーション | 付与可能な場所 |
-|---|---|
+| アノテーション    | 付与可能な場所                                           |
+| ----------------- | -------------------------------------------------------- |
 | `@CommandHandler` | `..command.handler..` 内のクラスのメソッドにのみ付与可能 |
 
 ### 使用すべき完全修飾名
@@ -121,6 +121,16 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 - **presentation → domain 禁止**: presentation パッケージは domain パッケージに依存してはいけない。例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置し、presentation と application の両方から参照可能にする。
 - **子 → 親パッケージ依存禁止**: 子パッケージから親パッケージへの依存を禁止する。
 
+### Query-only モジュールの DB 直接アクセス
+
+**Query-only モジュール**（domain 層を持たないモジュール）は、他モジュールの DB テーブルを jOOQ で直接クエリしてよい。これは以下の理由による:
+
+- Query-only モジュールは読み取り専用であり、他モジュールのドメインロジックに影響しない
+- 他モジュールの QueryService インターフェースを DI すると、モジュール間の結合度が上がる
+- CQRS の Query 側は DB を直接参照するのが自然なパターン
+
+ただし、他モジュールのテーブルへの **書き込み（INSERT/UPDATE/DELETE）は禁止** する。書き込みは必ず該当モジュールの CommandHandler 経由で行う。
+
 ---
 
 ## 型制約
@@ -142,14 +152,14 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 
 ### DDD 型とパッケージの双方向制約
 
-| 型 | 配置先パッケージ |
-|---|---|
-| `AggregateRoot` 実装 | `model/aggregate/` のみ |
-| `Entity` 実装（AggregateRoot 除く） | `model/entity/` のみ |
-| `Identifier` 実装 | `model/valueobject/identifier/` のみ |
-| `ValueObject` 実装 | `model/valueobject/` のみ |
-| `Repository` 実装 | `domain/repository/` のみ |
-| enum（集約の状態・区分値） | `model/aggregate/` に集約と同居 |
+| 型                                  | 配置先パッケージ                     |
+| ----------------------------------- | ------------------------------------ |
+| `AggregateRoot` 実装                | `model/aggregate/` のみ              |
+| `Entity` 実装（AggregateRoot 除く） | `model/entity/` のみ                 |
+| `Identifier` 実装                   | `model/valueobject/identifier/` のみ |
+| `ValueObject` 実装                  | `model/valueobject/` のみ            |
+| `Repository` 実装                   | `domain/repository/` のみ            |
+| enum（集約の状態・区分値）          | `model/aggregate/` に集約と同居      |
 
 逆方向も検証される: 各パッケージには対応する型の実装のみ配置可能。
 
@@ -243,15 +253,15 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
 実装クラスには以下のアノテーションを付与し、Spring Bean として登録する。
 jMolecules アノテーションは ByteBuddy プラグインにより対応する Spring ステレオタイプアノテーションにビルド時変換される。
 
-| クラス | 付与するアノテーション | ByteBuddy 変換先 |
-|---|---|---|
-| `*RepositoryImpl` | `@org.jmolecules.ddd.annotation.Repository` | → `@springframework.stereotype.Repository` |
-| `*Factory` | `@org.jmolecules.ddd.annotation.Factory` | → `@springframework.stereotype.Component` |
-| `*DomainService` | `@org.jmolecules.ddd.annotation.Service` | → `@springframework.stereotype.Service` |
-| `*QueryServiceImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
-| `*IdGeneratorImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
-| `*CommandHandler` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
-| `*EventListener` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）。`@ApplicationModuleListener` だけでは Bean 登録されない |
+| クラス              | 付与するアノテーション                      | ByteBuddy 変換先                                                                                 |
+| ------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `*RepositoryImpl`   | `@org.jmolecules.ddd.annotation.Repository` | → `@springframework.stereotype.Repository`                                                       |
+| `*Factory`          | `@org.jmolecules.ddd.annotation.Factory`    | → `@springframework.stereotype.Component`                                                        |
+| `*DomainService`    | `@org.jmolecules.ddd.annotation.Service`    | → `@springframework.stereotype.Service`                                                          |
+| `*QueryServiceImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
+| `*IdGeneratorImpl`  | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
+| `*CommandHandler`   | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
+| `*EventListener`    | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）。`@ApplicationModuleListener` だけでは Bean 登録されない |
 
 上記以外の Spring Bean（jMolecules マッピング対象外）は `@org.springframework.stereotype.Component` を直接付与する。
 

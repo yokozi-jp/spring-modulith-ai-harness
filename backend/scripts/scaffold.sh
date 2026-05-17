@@ -668,7 +668,7 @@ import org.springframework.test.context.TestConstructor;
 /** Module integration tests for {@link $target} using Spring Modulith. */
 @Tag("integration")
 @Import(PostgresContainerConfig.class)
-@ApplicationModuleTest
+@ApplicationModuleTest(extraIncludes = "config")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @RequiredArgsConstructor
 class ${test_class_name} {
