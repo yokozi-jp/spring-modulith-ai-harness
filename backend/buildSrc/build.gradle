@@ -50,11 +50,11 @@ dependencies {
 
     // jOOQ のコード生成エンジン本体。
     // GenerateJooqTask 内の GenerationTool.generate(...) を使うために必要。
-    implementation 'org.jooq:jooq-codegen:3.21.3'
+    implementation 'org.jooq:jooq-codegen:3.21.4'
 
     // jOOQ がDBメタデータを読み取るためのモジュール。
     // PostgreSQL のテーブル、カラム、制約、型などを解析して codegen に渡す。
-    implementation 'org.jooq:jooq-meta:3.21.3'
+    implementation 'org.jooq:jooq-meta:3.21.4'
 
     // jOOQ のコアAPI。
     // codegen 設定クラスや生成処理の一部で必要になる。
@@ -63,5 +63,5 @@ dependencies {
     // アプリ本体側でも spring-boot-starter-jooq 経由で jOOQ が入るため、
     // buildSrc 側の jOOQ バージョンとアプリ実行時の jOOQ バージョンは
     // できるだけ揃えるのが安全。
-    implementation 'org.jooq:jooq:3.21.3'
+    implementation 'org.jooq:jooq:3.21.4'
 }
