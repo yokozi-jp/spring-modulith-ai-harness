@@ -59,6 +59,8 @@ cd backend && ./scripts/scaffold.sh class <module> <layer> <name> [--aggregate <
 | `response` | `presentation/response/` | record |
 | `api` | 複数パッケージ | Controller + Request + 2 Response + Command + CommandResult DTO + CommandHandler + Param + 2 QueryDto + QueryService + QueryServiceImpl + Exception + ExceptionHandler（14ファイル連鎖生成、aggregate 必須） |
 
+> **ExceptionHandler 命名規則**: モジュール別 ExceptionHandler のクラス名は `<Aggregate名>ExceptionHandler`（例: `ScheduleExceptionHandler`, `PerformanceIdeaExceptionHandler`）とする。モジュール名ではなく集約名（PascalCase）を使う。scaffold が自動生成する。
+
 ---
 
 ## 2. テスト作成（TDD: Red）
@@ -155,9 +157,11 @@ cd backend && ./gradlew check
                       （テスト自動連鎖: handler + exceptionhandler + response×2
                        + exception + controller + security + integration
                        + usecase + moduletest + jooqquery + e2e）
-4. ビジネスロジック実装（TODO を解消）
-5. spotlessApply    → フォーマット適用
-6. gradlew check    → 全検証パス確認
+4. Liquibase マイグレーション追加（テーブル定義）
+5. jOOQ コード再生成 → ./gradlew generateJooq
+6. ビジネスロジック実装（TODO を解消）
+7. spotlessApply    → フォーマット適用
+8. gradlew check    → 全検証パス確認
 ```
 
 典型的な実行例:
@@ -167,9 +171,21 @@ cd backend && ./gradlew check
 ./scripts/scaffold.sh class order aggregate Order
 ./scripts/scaffold.sh class order api Order
 # → main 29ファイル + test 16ファイルが自動生成される
+# Liquibase マイグレーション追加
+# jOOQ 生成コード更新
+./gradlew generateJooq
 # → TODO コメントを解消してビジネスロジックを実装
 ./gradlew spotlessApply
 ./gradlew check
 ```
 
 すべてのステップを完了してからコミットする。
+
+---
+
+## 6. JaCoCo カバレッジ
+
+- カバレッジ閾値は命令カバレッジ 85% 以上（`build.gradle` の `jacocoTestCoverageVerification`）
+- 新規モジュール追加直後はスケルトンのみでカバレッジが不足するが、**閾値未達でもブロックせず実装を進める**
+- テストを追加してカバレッジを満たすように実装する
+- 最終的に全モジュールのテスト実装が完了した時点で 85% を達成すること

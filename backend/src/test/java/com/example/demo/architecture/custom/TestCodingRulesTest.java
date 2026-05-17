@@ -50,9 +50,6 @@ class TestCodingRulesTest {
   private static final String APP_MODULE_TEST =
       "org.springframework.modulith.test.ApplicationModuleTest";
 
-  /** MockitoExtension FQCN。 */
-  private static final String MOCKITO_EXT = "org.mockito.junit.jupiter.MockitoExtension";
-
   /** WithAnonymousUser FQCN。 */
   private static final String WITH_ANONYMOUS =
       "org.springframework.security.test.context.support.WithAnonymousUser";
@@ -113,9 +110,7 @@ class TestCodingRulesTest {
           .because("test-coding-standards.md: Security テストは *SecurityTest サフィックスにしてください")
           .allowEmptyShould(true);
 
-  /**
-   * @WebMvcTest には excludeFilters で WebMvcConfig を除外すること。
-   */
+  /** {@code @WebMvcTest} には excludeFilters で WebMvcConfig を除外すること。 */
   @ArchTest
   /* default */ static final ArchRule WEBMVC_TEST_EXCLUDES_CONFIG =
       classes()

@@ -32,8 +32,15 @@
 - `PMD.UseUtilityClass` — `@SpringBootApplication` クラスおよびテストランチャークラス
 - `PMD.UnitTestShouldIncludeAssert` — コンテキストロードのスモークテスト
 - `PMD.TestClassWithoutTestCases` — テストサポートクラス（例: `PostgresContainerConfig`）
+- `PMD.AvoidDuplicateLiterals` — Controller クラス（`@GetMapping("/{id}")` 等のアノテーション文字列リテラルは定数化不可）
 
 `@SuppressWarnings` を追加する際は、必ず `"PMD.RuleName"` 形式を使用し、必要なルールのみを指定すること。
+
+### 使用禁止の @SuppressWarnings
+
+以下の抑制は使用してはいけない（PMD 7.23+ で `UnnecessaryWarningSuppression` として検出される）:
+
+- `PMD.LawOfDemeter` — jOOQ のメソッドチェーンや `Optional.orElseThrow()` 等は PMD 7.23 で LawOfDemeter 違反として検出されなくなったため、抑制は不要。付与すると `UnnecessaryWarningSuppression` 違反になる。
 
 ---
 

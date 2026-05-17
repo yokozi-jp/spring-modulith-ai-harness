@@ -650,3 +650,12 @@ E2E テスト（`TestRestTemplate`）では `WebMvcConfig` が有効なため、
 
 - テストコードでは NullAway 無効（`java-coding-standards.md` 参照）
 - `@Nullable` アノテーションは任意だが、意図を明示したい場合は付与してよい
+
+---
+
+## TODO 禁止
+
+- テストコードに `TODO` コメントを残してはいけない
+- scaffold が生成するテストスケルトンには TODO が含まれるが、**ビジネスロジック実装時に必ず実装済みコードに置き換えること**
+- `./gradlew check` がパスしても TODO が残っている場合はコードレビューで reject する
+- 検証時に `grep -r "TODO" src/test/java` で残存 TODO がないことを確認する
