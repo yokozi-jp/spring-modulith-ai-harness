@@ -33,6 +33,7 @@ test-down:
 
 # E2E テスト実行（全コンテナ必要）
 e2e:
+	docker compose -f compose-test.yaml up -d postgres-test redis-test keycloak-test grafana-lgtm-test; \
 	docker compose -f compose-test.yaml run --rm backend-test ./gradlew e2eTest --project-cache-dir=/app/.gradle-docker-project; \
 	status=$$?; \
 	docker compose -f compose-test.yaml down; \
