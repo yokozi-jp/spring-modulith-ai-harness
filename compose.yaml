@@ -18,6 +18,7 @@ services:
     volumes:
       - ./backend:/app
       - ./.git:/app/.git:ro
+      - gradle-cache:/app/.gradle-docker
     command: ["./gradlew", "bootRun", "--project-cache-dir=/app/.gradle-docker-project"]
     depends_on:
       postgres:
@@ -98,3 +99,4 @@ services:
 
 volumes:
   postgres-data:
+  gradle-cache:

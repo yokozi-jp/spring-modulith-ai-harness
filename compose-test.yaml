@@ -19,6 +19,7 @@ services:
       - ./backend:/app
       - ./.git:/app/.git:ro
       - ./docker:/docker:ro
+      - gradle-cache-test:/app/.gradle-docker
     command: ["./gradlew", "check", "--project-cache-dir=/app/.gradle-docker-project"]
     depends_on:
       postgres-test:
@@ -98,3 +99,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+
+volumes:
+  gradle-cache-test:
