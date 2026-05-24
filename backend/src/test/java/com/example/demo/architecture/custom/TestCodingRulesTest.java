@@ -26,8 +26,7 @@ import org.junit.jupiter.api.Test;
 @SuppressWarnings({
   "PMD.TestClassWithoutTestCases",
   "PMD.TooManyMethods",
-  "PMD.AvoidDuplicateLiterals",
-  "PMD.OnlyOneReturn"
+  "PMD.AvoidDuplicateLiterals"
 })
 @AnalyzeClasses(packages = "com.example.demo", importOptions = ImportOption.OnlyIncludeTests.class)
 class TestCodingRulesTest {
