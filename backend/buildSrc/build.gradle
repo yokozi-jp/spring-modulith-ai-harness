@@ -42,11 +42,11 @@ dependencies {
     implementation 'org.liquibase:liquibase-core:5.0.3'
 
     // jOOQ のコード生成エンジン本体。
-    implementation 'org.jooq:jooq-codegen:3.21.4'
+    implementation 'org.jooq:jooq-codegen:3.19.32'
 
     // jOOQ がDBメタデータを読み取るためのモジュール。
-    implementation 'org.jooq:jooq-meta:3.21.4'
+    implementation 'org.jooq:jooq-meta:3.19.32'
 
     // jOOQ のコアAPI。
-    implementation 'org.jooq:jooq:3.21.4'
+    implementation 'org.jooq:jooq:3.19.32'
 }

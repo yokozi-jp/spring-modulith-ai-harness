@@ -106,6 +106,8 @@ public abstract class GenerateJooqTask extends DefaultTask {
      */
     @TaskAction
     public void generate() throws Exception {
+        Class.forName("org.postgresql.Driver");
+
         String jdbcUrl = getJdbcUrl().get();
         String user = getUsername().get();
         String pass = getPassword().get();
