@@ -21,6 +21,9 @@ jobs:
       - name: Copy .env.test.example to .env.test
         run: cp .env.test.example .env.test
 
+      - name: Fix permissions for Docker bind mount
+        run: chmod -R 777 backend
+
       - name: Run check (compile, test, PMD, SpotBugs, JaCoCo)
         run: make test
 
