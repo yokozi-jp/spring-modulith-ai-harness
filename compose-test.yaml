@@ -19,7 +19,7 @@ services:
       - ./.git:/app/.git:ro
       - ./docker:/docker:ro
       - gradle-cache-test:/app/.gradle-docker
-    command: ["./gradlew", "check", "--project-cache-dir=/app/.gradle-docker-project"]
+    command: ["./gradlew", "check", "--project-cache-dir=/app/.gradle-docker/project-cache"]
     depends_on:
       postgres-test:
         condition: service_healthy

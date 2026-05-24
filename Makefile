@@ -23,7 +23,7 @@ test:
 
 # 特定テストのみ実行（例: make test-only T='*LiquibaseMigrationTest'）
 test-only:
-	docker compose -f compose-test.yaml run --rm backend-test ./gradlew test --tests '$(T)' --project-cache-dir=/app/.gradle-docker-project; \
+	docker compose -f compose-test.yaml run --rm backend-test ./gradlew test --tests '$(T)' --project-cache-dir=/app/.gradle-docker/project-cache; \
 	status=$$?; \
 	docker compose -f compose-test.yaml down; \
 	exit $$status
@@ -34,7 +34,7 @@ test-down:
 # E2E テスト実行（全コンテナ必要）
 e2e:
 	docker compose -f compose-test.yaml up -d postgres-test redis-test keycloak-test grafana-lgtm-test; \
-	docker compose -f compose-test.yaml run --rm backend-test ./gradlew e2eTest --project-cache-dir=/app/.gradle-docker-project; \
+	docker compose -f compose-test.yaml run --rm backend-test ./gradlew e2eTest --project-cache-dir=/app/.gradle-docker/project-cache; \
 	status=$$?; \
 	docker compose -f compose-test.yaml down; \
 	exit $$status
