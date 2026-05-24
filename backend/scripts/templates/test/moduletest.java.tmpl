@@ -1,0 +1,36 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.modulith.test.ApplicationModuleTest;
+import org.springframework.modulith.test.Scenario;
+import org.springframework.test.context.TestConstructor;
+
+/** Module integration tests for {@link {{TARGET}}} using Spring Modulith. */
+@Tag("integration")
+@ApplicationModuleTest(extraIncludes = "config")
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
+class {{TEST_CLS}} {
+
+  /** テスト対象。 */
+  private final {{TARGET}} sut;
+
+  // TODO: 以下を検証するテストを実装する
+  // - ドメインイベントが正しく発行されること（Scenario.publish().andWaitForEventOfType()）
+  // - イベントリスナーが副作用を実行すること
+  // - モジュール境界を越えたイベント伝播
+
+  /** 正常系: コマンド実行でドメインイベントが発行されること。 */
+  @Test
+  void shouldPublishDomainEvent(final Scenario scenario) {
+    // TODO: scenario を使ってイベント発行を検証する
+    // scenario.stimulate(() -> sut.handle(new CreateXxxCommand(...)))
+    //     .andWaitForEventOfType(XxxCreated.class)
+    //     .toArriveAndVerify(event -> assertNotNull(event.id()));
+    assertNotNull(sut, "sut should be injected");
+  }
+}

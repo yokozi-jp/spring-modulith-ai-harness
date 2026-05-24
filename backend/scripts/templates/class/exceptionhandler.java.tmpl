@@ -1,0 +1,26 @@
+package {{CTRL_PKG}};
+
+import {{EXC_PKG}}.{{EXC_CLS}};
+import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+/** {{NAME}} モジュールの例外ハンドラ。 */
+@Slf4j
+@RestControllerAdvice(basePackages = "{{BASE_PKG}}.{{MODULE}}")
+public class {{HANDLER_CLS}} {
+
+  /** {{EXC_CLS}} を処理する。 */
+  @ExceptionHandler({{EXC_CLS}}.class)
+  /* default */ ProblemDetail {{METHOD_NAME}}(final {{EXC_CLS}} ex) {
+    log.warn("{{EXC_CLS}}: {}", ex.getMessage());
+    final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.{{STATUS_ENUM}});
+    problem.setTitle("{{STATUS_TITLE}}");
+    problem.setDetail(ex.getMessage());
+    problem.setType(URI.create("about:blank"));
+    return problem;
+  }
+}

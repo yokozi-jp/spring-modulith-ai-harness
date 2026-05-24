@@ -2,13 +2,11 @@ package com.example.demo;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.example.demo.testconfig.PostgresContainerConfig;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
  * が自動適用するため、コンテキストが正常にロードされれば適用成功。
  */
 @Tag("integration")
-@Import(PostgresContainerConfig.class)
 @SpringBootTest
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)

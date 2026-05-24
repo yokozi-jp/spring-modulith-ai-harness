@@ -1,0 +1,12 @@
+package {{PKG}};
+
+import {{DETAIL_DTO_PKG}}.{{NAME}}DetailDto;
+
+/** {{NAME}} 詳細レスポンス。 */
+public record {{NAME}}DetailResponse(String id) {
+
+  /** DTO から変換する。 */
+  public static {{NAME}}DetailResponse from(final {{NAME}}DetailDto dto) {
+    return new {{NAME}}DetailResponse(dto.id());
+  }
+}

@@ -1,0 +1,76 @@
+package {{CTRL_PKG}};
+
+import {{CMD_DTO_PKG}}.Created{{NAME}}Dto;
+import {{CMD_PKG}}.Create{{NAME}}Command;
+import {{EXC_PKG}}.{{NAME}}NotFoundException;
+import {{HANDLER_PKG}}.{{NAME}}CommandHandler;
+import {{PARAM_PKG}}.{{NAME}}ListParam;
+import {{QRY_SVC_PKG}}.{{NAME}}QueryService;
+import {{REQ_PKG}}.Create{{NAME}}Request;
+import {{RES_PKG}}.{{NAME}}DetailResponse;
+import {{RES_PKG}}.{{NAME}}SummaryResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.net.URI;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+/** {{NAME}} コントローラ。 */
+@Tag(name = "{{NAME}}", description = "TODO: {{NAME}} API の説明を記述する")
+@RestController
+@RequestMapping("{{PATH}}")
+@Slf4j
+@RequiredArgsConstructor
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+public class {{NAME}}Controller {
+
+  /** コマンドハンドラ。 */
+  private final {{NAME}}CommandHandler commandHandler;
+
+  /** クエリサービス。 */
+  private final {{NAME}}QueryService queryService;
+
+  /** {{NAME}} を作成する。 */
+  @Operation(summary = "TODO: {{NAME}} 作成の説明を記述する")
+  @ApiResponse(responseCode = "201", description = "作成成功")
+  @PostMapping
+  public ResponseEntity<Void> create(@RequestBody @Valid final Create{{NAME}}Request request) {
+    final Created{{NAME}}Dto result = commandHandler.handle(
+        new Create{{NAME}}Command());
+    final URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+        .path("/{id}").buildAndExpand(result.id()).toUri();
+    return ResponseEntity.created(location).build();
+  }
+
+  /** {{NAME}} 一覧を取得する。 */
+  @Operation(summary = "TODO: {{NAME}} 一覧取得の説明を記述する")
+  @ApiResponse(responseCode = "200", description = "取得成功")
+  @GetMapping
+  public Page<{{NAME}}SummaryResponse> list(
+      final {{NAME}}ListParam param, final Pageable pageable) {
+    return queryService.findAll(param, pageable).map({{NAME}}SummaryResponse::from);
+  }
+
+  /** {{NAME}} 詳細を取得する。 */
+  @Operation(summary = "TODO: {{NAME}} 詳細取得の説明を記述する")
+  @ApiResponse(responseCode = "200", description = "取得成功")
+  @ApiResponse(responseCode = "404", description = "見つからない")
+  @GetMapping("/{id}")
+  public {{NAME}}DetailResponse findById(@PathVariable final String id) {
+    return queryService.findById(id)
+        .map({{NAME}}DetailResponse::from)
+        .orElseThrow(() -> new {{NAME}}NotFoundException(id));
+  }
+}

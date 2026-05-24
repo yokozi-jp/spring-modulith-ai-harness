@@ -59,7 +59,7 @@ sudo chmod -R 755 /home/projects
 
 # 基本パッケージインストール
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl git wget unzip jq vim tree gnupg2 software-properties-common
+sudo apt install -y curl git wget unzip jq vim tree gnupg2 software-properties-common make
 
 # Git基本設定（⚠️ 以下2行は自分の名前・メールアドレスに書き換えてから実行してください）
 # git config --global user.name "Your Name"

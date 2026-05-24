@@ -1,0 +1,13 @@
+package {{PKG}};
+
+import {{AGG_PKG}}.{{AGG}};
+import {{ID_PKG}}.{{AGG}}Id;
+import org.jmolecules.ddd.types.Repository;
+
+/** {{AGG}} リポジトリ。 */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
+public interface {{AGG}}Repository extends Repository<{{AGG}}, {{AGG}}Id> {
+
+  /** ID を生成する。 */
+  {{AGG}}Id generateId();
+}

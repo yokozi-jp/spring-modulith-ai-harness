@@ -3,21 +3,23 @@
 
 services:
   backend:
-    container_name: backend
+    container_name: smah-backend
     build:
       context: ./backend
       target: dev
     mem_limit: 4g
-    user: "1000:1000"
+    user: root
     ports:
       - "18080:18080"
       - "5005:5005"
     env_file: .env
     environment:
-      GRADLE_USER_HOME: /app/.gradle-docker
+      GRADLE_USER_HOME: /gradle
     volumes:
       - ./backend:/app
-    command: ["./gradlew", "bootRun", "--project-cache-dir=/app/.gradle-docker-project"]
+      - ./.git:/app/.git:ro
+      - gradle-cache:/gradle
+    command: ["./gradlew", "bootRun", "--project-cache-dir=/gradle/project-cache"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -27,7 +29,7 @@ services:
         condition: service_healthy
 
   postgres:
-    container_name: postgres
+    container_name: smah-postgres
     image: postgres:18.3
     mem_limit: 1g
     ports:
@@ -47,7 +49,7 @@ services:
       retries: 5
 
   keycloak:
-    container_name: keycloak
+    container_name: smah-keycloak
     image: quay.io/keycloak/keycloak:26.6.0
     mem_limit: 1g
     ports:
@@ -57,6 +59,8 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HOSTNAME: http://localhost:8080
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_SPI_IMPORT_IMPORTER: singleFile
+      KC_SPI_IMPORT_SINGLE_FILE_STRATEGY: OVERWRITE_EXISTING
     volumes:
       - ./docker/keycloak/demo-realm.json:/opt/keycloak/data/import/demo-realm.json:ro
     command: start-dev --import-realm --health-enabled=true
@@ -75,7 +79,7 @@ services:
         condition: service_healthy
 
   redis:
-    container_name: redis
+    container_name: smah-redis
     image: redis:8.6.2
     mem_limit: 256m
     ports:
@@ -87,7 +91,7 @@ services:
       retries: 5
 
   grafana-lgtm:
-    container_name: grafana-lgtm
+    container_name: smah-grafana-lgtm
     image: grafana/otel-lgtm:0.26.0
     mem_limit: 2g
     ports:
@@ -97,3 +101,4 @@ services:
 
 volumes:
   postgres-data:
+  gradle-cache:

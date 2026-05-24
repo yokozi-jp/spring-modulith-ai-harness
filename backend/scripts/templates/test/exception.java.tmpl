@@ -1,0 +1,17 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+/** Unit tests for {@link {{TARGET}}}. */
+class {{TEST_CLS}} {
+
+  /** メッセージに引数が含まれること。 */
+  @Test
+  void shouldContainArgumentInMessage() {
+    final {{TARGET}} ex = new {{TARGET}}("test-id");
+
+    assertEquals("TODO: expected message", ex.getMessage(), "message should contain id");
+  }
+}

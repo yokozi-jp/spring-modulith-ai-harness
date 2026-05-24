@@ -4,7 +4,7 @@
 package com.example.demo.jooq.tables;
 
 
-import com.example.demo.jooq.Demo;
+import com.example.demo.jooq.DefaultSchema;
 import com.example.demo.jooq.Indexes;
 import com.example.demo.jooq.Keys;
 import com.example.demo.jooq.tables.records.EventPublicationArchiveRecord;
@@ -43,7 +43,7 @@ public class EventPublicationArchive extends TableImpl<EventPublicationArchiveRe
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>demo.event_publication_archive</code>
+     * The reference instance of <code>event_publication_archive</code>
      */
     public static final EventPublicationArchive EVENT_PUBLICATION_ARCHIVE = new EventPublicationArchive();
 
@@ -56,49 +56,47 @@ public class EventPublicationArchive extends TableImpl<EventPublicationArchiveRe
     }
 
     /**
-     * The column <code>demo.event_publication_archive.id</code>.
+     * The column <code>event_publication_archive.id</code>.
      */
     public final TableField<EventPublicationArchiveRecord, UUID> ID = createField(DSL.name("id"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication_archive.listener_id</code>.
+     * The column <code>event_publication_archive.listener_id</code>.
      */
     public final TableField<EventPublicationArchiveRecord, String> LISTENER_ID = createField(DSL.name("listener_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication_archive.event_type</code>.
+     * The column <code>event_publication_archive.event_type</code>.
      */
     public final TableField<EventPublicationArchiveRecord, String> EVENT_TYPE = createField(DSL.name("event_type"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication_archive.serialized_event</code>.
+     * The column <code>event_publication_archive.serialized_event</code>.
      */
     public final TableField<EventPublicationArchiveRecord, String> SERIALIZED_EVENT = createField(DSL.name("serialized_event"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication_archive.publication_date</code>.
+     * The column <code>event_publication_archive.publication_date</code>.
      */
     public final TableField<EventPublicationArchiveRecord, OffsetDateTime> PUBLICATION_DATE = createField(DSL.name("publication_date"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication_archive.completion_date</code>.
+     * The column <code>event_publication_archive.completion_date</code>.
      */
     public final TableField<EventPublicationArchiveRecord, OffsetDateTime> COMPLETION_DATE = createField(DSL.name("completion_date"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
     /**
-     * The column <code>demo.event_publication_archive.status</code>.
+     * The column <code>event_publication_archive.status</code>.
      */
     public final TableField<EventPublicationArchiveRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column
-     * <code>demo.event_publication_archive.completion_attempts</code>.
+     * The column <code>event_publication_archive.completion_attempts</code>.
      */
     public final TableField<EventPublicationArchiveRecord, Integer> COMPLETION_ATTEMPTS = createField(DSL.name("completion_attempts"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column
-     * <code>demo.event_publication_archive.last_resubmission_date</code>.
+     * The column <code>event_publication_archive.last_resubmission_date</code>.
      */
     public final TableField<EventPublicationArchiveRecord, OffsetDateTime> LAST_RESUBMISSION_DATE = createField(DSL.name("last_resubmission_date"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
@@ -111,23 +109,21 @@ public class EventPublicationArchive extends TableImpl<EventPublicationArchiveRe
     }
 
     /**
-     * Create an aliased <code>demo.event_publication_archive</code> table
-     * reference
+     * Create an aliased <code>event_publication_archive</code> table reference
      */
     public EventPublicationArchive(String alias) {
         this(DSL.name(alias), EVENT_PUBLICATION_ARCHIVE);
     }
 
     /**
-     * Create an aliased <code>demo.event_publication_archive</code> table
-     * reference
+     * Create an aliased <code>event_publication_archive</code> table reference
      */
     public EventPublicationArchive(Name alias) {
         this(alias, EVENT_PUBLICATION_ARCHIVE);
     }
 
     /**
-     * Create a <code>demo.event_publication_archive</code> table reference
+     * Create a <code>event_publication_archive</code> table reference
      */
     public EventPublicationArchive() {
         this(DSL.name("event_publication_archive"), null);
@@ -135,7 +131,7 @@ public class EventPublicationArchive extends TableImpl<EventPublicationArchiveRe
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Demo.DEMO;
+        return aliased() ? null : DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override

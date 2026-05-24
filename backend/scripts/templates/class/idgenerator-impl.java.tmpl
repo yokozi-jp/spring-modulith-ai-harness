@@ -1,0 +1,16 @@
+package {{PKG}};
+
+import {{ID_PKG}}.{{ID_CLS}};
+import {{GEN_PKG}}.{{TARGET}}IdGenerator;
+import java.util.UUID;
+import org.springframework.stereotype.Component;
+
+/** {{TARGET}} の ID ジェネレータ実装。 */
+@Component
+public class {{TARGET}}IdGeneratorImpl implements {{TARGET}}IdGenerator {
+
+  @Override
+  public {{ID_CLS}} generate() {
+    return new {{ID_CLS}}(UUID.randomUUID().toString());
+  }
+}

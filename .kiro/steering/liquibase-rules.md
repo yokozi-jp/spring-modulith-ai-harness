@@ -47,7 +47,7 @@
 
 - 新しい changeset を作成したら、必ずロールバックが正常に動作することを確認する
 - 手順:
-  1. `./gradlew update` でマイグレーション適用
-  2. `./gradlew rollbackCountSql -PliquibaseCount=1` でロールバック SQL を確認
-  3. `./gradlew rollbackCount -PliquibaseCount=1` でロールバック実行
-  4. `./gradlew update` で再適用できることを確認
+  1. `make migrate` でマイグレーション適用
+  2. `make rollback-sql` でロールバック SQL を確認
+  3. `make rollback` でロールバック実行
+  4. `make migrate` で再適用できることを確認

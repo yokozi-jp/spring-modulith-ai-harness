@@ -1,0 +1,37 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+/** Unit tests for {@link {{TARGET}}}. */
+@ExtendWith(MockitoExtension.class)
+class {{TEST_CLS}} {
+
+  // TODO: Factory / Repository をモックする
+  // @Mock private XxxFactory factory;
+
+  /** テスト対象。 */
+  @InjectMocks private {{TARGET}} sut;
+
+  // TODO: 以下の観点でテストを実装する
+  // - handle() が Factory に委譲すること（verify）
+  // - handle() が正しい ID を含む DTO を返すこと
+  // - handle() の戻り値が null でないこと
+
+  /** TODO: コマンドを処理して結果を返すこと。 */
+  @Test
+  void shouldHandleCommand() {
+    // TODO: when(factory.create(...)).thenReturn(aggregate);
+    //        final XxxDto result = sut.handle(new CreateXxxCommand(...));
+    //        assertEquals("expected-id", result.id(), "id should match");
+    assertNotNull(sut, "TODO: replace with actual assertion");
+  }
+}

@@ -1,0 +1,19 @@
+package {{PKG}};
+
+import lombok.RequiredArgsConstructor;
+import org.jmolecules.architecture.cqrs.CommandHandler;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/** {{NAME}} コマンドハンドラ。 */
+@RequiredArgsConstructor
+@Component
+public class {{NAME}}CommandHandler {
+
+  /** コマンドを処理する。 */
+  @Transactional
+  @CommandHandler
+  public void handle() {
+    // TODO: 引数にコマンド型を追加すること。
+  }
+}

@@ -2,13 +2,12 @@ package com.example.demo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.example.demo.testconfig.FullStackContainerConfig;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestConstructor;
@@ -19,8 +18,8 @@ import org.springframework.test.context.TestConstructor;
  * <p>/actuator/health は認証不要で公開。その他の Actuator エンドポイントは Basic 認証が必要。
  */
 @Tag("e2e")
-@Import(FullStackContainerConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestRestTemplate
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @RequiredArgsConstructor
 class ActuatorSecurityTest {
