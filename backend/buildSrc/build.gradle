@@ -41,7 +41,7 @@ dependencies {
 
     // Testcontainers で起動した PostgreSQL に JDBC 接続するためのドライバ。
     // Liquibase と jOOQ codegen の両方がこの JDBC ドライバを使う。
-    implementation 'org.postgresql:postgresql:42.7.8'
+    implementation 'org.postgresql:postgresql:42.7.11'
 
     // GenerateJooqTask 内で Liquibase migration を実行するために必要。
     // Gradle の liquibase plugin をタスクとして呼ぶのではなく、
