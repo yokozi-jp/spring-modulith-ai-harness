@@ -23,19 +23,12 @@ import org.junit.jupiter.api.Test;
  *
  * <p>テストコードでもフィールドインジェクション禁止等の規約を強制する。
  */
-@SuppressWarnings({
-  "PMD.TestClassWithoutTestCases",
-  "PMD.TooManyMethods",
-  "PMD.AvoidDuplicateLiterals"
-})
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 @AnalyzeClasses(packages = "com.example.demo", importOptions = ImportOption.OnlyIncludeTests.class)
 class TestCodingRulesTest {
 
   /** アーキテクチャテストパッケージ。 */
   private static final String PKG_ARCH = "..architecture..";
-
-  /** テストサポートクラスのパッケージ。 */
-  private static final String PKG_TESTCONFIG = "..testconfig..";
 
   /** WebMvcTest FQCN。 */
   private static final String WEBMVC_TEST =
@@ -117,40 +110,10 @@ class TestCodingRulesTest {
           .haveSimpleNameEndingWith("Test")
           .and()
           .resideOutsideOfPackage(PKG_ARCH)
-          .and()
-          .resideOutsideOfPackage(PKG_TESTCONFIG)
           .should(webMvcTestMustHaveExcludeFilters())
           .as("@WebMvcTest には excludeFilters で WebMvcConfig を除外すること")
           .because(
               "@WebMvcTest に excludeFilters = @ComponentScan.Filter(classes = WebMvcConfig.class) を追加してください")
-          .allowEmptyShould(true);
-
-  /** 1. PostgresContainerConfig を Import するクラスに @Tag("integration") が必須。 */
-  @ArchTest
-  /* default */ static final ArchRule POSTGRES_REQUIRES_INTEGRATION_TAG =
-      classes()
-          .that()
-          .haveSimpleNameEndingWith("Test")
-          .and()
-          .resideOutsideOfPackage(PKG_ARCH)
-          .and()
-          .resideOutsideOfPackage(PKG_TESTCONFIG)
-          .should(importingPostgresConfigMustHaveIntegrationTag())
-          .as("PostgresContainerConfig を使うテストには @Tag(\"integration\") が必須")
-          .because("@Tag(\"integration\") を追加してください。タグがないと ./gradlew test で Docker が必要になります")
-          .allowEmptyShould(true);
-
-  /** 2. FullStackContainerConfig を Import するクラスに @Tag("e2e") が必須。 */
-  @ArchTest
-  /* default */ static final ArchRule FULLSTACK_REQUIRES_E2E_TAG =
-      classes()
-          .that()
-          .haveSimpleNameEndingWith("Test")
-          .or()
-          .haveSimpleNameEndingWith("Tests")
-          .should(importingFullStackConfigMustHaveE2eTag())
-          .as("FullStackContainerConfig を使うテストには @Tag(\"e2e\") が必須")
-          .because("@Tag(\"e2e\") を追加してください。タグがないと check で全コンテナが起動します")
           .allowEmptyShould(true);
 
   /** 3. @ApplicationModuleTest クラスに @Tag("integration") が必須。 */
@@ -197,8 +160,6 @@ class TestCodingRulesTest {
           .containAnyMethodsThat(methodHasAnnotation("org.junit.jupiter.api.Test"))
           .and()
           .resideOutsideOfPackage(PKG_ARCH)
-          .and()
-          .resideOutsideOfPackage(PKG_TESTCONFIG)
           .should()
           .haveSimpleNameEndingWith("Test")
           .orShould()
@@ -230,8 +191,6 @@ class TestCodingRulesTest {
           .haveSimpleNameEndingWith("Test")
           .and()
           .resideOutsideOfPackage(PKG_ARCH)
-          .and()
-          .resideOutsideOfPackage(PKG_TESTCONFIG)
           .and()
           .resideOutsideOfPackage("com.example.demo")
           .should(resideInModulePackage())
@@ -280,14 +239,6 @@ class TestCodingRulesTest {
         .anyMatch(a -> a.get("value").map(v -> tagValue.equals(v.toString())).orElse(false));
   }
 
-  private static boolean importsConfig(final JavaClass item, final String configSimpleName) {
-    return item.getAnnotations().stream()
-        .filter(
-            a -> "org.springframework.context.annotation.Import".equals(a.getRawType().getName()))
-        .anyMatch(
-            a -> a.get("value").map(v -> v.toString().contains(configSimpleName)).orElse(false));
-  }
-
   private static ArchCondition<JavaClass> webMvcTestMustHaveExcludeFilters() {
     return new ArchCondition<>("have excludeFilters if @WebMvcTest") {
       @Override
@@ -302,35 +253,6 @@ class TestCodingRulesTest {
                             item, item.getName() + " の @WebMvcTest に excludeFilters がありません"));
                   }
                 });
-      }
-    };
-  }
-
-  private static ArchCondition<JavaClass> importingPostgresConfigMustHaveIntegrationTag() {
-    return new ArchCondition<>("have @Tag(\"integration\") if importing PostgresContainerConfig") {
-      @Override
-      public void check(final JavaClass item, final ConditionEvents events) {
-        if (importsConfig(item, "PostgresContainerConfig") && !hasTag(item, "integration")) {
-          events.add(
-              SimpleConditionEvent.violated(
-                  item,
-                  item.getName()
-                      + " は PostgresContainerConfig を使用していますが @Tag(\"integration\") がありません"));
-        }
-      }
-    };
-  }
-
-  private static ArchCondition<JavaClass> importingFullStackConfigMustHaveE2eTag() {
-    return new ArchCondition<>("have @Tag(\"e2e\") if importing FullStackContainerConfig") {
-      @Override
-      public void check(final JavaClass item, final ConditionEvents events) {
-        if (importsConfig(item, "FullStackContainerConfig") && !hasTag(item, "e2e")) {
-          events.add(
-              SimpleConditionEvent.violated(
-                  item,
-                  item.getName() + " は FullStackContainerConfig を使用していますが @Tag(\"e2e\") がありません"));
-        }
       }
     };
   }

@@ -3,16 +3,12 @@ package com.example.demo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.example.demo.testconfig.ObservabilityContainerConfig;
-import com.example.demo.testconfig.PostgresContainerConfig;
-import com.example.demo.testconfig.RedisContainerConfig;
 import io.opentelemetry.api.OpenTelemetry;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestConstructor;
@@ -23,11 +19,6 @@ import org.springframework.test.context.TestConstructor;
  * <p>OpenTelemetry SDK が正常に設定され、トレース・メトリクスが送信可能な状態であることを検証する。
  */
 @Tag("e2e")
-@Import({
-  ObservabilityContainerConfig.class,
-  PostgresContainerConfig.class,
-  RedisContainerConfig.class
-})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @RequiredArgsConstructor

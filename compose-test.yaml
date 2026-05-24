@@ -1,61 +1,74 @@
-# ローカル開発用 Docker Compose
-# docker compose up --build で全サービス起動
+# テスト用 Docker Compose
+# テスト実行:
+#   docker compose -f compose-test.yaml run --rm backend-test
+# 停止:
+#   docker compose -f compose-test.yaml down
 
 services:
-  backend:
-    container_name: smah-backend
+  backend-test:
+    container_name: smah-backend-test
     build:
       context: ./backend
       target: dev
     mem_limit: 4g
     user: "1000:1000"
-    ports:
-      - "18080:18080"
-      - "5005:5005"
-    env_file: .env
+    env_file: .env.test
     environment:
       GRADLE_USER_HOME: /app/.gradle-docker
     volumes:
       - ./backend:/app
-    command: ["./gradlew", "bootRun", "--project-cache-dir=/app/.gradle-docker-project"]
+      - ./.git:/app/.git:ro
+      - ./docker:/docker:ro
+    command: ["./gradlew", "check", "--project-cache-dir=/app/.gradle-docker-project"]
     depends_on:
-      postgres:
+      postgres-test:
         condition: service_healthy
-      redis:
+      redis-test:
         condition: service_healthy
-      keycloak:
+      keycloak-test:
         condition: service_healthy
 
-  postgres:
-    container_name: smah-postgres
+  postgres-test:
+    container_name: smah-postgres-test
     image: postgres:18.3
-    mem_limit: 1g
+    mem_limit: 512m
     ports:
-      - "5432:5432"
+      - "15432:5432"
     environment:
       POSTGRES_DB: demo
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: demo
-      TZ: ${TZ}
+      TZ: UTC
     volumes:
-      - postgres-data:/var/lib/postgresql
       - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U demo -d demo"]
-      interval: 5s
-      timeout: 3s
+      interval: 3s
+      timeout: 2s
+      retries: 10
+
+  redis-test:
+    container_name: smah-redis-test
+    image: redis:8.6.2
+    mem_limit: 128m
+    ports:
+      - "16379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
       retries: 5
 
-  keycloak:
-    container_name: smah-keycloak
+  keycloak-test:
+    container_name: smah-keycloak-test
     image: quay.io/keycloak/keycloak:26.6.0
     mem_limit: 1g
     ports:
-      - "8080:8080"
+      - "18080:8080"
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME: http://localhost:18080
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     volumes:
       - ./docker/keycloak/demo-realm.json:/opt/keycloak/data/import/demo-realm.json:ro
@@ -70,30 +83,18 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
-    depends_on:
-      postgres:
-        condition: service_healthy
 
-  redis:
-    container_name: smah-redis
-    image: redis:8.6.2
-    mem_limit: 256m
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  grafana-lgtm:
-    container_name: smah-grafana-lgtm
+  grafana-lgtm-test:
+    container_name: smah-grafana-lgtm-test
     image: grafana/otel-lgtm:0.26.0
-    mem_limit: 2g
+    mem_limit: 1g
     ports:
-      - "3000:3000" # Grafana UI
-      - "4317:4317" # OTLP gRPC
-      - "4318:4318" # OTLP HTTP
-
-volumes:
-  postgres-data:
+      - "13000:3000"
+      - "14317:4317"
+      - "14318:4318"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
