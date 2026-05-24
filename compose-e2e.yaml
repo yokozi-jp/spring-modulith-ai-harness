@@ -1,14 +1,12 @@
-# テスト用 Docker Compose
-# テスト実行:
-#   docker compose -f compose-test.yaml run --rm backend-test
-# 停止:
-#   docker compose -f compose-test.yaml down
+# E2E テスト用 Docker Compose
+# 実行: make e2e
+# 停止: docker compose -f compose-e2e.yaml down
 
-name: smah-test
+name: smah-e2e
 
 services:
-  backend-test:
-    container_name: smah-backend-test
+  backend-e2e:
+    container_name: smah-backend-e2e
     build:
       context: ./backend
       target: dev
@@ -17,22 +15,33 @@ services:
     env_file: .env.test
     environment:
       GRADLE_USER_HOME: /gradle
+      DATASOURCE_URL: jdbc:postgresql://postgres-e2e:5432/demo
+      SPRING_DATA_REDIS_HOST: redis-e2e
+      OAUTH2_AUTHORIZATION_URI: http://keycloak-e2e:8080/realms/demo/protocol/openid-connect/auth
+      OAUTH2_TOKEN_URI: http://keycloak-e2e:8080/realms/demo/protocol/openid-connect/token
+      OAUTH2_JWK_SET_URI: http://keycloak-e2e:8080/realms/demo/protocol/openid-connect/certs
+      OAUTH2_USERINFO_URI: http://keycloak-e2e:8080/realms/demo/protocol/openid-connect/userinfo
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://grafana-lgtm-e2e:4318/v1/traces
+      OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: http://grafana-lgtm-e2e:4318/v1/logs
+      OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://grafana-lgtm-e2e:4318/v1/metrics
     volumes:
       - ./backend:/app
       - ./.git:/app/.git:ro
       - ./docker:/docker:ro
-      - gradle-cache-test:/gradle
-    command: ["./gradlew", "check", "--project-cache-dir=/gradle/project-cache"]
+      - gradle-cache-e2e:/gradle
+    command: ["./gradlew", "e2eTest", "--project-cache-dir=/gradle/project-cache"]
     depends_on:
-      postgres-test:
+      postgres-e2e:
         condition: service_healthy
-      redis-test:
+      redis-e2e:
         condition: service_healthy
-      keycloak-test:
+      keycloak-e2e:
+        condition: service_healthy
+      grafana-lgtm-e2e:
         condition: service_healthy
 
-  postgres-test:
-    container_name: smah-postgres-test
+  postgres-e2e:
+    container_name: smah-postgres-e2e
     image: postgres:18.3
     mem_limit: 512m
     environment:
@@ -48,8 +57,8 @@ services:
       timeout: 2s
       retries: 10
 
-  redis-test:
-    container_name: smah-redis-test
+  redis-e2e:
+    container_name: smah-redis-e2e
     image: redis:8.6.2
     mem_limit: 128m
     healthcheck:
@@ -58,14 +67,14 @@ services:
       timeout: 2s
       retries: 5
 
-  keycloak-test:
-    container_name: smah-keycloak-test
+  keycloak-e2e:
+    container_name: smah-keycloak-e2e
     image: quay.io/keycloak/keycloak:26.6.0
     mem_limit: 1g
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_HOSTNAME: http://localhost:18080
+      KC_HOSTNAME: http://keycloak-e2e:8080
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     volumes:
       - ./docker/keycloak/demo-realm.json:/opt/keycloak/data/import/demo-realm.json:ro
@@ -81,8 +90,8 @@ services:
       retries: 12
       start_period: 30s
 
-  grafana-lgtm-test:
-    container_name: smah-grafana-lgtm-test
+  grafana-lgtm-e2e:
+    container_name: smah-grafana-lgtm-e2e
     image: grafana/otel-lgtm:0.26.0
     mem_limit: 1g
     healthcheck:
@@ -93,4 +102,4 @@ services:
       start_period: 30s
 
 volumes:
-  gradle-cache-test:
+  gradle-cache-e2e:

@@ -27,10 +27,7 @@ jobs:
         run: chmod -R 777 backend
 
       - name: Run check (compile, test, PMD, SpotBugs, JaCoCo)
-        run: make test
-
-      - name: Run E2E tests
-        run: make e2e
+        run: make test; status=$?; make test-down; exit $status
 
       - name: Upload test reports
         if: always()

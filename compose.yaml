@@ -8,18 +8,18 @@ services:
       context: ./backend
       target: dev
     mem_limit: 4g
-    user: "1000:1000"
+    user: root
     ports:
       - "18080:18080"
       - "5005:5005"
     env_file: .env
     environment:
-      GRADLE_USER_HOME: /app/.gradle-docker
+      GRADLE_USER_HOME: /gradle
     volumes:
       - ./backend:/app
       - ./.git:/app/.git:ro
-      - gradle-cache:/app/.gradle-docker
-    command: ["./gradlew", "bootRun", "--project-cache-dir=/app/.gradle-docker-project"]
+      - gradle-cache:/gradle
+    command: ["./gradlew", "bootRun", "--project-cache-dir=/gradle/project-cache"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -59,6 +59,8 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HOSTNAME: http://localhost:8080
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_SPI_IMPORT_IMPORTER: singleFile
+      KC_SPI_IMPORT_SINGLE_FILE_STRATEGY: OVERWRITE_EXISTING
     volumes:
       - ./docker/keycloak/demo-realm.json:/opt/keycloak/data/import/demo-realm.json:ro
     command: start-dev --import-realm --health-enabled=true

@@ -546,6 +546,9 @@ class ProductRepositoryImplTest {
 
 全コンテナ起動。最終確認用。
 
+- `@AutoConfigureTestRestTemplate` を付与して `TestRestTemplate` Bean を有効化する
+- `TestRestTemplate` は `org.springframework.boot.resttestclient.TestRestTemplate` を使用する
+
 | 対象 | テスト内容 |
 |---|---|
 | API E2E（RANDOM_PORT） | HTTP → 全レイヤー → DB → レスポンス |
@@ -555,6 +558,7 @@ class ProductRepositoryImplTest {
 
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestRestTemplate
 @Tag("e2e")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @RequiredArgsConstructor
