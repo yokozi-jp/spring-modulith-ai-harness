@@ -135,6 +135,9 @@ dependencies {
 
     // OpenTelemetry Logback Appender: ログを OTLP 経由で Loki 等に送信する。
     // Spring Boot 4 は SDK を自動設定するが、Logback appender は別途必要。
+    // NOTE: 2.27.0-alpha は opentelemetry-api 1.61.0 を要求するが、Spring Boot 4.0.6 の
+    // dependency management が 1.55.0 に強制ダウングレードするためバージョン不整合が生じる。
+    // Spring Boot 側の OTel BOM が 1.61+ に上がるまで 2.21.0-alpha を維持する。
     implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.21.0-alpha'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
