@@ -206,6 +206,9 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'com.redis:testcontainers-redis:2.2.4'
 
+    // テスト: Awaitility（非同期処理のポーリング検証）
+    testImplementation 'org.awaitility:awaitility:4.3.0'
+
     // テスト: Spring Modulith テストサポート
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
 

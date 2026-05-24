@@ -125,8 +125,6 @@ class TestCodingRulesTest {
               "@WebMvcTest に excludeFilters = @ComponentScan.Filter(classes = WebMvcConfig.class) を追加してください")
           .allowEmptyShould(true);
 
-  // ===== 新規ルール 1〜10 =====
-
   /** 1. PostgresContainerConfig を Import するクラスに @Tag("integration") が必須。 */
   @ArchTest
   /* default */ static final ArchRule POSTGRES_REQUIRES_INTEGRATION_TAG =
