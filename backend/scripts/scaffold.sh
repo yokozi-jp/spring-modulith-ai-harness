@@ -164,13 +164,13 @@ cmd_test() {
     echo "  security       @WebMvcTest security test (auth/CSRF)" >&2
     echo "" >&2
     echo "Types (src/test/ — @Tag(\"integration\"), PostgreSQL container):" >&2
-    echo "  integration    @SpringBootTest + PostgresContainerConfig" >&2
+    echo "  integration    @SpringBootTest + @Tag(\"integration\")" >&2
     echo "  usecase        UseCase→Domain integration (full flow)" >&2
     echo "  moduletest     @ApplicationModuleTest (event publish/subscribe)" >&2
-    echo "  jooqquery      @JooqTest + PostgresContainerConfig (SQL query)" >&2
+    echo "  jooqquery      @JooqTest + @Tag(\"integration\") (SQL query)" >&2
     echo "" >&2
     echo "Types (src/test/ — @Tag(\"e2e\"), all containers):" >&2
-    echo "  e2e            @SpringBootTest(RANDOM_PORT) + FullStackContainerConfig" >&2
+    echo "  e2e            @SpringBootTest(RANDOM_PORT) + @Tag(\"e2e\")" >&2
     exit 1
   fi
 

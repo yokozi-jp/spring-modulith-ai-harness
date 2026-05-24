@@ -2,18 +2,15 @@ package {{PKG}};
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.example.demo.testconfig.PostgresContainerConfig;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.jooq.test.autoconfigure.JooqTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 
 /** jOOQ query tests for {@link {{TARGET}}}. */
 @Tag("integration")
-@Import(PostgresContainerConfig.class)
 @JooqTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @RequiredArgsConstructor

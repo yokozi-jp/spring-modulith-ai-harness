@@ -2,18 +2,15 @@ package {{PKG}};
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.example.demo.testconfig.PostgresContainerConfig;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.Import;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.modulith.test.Scenario;
 import org.springframework.test.context.TestConstructor;
 
 /** Module integration tests for {@link {{TARGET}}} using Spring Modulith. */
 @Tag("integration")
-@Import(PostgresContainerConfig.class)
 @ApplicationModuleTest(extraIncludes = "config")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @RequiredArgsConstructor

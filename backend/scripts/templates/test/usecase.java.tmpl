@@ -2,18 +2,15 @@ package {{PKG}};
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.example.demo.testconfig.PostgresContainerConfig;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 /** UseCase integration tests for {@link {{TARGET}}}. */
 @Tag("integration")
-@Import(PostgresContainerConfig.class)
 @SpringBootTest
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)

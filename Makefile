@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 export PATH := /usr/bin:$(PATH)
 
-.PHONY: dev dev-up dev-down test test-only test-down fmt jooq migrate rollback rollback-sql
+.PHONY: dev dev-up dev-down test test-only test-down e2e fmt jooq migrate rollback rollback-sql
 
 # ローカル開発（フォアグラウンド）
 dev:
@@ -30,6 +30,13 @@ test-only:
 
 test-down:
 	docker compose -f compose-test.yaml down
+
+# E2E テスト実行（全コンテナ必要）
+e2e:
+	docker compose -f compose-test.yaml run --rm backend-test ./gradlew e2eTest --project-cache-dir=/app/.gradle-docker-project; \
+	status=$$?; \
+	docker compose -f compose-test.yaml down; \
+	exit $$status
 
 # フォーマット適用
 fmt:

@@ -61,10 +61,10 @@ sourceSets {
 
 // --- jOOQ codegen: Testcontainers + Liquibase + jOOQ ---
 // Testcontainers が一時的な PostgreSQL を起動し、Liquibase でマイグレーション後に codegen する。
-// 使い方: ./gradlew --no-daemon generateJooq（または ./gradlew build で自動実行）
+// 使い方: make jooq（開発コンテナ起動中に実行）
 tasks.register('generateJooq', jooq.GenerateJooqTask) {
     group = 'jooq'
-    description = 'Start PostgreSQL Testcontainer, run Liquibase, then generate jOOQ classes'
+    description = 'Run Liquibase on temp schema, then generate jOOQ classes'
     outputDirectory.set(jooqGeneratedDir)
 }
 
@@ -197,14 +197,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-
-    // テスト: Testcontainers（統合テスト用コンテナ管理）
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'com.github.dasniko:testcontainers-keycloak:4.2.1'
-    testImplementation 'org.testcontainers:testcontainers-grafana'
-    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
-    testImplementation 'org.testcontainers:testcontainers-postgresql'
-    testImplementation 'com.redis:testcontainers-redis:2.2.4'
 
     // テスト: Awaitility（非同期処理のポーリング検証）
     testImplementation 'org.awaitility:awaitility:4.3.0'

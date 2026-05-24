@@ -1,7 +1,7 @@
 # Backend 開発ワークフロー
 
 本プロジェクトの backend コード変更時に従うワークフロー。
-すべての作業は `backend/` ディレクトリを起点とする。
+すべての作業は開発コンテナ内（`docker compose exec backend bash`）で実行する。
 
 ---
 
@@ -121,13 +121,13 @@ cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 ### 4-1. フォーマット適用
 
 ```bash
-cd backend && ./gradlew spotlessApply
+make fmt
 ```
 
 ### 4-2. 全チェック実行
 
 ```bash
-cd backend && ./gradlew check
+make test
 ```
 
 `check` には以下が含まれる:
@@ -139,7 +139,7 @@ cd backend && ./gradlew check
 
 ### 4-3. 失敗時の対応
 
-- **Spotless 違反**: `spotlessApply` を再実行
+- **Spotless 違反**: `make fmt` を再実行
 - **PMD 違反**: `java-coding-standards.md` の該当ルールを参照して修正。`@SuppressWarnings("PMD.RuleName")` は最終手段
 - **NullAway 違反**: `@Nullable` の付与漏れを確認
 - **アーキテクチャテスト違反**: `architecture-rules.md` を参照してパッケージ配置・依存方向を修正
@@ -158,10 +158,10 @@ cd backend && ./gradlew check
                        + exception + controller + security + integration
                        + usecase + moduletest + jooqquery + e2e）
 4. Liquibase マイグレーション追加（テーブル定義）
-5. jOOQ コード再生成 → ./gradlew generateJooq
+5. jOOQ コード再生成 → make jooq
 6. ビジネスロジック実装（TODO を解消）
-7. spotlessApply    → フォーマット適用
-8. gradlew check    → 全検証パス確認
+7. spotlessApply    → make fmt
+8. gradlew check    → make test
 ```
 
 典型的な実行例:
@@ -173,10 +173,10 @@ cd backend && ./gradlew check
 # → main 29ファイル + test 16ファイルが自動生成される
 # Liquibase マイグレーション追加
 # jOOQ 生成コード更新
-./gradlew generateJooq
+make jooq
 # → TODO コメントを解消してビジネスロジックを実装
-./gradlew spotlessApply
-./gradlew check
+make fmt
+make test
 ```
 
 すべてのステップを完了してからコミットする。

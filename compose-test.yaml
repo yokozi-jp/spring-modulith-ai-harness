@@ -27,6 +27,8 @@ services:
         condition: service_healthy
       keycloak-test:
         condition: service_healthy
+      grafana-lgtm-test:
+        condition: service_healthy
 
   postgres-test:
     container_name: smah-postgres-test

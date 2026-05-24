@@ -9,18 +9,18 @@ import com.example.demo.jooq.tables.EventPublicationArchive;
 
 
 /**
- * Convenience access to all tables in demo.
+ * Convenience access to all tables in the default schema.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
 
     /**
-     * The table <code>demo.event_publication</code>.
+     * The table <code>event_publication</code>.
      */
     public static final EventPublication EVENT_PUBLICATION = EventPublication.EVENT_PUBLICATION;
 
     /**
-     * The table <code>demo.event_publication_archive</code>.
+     * The table <code>event_publication_archive</code>.
      */
     public static final EventPublicationArchive EVENT_PUBLICATION_ARCHIVE = EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE;
 }

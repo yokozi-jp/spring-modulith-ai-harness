@@ -17,6 +17,7 @@ services:
       GRADLE_USER_HOME: /app/.gradle-docker
     volumes:
       - ./backend:/app
+      - ./.git:/app/.git:ro
     command: ["./gradlew", "bootRun", "--project-cache-dir=/app/.gradle-docker-project"]
     depends_on:
       postgres:
