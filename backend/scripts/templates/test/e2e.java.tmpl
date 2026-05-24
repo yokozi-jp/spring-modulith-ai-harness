@@ -1,0 +1,41 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.example.demo.testconfig.FullStackContainerConfig;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestConstructor;
+
+/** E2E tests for {@link {{TARGET}}}. */
+@Tag("e2e")
+@Import(FullStackContainerConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
+class {{TEST_CLS}} {
+
+  /** HTTP クライアント。 */
+  private final TestRestTemplate restTemplate;
+
+  // TODO: 以下の観点でテストを実装する
+  // - GET /api/v1/xxx/{id}: 存在しない ID で 404
+  // - POST /api/v1/xxx: 作成 → 201 + Location ヘッダー
+  // - GET /api/v1/xxx/{id}: 作成後に取得 → 200 + 正しいレスポンス
+  // - 認証が必要なエンドポイントへの未認証アクセス → 302/401
+  // ※ E2E では WebMvcConfig が有効なため /api/v1/ プレフィックスが必要
+
+  /** TODO: API エンドポイントにアクセスできること。 */
+  @Test
+  void shouldAccessEndpoint() {
+    // TODO: final ResponseEntity<String> response =
+    //     restTemplate.getForEntity("/api/v1/path/non-existent", String.class);
+    // assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(), "status should be 404");
+  }
+}

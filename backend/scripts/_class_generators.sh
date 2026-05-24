@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # クラス生成関数群（scaffold から source される）
 # 前提: MODULE, MODULE_DIR, NAME, AGGREGATE, DRY_RUN が設定済み
-#       module-common.sh が source 済み（BASE_PKG, SRC_ROOT, generate_package_info, ensure_package_info）
+#       module-common.sh が source 済み（BASE_PKG, SRC_ROOT, generate_package_info, ensure_package_info, render_template）
 
 # === ファイル書き出し関数 ===
 write_file() {
@@ -32,10 +32,8 @@ pkg_for() {
 }
 
 # === PascalCase を kebab-case 複数形パスに変換 ===
-# 例: PerformanceIdea → /performance-ideas, Schedule → /schedules
 to_kebab_path() {
   local name="$1"
-  # PascalCase → kebab-case: 大文字の前にハイフンを挿入し小文字化
   local kebab
   kebab=$(echo "$name" | sed 's/\([a-z]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
   echo "/${kebab}s"
@@ -46,32 +44,15 @@ to_kebab_path() {
 gen_event() {
   local pkg; pkg=$(pkg_for "event")
   local cls="${NAME}Event"
-  write_file "$MODULE_DIR/event/${cls}.java" "event" "\
-package $pkg;
-
-import org.jmolecules.event.annotation.DomainEvent;
-
-/** ${NAME} ドメインイベント。 */
-@DomainEvent
-public record ${cls}() {}"
+  local content; content=$(render_template "class/event.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/event/${cls}.java" "event" "$content"
 }
 
 gen_exception() {
   local pkg; pkg=$(pkg_for "exception")
   local cls="${NAME}Exception"
-  write_file "$MODULE_DIR/exception/${cls}.java" "exception" "\
-package $pkg;
-
-/** ${NAME} 例外。 */
-public class ${cls} extends RuntimeException {
-
-  private static final long serialVersionUID = 1L;
-
-  /** メッセージを指定して例外を生成する。 */
-  public ${cls}(final String message) {
-    super(message);
-  }
-}"
+  local content; content=$(render_template "class/exception.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/exception/${cls}.java" "exception" "$content"
   gen_exceptionhandler_for_exception "$NAME"
 }
 
@@ -103,102 +84,36 @@ gen_exceptionhandler_for_exception() {
   IFS='|' read -r status_code status_enum status_title <<< "$status_info"
   local method_name="handle${exc_name}"
 
-  write_file "$handler_file" "presentation/controller" "\
-package $ctrl_pkg;
-
-import ${exc_pkg}.${exc_cls};
-import java.net.URI;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-/** ${NAME} モジュールの例外ハンドラ。 */
-@Slf4j
-@RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
-public class ${handler_cls} {
-
-  /** ${exc_cls} を処理する。 */
-  @ExceptionHandler(${exc_cls}.class)
-  /* default */ ProblemDetail ${method_name}(final ${exc_cls} ex) {
-    log.warn(\"${exc_cls}: {}\", ex.getMessage());
-    final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.${status_enum});
-    problem.setTitle(\"${status_title}\");
-    problem.setDetail(ex.getMessage());
-    problem.setType(URI.create(\"about:blank\"));
-    return problem;
-  }
-}"
+  local content; content=$(render_template "class/exceptionhandler.java.tmpl" \
+    "CTRL_PKG=$ctrl_pkg" "EXC_PKG=$exc_pkg" "EXC_CLS=$exc_cls" \
+    "NAME=$NAME" "BASE_PKG=$BASE_PKG" "MODULE=$MODULE" \
+    "HANDLER_CLS=$handler_cls" "METHOD_NAME=$method_name" \
+    "STATUS_ENUM=$status_enum" "STATUS_TITLE=$status_title")
+  write_file "$handler_file" "presentation/controller" "$content"
 }
 
 gen_identifier_for() {
   local target_name="$1"
   local pkg; pkg=$(pkg_for "domain/model/valueobject/identifier")
   local cls="${target_name}Id"
-  write_file "$MODULE_DIR/domain/model/valueobject/identifier/${cls}.java" "domain/model/valueobject/identifier" "\
-package $pkg;
-
-import org.jmolecules.ddd.types.Identifier;
-
-/** ${target_name} の識別子。 */
-public record ${cls}(String value) implements Identifier {}"
+  local content; content=$(render_template "class/identifier.java.tmpl" "PKG=$pkg" "TARGET_NAME=$target_name")
+  write_file "$MODULE_DIR/domain/model/valueobject/identifier/${cls}.java" "domain/model/valueobject/identifier" "$content"
 }
 
 gen_identifier() { gen_identifier_for "$NAME"; }
 
 gen_valueobject() {
   local pkg; pkg=$(pkg_for "domain/model/valueobject")
-  write_file "$MODULE_DIR/domain/model/valueobject/${NAME}.java" "domain/model/valueobject" "\
-package $pkg;
-
-import org.jmolecules.ddd.types.ValueObject;
-
-/** ${NAME} 値オブジェクト。 */
-public record ${NAME}() implements ValueObject {}"
+  local content; content=$(render_template "class/valueobject.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/domain/model/valueobject/${NAME}.java" "domain/model/valueobject" "$content"
 }
 
 gen_aggregate() {
   local pkg; pkg=$(pkg_for "domain/model/aggregate")
   local id_cls="${NAME}Id"
   local id_pkg; id_pkg=$(pkg_for "domain/model/valueobject/identifier")
-  write_file "$MODULE_DIR/domain/model/aggregate/${NAME}.java" "domain/model/aggregate" "\
-package $pkg;
-
-import ${id_pkg}.${id_cls};
-import java.util.Objects;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-import org.jmolecules.ddd.types.AggregateRoot;
-import org.springframework.data.domain.AbstractAggregateRoot;
-
-/** ${NAME} 集約ルート。 */
-@Getter
-@EqualsAndHashCode(of = \"id\", callSuper = false)
-@ToString
-public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements AggregateRoot<${NAME}, ${id_cls}> {
-
-  /** 識別子。 */
-  private final ${id_cls} id;
-
-  /** 新規作成用コンストラクタ（Factory から呼び出す）。 */
-  public ${NAME}(final ${id_cls} id) {
-    super();
-    Objects.requireNonNull(id, \"id must not be null\");
-    this.id = id;
-  }
-
-  /** 永続化データから集約を再構築する。 */
-  public static ${NAME} reconstitute(final ${id_cls} id) {
-    return new ${NAME}(id);
-  }
-
-  @Override
-  public ${id_cls} getId() {
-    return id;
-  }
-}"
+  local content; content=$(render_template "class/aggregate.java.tmpl" "PKG=$pkg" "NAME=$NAME" "ID_CLS=$id_cls" "ID_PKG=$id_pkg")
+  write_file "$MODULE_DIR/domain/model/aggregate/${NAME}.java" "domain/model/aggregate" "$content"
   gen_identifier_for "$NAME"
   gen_factory_for "$NAME" ""
   gen_repository
@@ -207,10 +122,10 @@ public class ${NAME} extends AbstractAggregateRoot<${NAME}> implements Aggregate
   if [ "$DRY_RUN" != true ]; then
     echo ""
     echo "Generating test skeletons..."
-    ./scripts/scaffold.sh test "$MODULE" domain "$NAME" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" domain "${NAME}Id" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" factory "${NAME}Factory" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" integration "${NAME}RepositoryImpl" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" domain "$NAME" || true
+    ./scripts/scaffold.sh test "$MODULE" domain "${NAME}Id" || true
+    ./scripts/scaffold.sh test "$MODULE" factory "${NAME}Factory" || true
+    ./scripts/scaffold.sh test "$MODULE" integration "${NAME}RepositoryImpl" || true
   fi
 }
 
@@ -223,42 +138,10 @@ gen_entity() {
   local id_cls="${NAME}Id"
   local id_pkg; id_pkg=$(pkg_for "domain/model/valueobject/identifier")
   local agg_pkg; agg_pkg=$(pkg_for "domain/model/aggregate")
-  write_file "$MODULE_DIR/domain/model/entity/${NAME}.java" "domain/model/entity" "\
-package $pkg;
-
-import ${agg_pkg}.${AGGREGATE};
-import ${id_pkg}.${id_cls};
-import java.util.Objects;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-import org.jmolecules.ddd.types.Entity;
-
-/** ${NAME} エンティティ。 */
-@Getter
-@EqualsAndHashCode(of = \"id\")
-@ToString
-public class ${NAME} implements Entity<${AGGREGATE}, ${id_cls}> {
-
-  /** 識別子。 */
-  private final ${id_cls} id;
-
-  /** コンストラクタ。 */
-  /* default */ ${NAME}(final ${id_cls} id) {
-    Objects.requireNonNull(id, \"id must not be null\");
-    this.id = id;
-  }
-
-  /** 永続化データからエンティティを再構築する。 */
-  public static ${NAME} reconstitute(final ${id_cls} id) {
-    return new ${NAME}(id);
-  }
-
-  @Override
-  public ${id_cls} getId() {
-    return id;
-  }
-}"
+  local content; content=$(render_template "class/entity.java.tmpl" \
+    "PKG=$pkg" "NAME=$NAME" "ID_CLS=$id_cls" "ID_PKG=$id_pkg" \
+    "AGG_PKG=$agg_pkg" "AGGREGATE=$AGGREGATE")
+  write_file "$MODULE_DIR/domain/model/entity/${NAME}.java" "domain/model/entity" "$content"
   gen_identifier_for "$NAME"
   gen_factory_for "$NAME" "$AGGREGATE"
 }
@@ -272,57 +155,16 @@ gen_factory_for() {
   if [ -z "$agg" ]; then
     local target_pkg; target_pkg=$(pkg_for "domain/model/aggregate")
     local repo_pkg; repo_pkg=$(pkg_for "domain/repository")
-    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "domain/service" "\
-package $pkg;
-
-import ${id_pkg}.${id_cls};
-import ${repo_pkg}.${target}Repository;
-import ${target_pkg}.${target};
-import java.time.Clock;
-import lombok.RequiredArgsConstructor;
-import org.jmolecules.ddd.annotation.Factory;
-
-/** ${target} ファクトリ。 */
-@RequiredArgsConstructor
-@Factory
-public class ${target}Factory {
-
-  /** リポジトリ。 */
-  private final ${target}Repository repository;
-
-  /** 時計。 */
-  private final Clock clock;
-
-  /** 新規生成。 */
-  public ${target} create() {
-    return ${target}.reconstitute(repository.generateId());
-  }
-}"
+    local content; content=$(render_template "class/factory-aggregate.java.tmpl" \
+      "PKG=$pkg" "ID_CLS=$id_cls" "ID_PKG=$id_pkg" \
+      "REPO_PKG=$repo_pkg" "TARGET_PKG=$target_pkg" "TARGET=$target")
+    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "domain/service" "$content"
   else
     local target_pkg; target_pkg=$(pkg_for "domain/model/entity")
     local gen_pkg; gen_pkg=$(pkg_for "domain/repository")
-    local gen_iface="${target}IdGenerator"
-    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "domain/service" "\
-package $pkg;
-
-import ${gen_pkg}.${gen_iface};
-import ${target_pkg}.${target};
-import lombok.RequiredArgsConstructor;
-import org.jmolecules.ddd.annotation.Factory;
-
-/** ${target} ファクトリ。 */
-@RequiredArgsConstructor
-@Factory
-public class ${target}Factory {
-
-  /** ID ジェネレータ。 */
-  private final ${gen_iface} idGenerator;
-
-  /** 新規生成。 */
-  public ${target} create() {
-    return ${target}.reconstitute(idGenerator.generate());
-  }
-}"
+    local content; content=$(render_template "class/factory-entity.java.tmpl" \
+      "PKG=$pkg" "GEN_PKG=$gen_pkg" "TARGET_PKG=$target_pkg" "TARGET=$target")
+    write_file "$MODULE_DIR/domain/service/${target}Factory.java" "domain/service" "$content"
     gen_id_generator_for "$target"
   fi
 }
@@ -336,36 +178,13 @@ gen_id_generator_for() {
   local id_pkg; id_pkg=$(pkg_for "domain/model/valueobject/identifier")
   local infra_pkg; infra_pkg=$(pkg_for "infrastructure/db/repository")
 
-  write_file "$MODULE_DIR/domain/repository/${target}IdGenerator.java" "domain/repository" "\
-package $repo_pkg;
+  local content; content=$(render_template "class/idgenerator.java.tmpl" \
+    "PKG=$repo_pkg" "ID_PKG=$id_pkg" "ID_CLS=$id_cls" "TARGET=$target")
+  write_file "$MODULE_DIR/domain/repository/${target}IdGenerator.java" "domain/repository" "$content"
 
-import ${id_pkg}.${id_cls};
-
-/** ${target} の ID ジェネレータ。 */
-@SuppressWarnings(\"PMD.ImplicitFunctionalInterface\")
-public interface ${target}IdGenerator {
-
-  /** ID を生成する。 */
-  ${id_cls} generate();
-}"
-
-  write_file "$MODULE_DIR/infrastructure/db/repository/${target}IdGeneratorImpl.java" "infrastructure/db/repository" "\
-package $infra_pkg;
-
-import ${id_pkg}.${id_cls};
-import ${repo_pkg}.${target}IdGenerator;
-import java.util.UUID;
-import org.springframework.stereotype.Component;
-
-/** ${target} の ID ジェネレータ実装。 */
-@Component
-public class ${target}IdGeneratorImpl implements ${target}IdGenerator {
-
-  @Override
-  public ${id_cls} generate() {
-    return new ${id_cls}(UUID.randomUUID().toString());
-  }
-}"
+  local content2; content2=$(render_template "class/idgenerator-impl.java.tmpl" \
+    "PKG=$infra_pkg" "ID_PKG=$id_pkg" "ID_CLS=$id_cls" "GEN_PKG=$repo_pkg" "TARGET=$target")
+  write_file "$MODULE_DIR/infrastructure/db/repository/${target}IdGeneratorImpl.java" "infrastructure/db/repository" "$content2"
 }
 
 gen_repository() {
@@ -373,20 +192,9 @@ gen_repository() {
   local pkg; pkg=$(pkg_for "domain/repository")
   local agg_pkg; agg_pkg=$(pkg_for "domain/model/aggregate")
   local id_pkg; id_pkg=$(pkg_for "domain/model/valueobject/identifier")
-  write_file "$MODULE_DIR/domain/repository/${agg}Repository.java" "domain/repository" "\
-package $pkg;
-
-import ${agg_pkg}.${agg};
-import ${id_pkg}.${agg}Id;
-import org.jmolecules.ddd.types.Repository;
-
-/** ${agg} リポジトリ。 */
-@SuppressWarnings(\"PMD.ImplicitFunctionalInterface\")
-public interface ${agg}Repository extends Repository<${agg}, ${agg}Id> {
-
-  /** ID を生成する。 */
-  ${agg}Id generateId();
-}"
+  local content; content=$(render_template "class/repository.java.tmpl" \
+    "PKG=$pkg" "AGG_PKG=$agg_pkg" "ID_PKG=$id_pkg" "AGG=$agg")
+  write_file "$MODULE_DIR/domain/repository/${agg}Repository.java" "domain/repository" "$content"
   gen_repositoryimpl_for "$agg"
 }
 
@@ -395,150 +203,59 @@ gen_repositoryimpl_for() {
   local pkg; pkg=$(pkg_for "infrastructure/db/repository")
   local repo_pkg; repo_pkg=$(pkg_for "domain/repository")
   local id_pkg; id_pkg=$(pkg_for "domain/model/valueobject/identifier")
-  write_file "$MODULE_DIR/infrastructure/db/repository/${agg}RepositoryImpl.java" "infrastructure/db/repository" "\
-package $pkg;
-
-import ${id_pkg}.${agg}Id;
-import ${repo_pkg}.${agg}Repository;
-import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.jmolecules.ddd.annotation.Repository;
-
-/** ${agg} リポジトリ実装。 */
-@Slf4j
-@RequiredArgsConstructor
-@Repository
-public class ${agg}RepositoryImpl implements ${agg}Repository {
-
-  @Override
-  public ${agg}Id generateId() {
-    return new ${agg}Id(UUID.randomUUID().toString());
-  }
-}"
+  local content; content=$(render_template "class/repository-impl.java.tmpl" \
+    "PKG=$pkg" "ID_PKG=$id_pkg" "REPO_PKG=$repo_pkg" "AGG=$agg")
+  write_file "$MODULE_DIR/infrastructure/db/repository/${agg}RepositoryImpl.java" "infrastructure/db/repository" "$content"
 }
 
 gen_repositoryimpl() { gen_repositoryimpl_for "${AGGREGATE:-$NAME}"; }
 
 gen_domainservice() {
   local pkg; pkg=$(pkg_for "domain/service")
-  write_file "$MODULE_DIR/domain/service/${NAME}DomainService.java" "domain/service" "\
-package $pkg;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.jmolecules.ddd.annotation.Service;
-
-/** ${NAME} ドメインサービス。 */
-@Slf4j
-@RequiredArgsConstructor
-@Service
-public class ${NAME}DomainService {}"
+  local content; content=$(render_template "class/domainservice.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/domain/service/${NAME}DomainService.java" "domain/service" "$content"
 }
 
 gen_command() {
   local pkg; pkg=$(pkg_for "application/command/command")
-  write_file "$MODULE_DIR/application/command/command/${NAME}Command.java" "application/command/command" "\
-package $pkg;
-
-import org.jmolecules.architecture.cqrs.Command;
-
-/** ${NAME} コマンド。 */
-@Command
-public record ${NAME}Command() {}"
+  local content; content=$(render_template "class/command.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/command/command/${NAME}Command.java" "application/command/command" "$content"
 }
 
 gen_commandresult() {
   local pkg; pkg=$(pkg_for "application/command/dto")
-  write_file "$MODULE_DIR/application/command/dto/${NAME}Dto.java" "application/command/dto" "\
-package $pkg;
-
-import com.example.demo.annotation.CommandResult;
-
-/** ${NAME} コマンド実行結果。 */
-@CommandResult
-public record ${NAME}Dto() {}"
+  local content; content=$(render_template "class/commandresult.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/command/dto/${NAME}Dto.java" "application/command/dto" "$content"
 }
 
 gen_param() {
   local pkg; pkg=$(pkg_for "application/query/param")
-  write_file "$MODULE_DIR/application/query/param/${NAME}Param.java" "application/query/param" "\
-package $pkg;
-
-import com.example.demo.annotation.QueryParam;
-
-/** ${NAME} クエリパラメータ。 */
-@QueryParam
-public record ${NAME}Param() {}"
+  local content; content=$(render_template "class/param.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/query/param/${NAME}Param.java" "application/query/param" "$content"
 }
 
 gen_commandhandler() {
   local pkg; pkg=$(pkg_for "application/command/handler")
-  write_file "$MODULE_DIR/application/command/handler/${NAME}CommandHandler.java" "application/command/handler" "\
-package $pkg;
-
-import lombok.RequiredArgsConstructor;
-import org.jmolecules.architecture.cqrs.CommandHandler;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-/** ${NAME} コマンドハンドラ。 */
-@RequiredArgsConstructor
-@Component
-public class ${NAME}CommandHandler {
-
-  /** コマンドを処理する。 */
-  @Transactional
-  @CommandHandler
-  public void handle() {
-    // TODO: 引数にコマンド型を追加すること。
-  }
-}"
+  local content; content=$(render_template "class/commandhandler.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/command/handler/${NAME}CommandHandler.java" "application/command/handler" "$content"
 }
 
 gen_eventlistener() {
   local pkg; pkg=$(pkg_for "application/command/handler")
-  write_file "$MODULE_DIR/application/command/handler/${NAME}EventListener.java" "application/command/handler" "\
-package $pkg;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.modulith.events.ApplicationModuleListener;
-import org.springframework.stereotype.Component;
-
-/** ${NAME} イベントリスナー。 */
-@Slf4j
-@RequiredArgsConstructor
-@Component
-public class ${NAME}EventListener {
-
-  /** イベントを処理する。 */
-  @ApplicationModuleListener
-  /* default */ void handle() {
-    // TODO: 引数にイベント型を追加すること。
-  }
-}"
+  local content; content=$(render_template "class/eventlistener.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/command/handler/${NAME}EventListener.java" "application/command/handler" "$content"
 }
 
 gen_query() {
   local pkg; pkg=$(pkg_for "application/query/dto")
-  write_file "$MODULE_DIR/application/query/dto/${NAME}Query.java" "application/query/dto" "\
-package $pkg;
-
-import org.jmolecules.architecture.cqrs.QueryModel;
-
-/** ${NAME} クエリモデル。 */
-@QueryModel
-public record ${NAME}Query() {}"
+  local content; content=$(render_template "class/query.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/query/dto/${NAME}Query.java" "application/query/dto" "$content"
 }
 
 gen_queryservice() {
   local pkg; pkg=$(pkg_for "application/query/service")
-  write_file "$MODULE_DIR/application/query/service/${NAME}QueryService.java" "application/query/service" "\
-package $pkg;
-
-/** ${NAME} クエリサービス。 */
-public interface ${NAME}QueryService {}"
+  local content; content=$(render_template "class/queryservice.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/query/service/${NAME}QueryService.java" "application/query/service" "$content"
   gen_queryimpl_for "$NAME"
 }
 
@@ -546,19 +263,9 @@ gen_queryimpl_for() {
   local target="$1"
   local pkg; pkg=$(pkg_for "infrastructure/db/query")
   local svc_pkg; svc_pkg=$(pkg_for "application/query/service")
-  write_file "$MODULE_DIR/infrastructure/db/query/${target}QueryServiceImpl.java" "infrastructure/db/query" "\
-package $pkg;
-
-import ${svc_pkg}.${target}QueryService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-/** ${target} クエリサービス実装。 */
-@Slf4j
-@RequiredArgsConstructor
-@Component
-public class ${target}QueryServiceImpl implements ${target}QueryService {}"
+  local content; content=$(render_template "class/queryservice-impl.java.tmpl" \
+    "PKG=$pkg" "SVC_PKG=$svc_pkg" "TARGET=$target")
+  write_file "$MODULE_DIR/infrastructure/db/query/${target}QueryServiceImpl.java" "infrastructure/db/query" "$content"
 }
 
 gen_queryimpl() { gen_queryimpl_for "$NAME"; }
@@ -566,52 +273,27 @@ gen_queryimpl() { gen_queryimpl_for "$NAME"; }
 gen_controller() {
   local pkg; pkg=$(pkg_for "presentation/controller")
   local path; path=$(to_kebab_path "$NAME")
-  write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "\
-package $pkg;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-/** ${NAME} コントローラ。 */
-@RestController
-@RequestMapping(\"${path}\")
-@Slf4j
-@RequiredArgsConstructor
-public class ${NAME}Controller {}"
+  local content; content=$(render_template "class/controller.java.tmpl" "PKG=$pkg" "NAME=$NAME" "PATH=$path")
+  write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "$content"
 }
 
 gen_exceptionhandler() {
   local pkg; pkg=$(pkg_for "presentation/controller")
-  write_file "$MODULE_DIR/presentation/controller/${NAME}ExceptionHandler.java" "presentation/controller" "\
-package $pkg;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-/** ${NAME} モジュールの例外ハンドラ。 */
-@Slf4j
-@RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
-public class ${NAME}ExceptionHandler {}"
+  local content; content=$(render_template "class/exceptionhandler-empty.java.tmpl" \
+    "PKG=$pkg" "NAME=$NAME" "BASE_PKG=$BASE_PKG" "MODULE=$MODULE")
+  write_file "$MODULE_DIR/presentation/controller/${NAME}ExceptionHandler.java" "presentation/controller" "$content"
 }
 
 gen_request() {
   local pkg; pkg=$(pkg_for "presentation/request")
-  write_file "$MODULE_DIR/presentation/request/${NAME}Request.java" "presentation/request" "\
-package $pkg;
-
-/** ${NAME} リクエスト。 */
-public record ${NAME}Request() {}"
+  local content; content=$(render_template "class/request.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/presentation/request/${NAME}Request.java" "presentation/request" "$content"
 }
 
 gen_response() {
   local pkg; pkg=$(pkg_for "presentation/response")
-  write_file "$MODULE_DIR/presentation/response/${NAME}Response.java" "presentation/response" "\
-package $pkg;
-
-/** ${NAME} レスポンス。 */
-public record ${NAME}Response() {}"
+  local content; content=$(render_template "class/response.java.tmpl" "PKG=$pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/presentation/response/${NAME}Response.java" "presentation/response" "$content"
 }
 
 gen_api() {
@@ -628,343 +310,105 @@ gen_api() {
 
   # --- presentation/request ---
   local req_pkg; req_pkg=$(pkg_for "presentation/request")
-  write_file "$MODULE_DIR/presentation/request/Create${NAME}Request.java" "presentation/request" "\
-package $req_pkg;
-
-// import jakarta.validation.constraints.NotBlank;
-
-/** ${NAME} 作成リクエスト。 */
-public record Create${NAME}Request(
-    // @NotBlank(message = \"TODO: バリデーションメッセージを設定\")
-    // String name // TODO: フィールドを定義する
-) {}"
+  local content; content=$(render_template "class/api-create-request.java.tmpl" "PKG=$req_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/presentation/request/Create${NAME}Request.java" "presentation/request" "$content"
 
   # --- presentation/response (Summary + Detail) ---
   local res_pkg; res_pkg=$(pkg_for "presentation/response")
-  local summary_dto_pkg; summary_dto_pkg=$(pkg_for "application/query/dto")
-  local detail_dto_pkg; detail_dto_pkg=$(pkg_for "application/query/dto")
+  local qry_dto_pkg; qry_dto_pkg=$(pkg_for "application/query/dto")
 
-  write_file "$MODULE_DIR/presentation/response/${NAME}SummaryResponse.java" "presentation/response" "\
-package $res_pkg;
+  content=$(render_template "class/api-summary-response.java.tmpl" \
+    "PKG=$res_pkg" "NAME=$NAME" "SUMMARY_DTO_PKG=$qry_dto_pkg")
+  write_file "$MODULE_DIR/presentation/response/${NAME}SummaryResponse.java" "presentation/response" "$content"
 
-import ${summary_dto_pkg}.${NAME}SummaryDto;
-
-/** ${NAME} 一覧レスポンス。 */
-public record ${NAME}SummaryResponse(String id) {
-
-  /** DTO から変換する。 */
-  public static ${NAME}SummaryResponse from(final ${NAME}SummaryDto dto) {
-    return new ${NAME}SummaryResponse(dto.id());
-  }
-}"
-
-  write_file "$MODULE_DIR/presentation/response/${NAME}DetailResponse.java" "presentation/response" "\
-package $res_pkg;
-
-import ${detail_dto_pkg}.${NAME}DetailDto;
-
-/** ${NAME} 詳細レスポンス。 */
-public record ${NAME}DetailResponse(String id) {
-
-  /** DTO から変換する。 */
-  public static ${NAME}DetailResponse from(final ${NAME}DetailDto dto) {
-    return new ${NAME}DetailResponse(dto.id());
-  }
-}"
+  content=$(render_template "class/api-detail-response.java.tmpl" \
+    "PKG=$res_pkg" "NAME=$NAME" "DETAIL_DTO_PKG=$qry_dto_pkg")
+  write_file "$MODULE_DIR/presentation/response/${NAME}DetailResponse.java" "presentation/response" "$content"
 
   # --- application/command/command ---
   local cmd_pkg; cmd_pkg=$(pkg_for "application/command/command")
-  write_file "$MODULE_DIR/application/command/command/Create${NAME}Command.java" "application/command/command" "\
-package $cmd_pkg;
-
-import org.jmolecules.architecture.cqrs.Command;
-
-/** ${NAME} 作成コマンド。 */
-@Command
-public record Create${NAME}Command(
-    // TODO: フィールドを定義する
-) {}"
+  content=$(render_template "class/api-create-command.java.tmpl" "PKG=$cmd_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/command/command/Create${NAME}Command.java" "application/command/command" "$content"
 
   # --- application/command/dto (CommandResult) ---
   local cmd_dto_pkg; cmd_dto_pkg=$(pkg_for "application/command/dto")
-  write_file "$MODULE_DIR/application/command/dto/Created${NAME}Dto.java" "application/command/dto" "\
-package $cmd_dto_pkg;
-
-import com.example.demo.annotation.CommandResult;
-
-/** ${NAME} 作成結果。 */
-@CommandResult
-public record Created${NAME}Dto(String id) {}"
+  content=$(render_template "class/api-created-dto.java.tmpl" "PKG=$cmd_dto_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/command/dto/Created${NAME}Dto.java" "application/command/dto" "$content"
 
   # --- application/command/handler ---
   local handler_pkg; handler_pkg=$(pkg_for "application/command/handler")
   local factory_pkg; factory_pkg=$(pkg_for "domain/service")
   local agg_pkg; agg_pkg=$(pkg_for "domain/model/aggregate")
-  local repo_pkg; repo_pkg=$(pkg_for "domain/repository")
-  write_file "$MODULE_DIR/application/command/handler/${NAME}CommandHandler.java" "application/command/handler" "\
-package $handler_pkg;
-
-import ${cmd_dto_pkg}.Created${NAME}Dto;
-import ${cmd_pkg}.Create${NAME}Command;
-import ${factory_pkg}.${NAME}Factory;
-import ${agg_pkg}.${NAME};
-import lombok.RequiredArgsConstructor;
-import org.jmolecules.architecture.cqrs.CommandHandler;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-/** ${NAME} コマンドハンドラ。 */
-@RequiredArgsConstructor
-@Component
-public class ${NAME}CommandHandler {
-
-  /** ファクトリ。 */
-  private final ${NAME}Factory factory;
-
-  /** 作成コマンドを処理する。 */
-  @Transactional
-  @CommandHandler
-  public Created${NAME}Dto handle(final Create${NAME}Command command) {
-    final ${NAME} aggregate = factory.create();
-    final String id = aggregate.getId().value();
-    return new Created${NAME}Dto(id);
-  }
-}"
+  content=$(render_template "class/api-commandhandler.java.tmpl" \
+    "PKG=$handler_pkg" "CMD_DTO_PKG=$cmd_dto_pkg" "CMD_PKG=$cmd_pkg" \
+    "FACTORY_PKG=$factory_pkg" "AGG_PKG=$agg_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/command/handler/${NAME}CommandHandler.java" "application/command/handler" "$content"
 
   # --- application/query/param ---
   local param_pkg; param_pkg=$(pkg_for "application/query/param")
-  write_file "$MODULE_DIR/application/query/param/${NAME}ListParam.java" "application/query/param" "\
-package $param_pkg;
-
-import com.example.demo.annotation.QueryParam;
-
-/** ${NAME} 一覧検索パラメータ。 */
-@QueryParam
-public record ${NAME}ListParam(
-    // TODO: フィルタ条件を定義する
-) {}"
+  content=$(render_template "class/api-list-param.java.tmpl" "PKG=$param_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/query/param/${NAME}ListParam.java" "application/query/param" "$content"
 
   # --- application/query/dto (QueryModel) ---
-  local qry_dto_pkg; qry_dto_pkg=$(pkg_for "application/query/dto")
-  write_file "$MODULE_DIR/application/query/dto/${NAME}SummaryDto.java" "application/query/dto" "\
-package $qry_dto_pkg;
+  content=$(render_template "class/api-summary-dto.java.tmpl" "PKG=$qry_dto_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/query/dto/${NAME}SummaryDto.java" "application/query/dto" "$content"
 
-import org.jmolecules.architecture.cqrs.QueryModel;
-
-/** ${NAME} 一覧用クエリモデル。 */
-@QueryModel
-public record ${NAME}SummaryDto(String id) {}"
-
-  write_file "$MODULE_DIR/application/query/dto/${NAME}DetailDto.java" "application/query/dto" "\
-package $qry_dto_pkg;
-
-import org.jmolecules.architecture.cqrs.QueryModel;
-
-/** ${NAME} 詳細クエリモデル。 */
-@QueryModel
-public record ${NAME}DetailDto(String id) {}"
+  content=$(render_template "class/api-detail-dto.java.tmpl" "PKG=$qry_dto_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/query/dto/${NAME}DetailDto.java" "application/query/dto" "$content"
 
   # --- application/query/service ---
   local qry_svc_pkg; qry_svc_pkg=$(pkg_for "application/query/service")
-  write_file "$MODULE_DIR/application/query/service/${NAME}QueryService.java" "application/query/service" "\
-package $qry_svc_pkg;
-
-import ${param_pkg}.${NAME}ListParam;
-import ${qry_dto_pkg}.${NAME}DetailDto;
-import ${qry_dto_pkg}.${NAME}SummaryDto;
-import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
-/** ${NAME} クエリサービス。 */
-public interface ${NAME}QueryService {
-
-  /** 一覧取得。 */
-  Page<${NAME}SummaryDto> findAll(${NAME}ListParam param, Pageable pageable);
-
-  /** ID で取得。 */
-  Optional<${NAME}DetailDto> findById(String id);
-}"
+  content=$(render_template "class/api-queryservice.java.tmpl" \
+    "PKG=$qry_svc_pkg" "PARAM_PKG=$param_pkg" "QRY_DTO_PKG=$qry_dto_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/application/query/service/${NAME}QueryService.java" "application/query/service" "$content"
 
   # --- infrastructure/db/query ---
   local infra_qry_pkg; infra_qry_pkg=$(pkg_for "infrastructure/db/query")
-  write_file "$MODULE_DIR/infrastructure/db/query/${NAME}QueryServiceImpl.java" "infrastructure/db/query" "\
-package $infra_qry_pkg;
-
-import ${param_pkg}.${NAME}ListParam;
-import ${qry_dto_pkg}.${NAME}DetailDto;
-import ${qry_dto_pkg}.${NAME}SummaryDto;
-import ${qry_svc_pkg}.${NAME}QueryService;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
-
-/** ${NAME} クエリサービス実装。 */
-@Slf4j
-@RequiredArgsConstructor
-@Component
-public class ${NAME}QueryServiceImpl implements ${NAME}QueryService {
-
-  @Override
-  public Page<${NAME}SummaryDto> findAll(final ${NAME}ListParam param, final Pageable pageable) {
-    // TODO: jOOQ でクエリを実装する
-    return new PageImpl<>(java.util.List.of(), pageable, 0);
-  }
-
-  @Override
-  public Optional<${NAME}DetailDto> findById(final String id) {
-    // TODO: jOOQ でクエリを実装する
-    return Optional.empty();
-  }
-}"
+  content=$(render_template "class/api-queryservice-impl.java.tmpl" \
+    "PKG=$infra_qry_pkg" "PARAM_PKG=$param_pkg" "QRY_DTO_PKG=$qry_dto_pkg" \
+    "QRY_SVC_PKG=$qry_svc_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/infrastructure/db/query/${NAME}QueryServiceImpl.java" "infrastructure/db/query" "$content"
 
   # --- exception ---
   local exc_pkg; exc_pkg=$(pkg_for "exception")
   local exc_cls="${NAME}NotFoundException"
-  write_file "$MODULE_DIR/exception/${exc_cls}.java" "exception" "\
-package $exc_pkg;
-
-/** ${NAME} が見つからない場合の例外。 */
-public class ${exc_cls} extends RuntimeException {
-
-  private static final long serialVersionUID = 1L;
-
-  /** ID を指定して例外を生成する。 */
-  public ${exc_cls}(final String id) {
-    super(\"${NAME} not found: \" + id);
-  }
-}"
+  content=$(render_template "class/exception-notfound.java.tmpl" "PKG=$exc_pkg" "NAME=$NAME")
+  write_file "$MODULE_DIR/exception/${exc_cls}.java" "exception" "$content"
 
   # --- presentation/controller (ExceptionHandler) ---
   local ctrl_pkg; ctrl_pkg=$(pkg_for "presentation/controller")
   local handler_cls="${NAME}ExceptionHandler"
-  write_file "$MODULE_DIR/presentation/controller/${handler_cls}.java" "presentation/controller" "\
-package $ctrl_pkg;
-
-import ${exc_pkg}.${exc_cls};
-import java.net.URI;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-/** ${NAME} モジュールの例外ハンドラ。 */
-@Slf4j
-@RestControllerAdvice(basePackages = \"$BASE_PKG.$MODULE\")
-public class ${handler_cls} {
-
-  /** ${exc_cls} を処理する。 */
-  @ExceptionHandler(${exc_cls}.class)
-  /* default */ ProblemDetail handleNotFound(final ${exc_cls} ex) {
-    log.warn(\"${exc_cls}: {}\", ex.getMessage());
-    final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
-    problem.setTitle(\"Not Found\");
-    problem.setDetail(ex.getMessage());
-    problem.setType(URI.create(\"about:blank\"));
-    return problem;
-  }
-}"
+  content=$(render_template "class/exceptionhandler.java.tmpl" \
+    "CTRL_PKG=$ctrl_pkg" "EXC_PKG=$exc_pkg" "EXC_CLS=$exc_cls" \
+    "NAME=$NAME" "BASE_PKG=$BASE_PKG" "MODULE=$MODULE" \
+    "HANDLER_CLS=$handler_cls" "METHOD_NAME=handleNotFound" \
+    "STATUS_ENUM=NOT_FOUND" "STATUS_TITLE=Not Found")
+  write_file "$MODULE_DIR/presentation/controller/${handler_cls}.java" "presentation/controller" "$content"
 
   # --- presentation/controller (main controller) ---
   local path; path=$(to_kebab_path "$NAME")
-  write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "\
-package $ctrl_pkg;
-
-import ${cmd_dto_pkg}.Created${NAME}Dto;
-import ${cmd_pkg}.Create${NAME}Command;
-import ${exc_pkg}.${exc_cls};
-import ${handler_pkg}.${NAME}CommandHandler;
-import ${param_pkg}.${NAME}ListParam;
-import ${qry_svc_pkg}.${NAME}QueryService;
-import ${req_pkg}.Create${NAME}Request;
-import ${res_pkg}.${NAME}DetailResponse;
-import ${res_pkg}.${NAME}SummaryResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import java.net.URI;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-/** ${NAME} コントローラ。 */
-@Tag(name = \"${NAME}\", description = \"TODO: ${NAME} API の説明を記述する\")
-@RestController
-@RequestMapping(\"${path}\")
-@Slf4j
-@RequiredArgsConstructor
-@SuppressWarnings(\"PMD.AvoidDuplicateLiterals\")
-public class ${NAME}Controller {
-
-  /** コマンドハンドラ。 */
-  private final ${NAME}CommandHandler commandHandler;
-
-  /** クエリサービス。 */
-  private final ${NAME}QueryService queryService;
-
-  /** ${NAME} を作成する。 */
-  @Operation(summary = \"TODO: ${NAME} 作成の説明を記述する\")
-  @ApiResponse(responseCode = \"201\", description = \"作成成功\")
-  @PostMapping
-  public ResponseEntity<Void> create(@RequestBody @Valid final Create${NAME}Request request) {
-    final Created${NAME}Dto result = commandHandler.handle(
-        new Create${NAME}Command());
-    final URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path(\"/{id}\").buildAndExpand(result.id()).toUri();
-    return ResponseEntity.created(location).build();
-  }
-
-  /** ${NAME} 一覧を取得する。 */
-  @Operation(summary = \"TODO: ${NAME} 一覧取得の説明を記述する\")
-  @ApiResponse(responseCode = \"200\", description = \"取得成功\")
-  @GetMapping
-  public Page<${NAME}SummaryResponse> list(
-      final ${NAME}ListParam param, final Pageable pageable) {
-    return queryService.findAll(param, pageable).map(${NAME}SummaryResponse::from);
-  }
-
-  /** ${NAME} 詳細を取得する。 */
-  @Operation(summary = \"TODO: ${NAME} 詳細取得の説明を記述する\")
-  @ApiResponse(responseCode = \"200\", description = \"取得成功\")
-  @ApiResponse(responseCode = \"404\", description = \"見つからない\")
-  @GetMapping(\"/{id}\")
-  public ${NAME}DetailResponse findById(@PathVariable final String id) {
-    return queryService.findById(id)
-        .map(${NAME}DetailResponse::from)
-        .orElseThrow(() -> new ${exc_cls}(id));
-  }
-}"
+  content=$(render_template "class/api-controller.java.tmpl" \
+    "CTRL_PKG=$ctrl_pkg" "CMD_DTO_PKG=$cmd_dto_pkg" "CMD_PKG=$cmd_pkg" \
+    "EXC_PKG=$exc_pkg" "HANDLER_PKG=$handler_pkg" "PARAM_PKG=$param_pkg" \
+    "QRY_SVC_PKG=$qry_svc_pkg" "REQ_PKG=$req_pkg" "RES_PKG=$res_pkg" \
+    "NAME=$NAME" "PATH=$path")
+  write_file "$MODULE_DIR/presentation/controller/${NAME}Controller.java" "presentation/controller" "$content"
 
   # --- テスト連鎖生成 ---
   if [ "$DRY_RUN" != true ]; then
     echo ""
     echo "Generating test skeletons..."
-    ./scripts/scaffold.sh test "$MODULE" handler "${NAME}CommandHandler" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" exceptionhandler "${handler_cls}" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" response "${NAME}DetailResponse" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" response "${NAME}SummaryResponse" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" exception "${exc_cls}" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" controller "${NAME}Controller" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" security "${NAME}Controller" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" integration "${NAME}QueryServiceImpl" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" usecase "${NAME}CommandHandler" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" moduletest "${NAME}CommandHandler" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" jooqquery "${NAME}QueryServiceImpl" 2>/dev/null || true
-    ./scripts/scaffold.sh test "$MODULE" e2e "${NAME}Controller" 2>/dev/null || true
+    ./scripts/scaffold.sh test "$MODULE" handler "${NAME}CommandHandler" || true
+    ./scripts/scaffold.sh test "$MODULE" exceptionhandler "${handler_cls}" || true
+    ./scripts/scaffold.sh test "$MODULE" response "${NAME}DetailResponse" || true
+    ./scripts/scaffold.sh test "$MODULE" response "${NAME}SummaryResponse" || true
+    ./scripts/scaffold.sh test "$MODULE" exception "${exc_cls}" || true
+    ./scripts/scaffold.sh test "$MODULE" controller "${NAME}Controller" || true
+    ./scripts/scaffold.sh test "$MODULE" security "${NAME}Controller" || true
+    ./scripts/scaffold.sh test "$MODULE" integration "${NAME}QueryServiceImpl" || true
+    ./scripts/scaffold.sh test "$MODULE" usecase "${NAME}CommandHandler" || true
+    ./scripts/scaffold.sh test "$MODULE" moduletest "${NAME}CommandHandler" || true
+    ./scripts/scaffold.sh test "$MODULE" jooqquery "${NAME}QueryServiceImpl" || true
+    ./scripts/scaffold.sh test "$MODULE" e2e "${NAME}Controller" || true
   fi
 }

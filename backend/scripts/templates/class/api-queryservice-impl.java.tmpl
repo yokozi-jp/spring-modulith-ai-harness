@@ -1,0 +1,32 @@
+package {{PKG}};
+
+import {{PARAM_PKG}}.{{NAME}}ListParam;
+import {{QRY_DTO_PKG}}.{{NAME}}DetailDto;
+import {{QRY_DTO_PKG}}.{{NAME}}SummaryDto;
+import {{QRY_SVC_PKG}}.{{NAME}}QueryService;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+/** {{NAME}} クエリサービス実装。 */
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class {{NAME}}QueryServiceImpl implements {{NAME}}QueryService {
+
+  @Override
+  public Page<{{NAME}}SummaryDto> findAll(final {{NAME}}ListParam param, final Pageable pageable) {
+    // TODO: jOOQ でクエリを実装する
+    return new PageImpl<>(java.util.List.of(), pageable, 0);
+  }
+
+  @Override
+  public Optional<{{NAME}}DetailDto> findById(final String id) {
+    // TODO: jOOQ でクエリを実装する
+    return Optional.empty();
+  }
+}

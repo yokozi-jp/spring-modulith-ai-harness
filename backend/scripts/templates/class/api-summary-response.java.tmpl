@@ -1,0 +1,12 @@
+package {{PKG}};
+
+import {{SUMMARY_DTO_PKG}}.{{NAME}}SummaryDto;
+
+/** {{NAME}} 一覧レスポンス。 */
+public record {{NAME}}SummaryResponse(String id) {
+
+  /** DTO から変換する。 */
+  public static {{NAME}}SummaryResponse from(final {{NAME}}SummaryDto dto) {
+    return new {{NAME}}SummaryResponse(dto.id());
+  }
+}

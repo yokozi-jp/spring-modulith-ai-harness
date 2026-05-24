@@ -1,0 +1,38 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import com.example.demo.testconfig.PostgresContainerConfig;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.transaction.annotation.Transactional;
+
+/** UseCase integration tests for {@link {{TARGET}}}. */
+@Tag("integration")
+@Import(PostgresContainerConfig.class)
+@SpringBootTest
+@Transactional
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
+class {{TEST_CLS}} {
+
+  /** テスト対象。 */
+  private final {{TARGET}} sut;
+
+  // TODO: 以下の一連フローを検証するテストを実装する
+  // - CommandHandler → Factory → Repository → DB の完全フロー
+  // - コマンド実行後に DB にデータが永続化されていること
+  // - 戻り値の DTO が正しい値を持つこと
+
+  /** 正常系: コマンドが一連のフローを通じて正常に処理されること。 */
+  @Test
+  void shouldProcessCommandThroughFullFlow() {
+    // TODO: sut.handle(new CreateXxxCommand(...)) を呼び出し、
+    //        結果の ID が null でないことを検証する
+    assertNotNull(sut, "sut should be injected");
+  }
+}

@@ -1,0 +1,19 @@
+package {{PKG}};
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.stereotype.Component;
+
+/** {{NAME}} イベントリスナー。 */
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class {{NAME}}EventListener {
+
+  /** イベントを処理する。 */
+  @ApplicationModuleListener
+  /* default */ void handle() {
+    // TODO: 引数にイベント型を追加すること。
+  }
+}

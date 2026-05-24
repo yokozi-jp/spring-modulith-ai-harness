@@ -1,0 +1,64 @@
+package {{PKG}};
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
+import {{HANDLER_PKG}}.{{AGG_NAME}}CommandHandler;
+import {{QRY_SVC_PKG}}.{{AGG_NAME}}QueryService;
+import com.example.demo.config.WebMvcConfig;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+/** Security tests for {@link {{TARGET}}}. */
+@SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@WebMvcTest(
+    controllers = {{{TARGET}}.class},
+    excludeFilters =
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebMvcConfig.class))
+class {{TEST_CLS}} {
+
+  /** MockMvc。 */
+  private final MockMvc mockMvc;
+
+  /** コマンドハンドラモック。 */
+  @MockitoBean private {{AGG_NAME}}CommandHandler commandHandler;
+
+  /** クエリサービスモック。 */
+  @MockitoBean private {{AGG_NAME}}QueryService queryService;
+
+  // TODO: 以下の観点でテストを実装する
+  // - @WithAnonymousUser: 未認証で 302 リダイレクト（OAuth2 Login）
+  // - @WithMockUser: CSRF トークンなしで POST → 403 Forbidden
+  // - @WithMockUser: 認証済みで正常アクセス → 200
+  // - @WithMockUser(roles="WRONG"): 権限不足で 403（ロールベース認可がある場合）
+
+  /** TODO: 未認証でリダイレクトされること。 */
+  @Test
+  @WithAnonymousUser
+  void shouldRedirectWhenUnauthenticated() throws Exception {
+    // TODO: mockMvc.perform(MockMvcRequestBuilders.get("/path"))
+    //     .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+  }
+
+  /** TODO: CSRF トークンなしで 403 になること。 */
+  @Test
+  @WithMockUser
+  void shouldReturn403WhenNoCsrfToken() throws Exception {
+    // TODO: mockMvc.perform(MockMvcRequestBuilders.post("/path")
+    //         .contentType(MediaType.APPLICATION_JSON)
+    //         .content("{}"))
+    //     .andExpect(MockMvcResultMatchers.status().isForbidden());
+  }
+}

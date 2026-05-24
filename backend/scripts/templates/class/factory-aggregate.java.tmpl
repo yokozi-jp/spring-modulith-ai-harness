@@ -1,0 +1,25 @@
+package {{PKG}};
+
+import {{ID_PKG}}.{{ID_CLS}};
+import {{REPO_PKG}}.{{TARGET}}Repository;
+import {{TARGET_PKG}}.{{TARGET}};
+import java.time.Clock;
+import lombok.RequiredArgsConstructor;
+import org.jmolecules.ddd.annotation.Factory;
+
+/** {{TARGET}} ファクトリ。 */
+@RequiredArgsConstructor
+@Factory
+public class {{TARGET}}Factory {
+
+  /** リポジトリ。 */
+  private final {{TARGET}}Repository repository;
+
+  /** 時計。 */
+  private final Clock clock;
+
+  /** 新規生成。 */
+  public {{TARGET}} create() {
+    return {{TARGET}}.reconstitute(repository.generateId());
+  }
+}

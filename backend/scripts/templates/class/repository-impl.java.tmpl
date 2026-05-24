@@ -1,0 +1,20 @@
+package {{PKG}};
+
+import {{ID_PKG}}.{{AGG}}Id;
+import {{REPO_PKG}}.{{AGG}}Repository;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jmolecules.ddd.annotation.Repository;
+
+/** {{AGG}} リポジトリ実装。 */
+@Slf4j
+@RequiredArgsConstructor
+@Repository
+public class {{AGG}}RepositoryImpl implements {{AGG}}Repository {
+
+  @Override
+  public {{AGG}}Id generateId() {
+    return new {{AGG}}Id(UUID.randomUUID().toString());
+  }
+}

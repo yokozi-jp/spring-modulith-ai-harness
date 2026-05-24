@@ -1,0 +1,12 @@
+package {{PKG}};
+
+/** {{NAME}} が見つからない場合の例外。 */
+public class {{NAME}}NotFoundException extends RuntimeException {
+
+  private static final long serialVersionUID = 1L;
+
+  /** ID を指定して例外を生成する。 */
+  public {{NAME}}NotFoundException(final String id) {
+    super("{{NAME}} not found: " + id);
+  }
+}

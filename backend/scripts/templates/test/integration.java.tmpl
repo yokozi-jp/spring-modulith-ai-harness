@@ -1,0 +1,38 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import com.example.demo.testconfig.PostgresContainerConfig;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.transaction.annotation.Transactional;
+
+/** Integration tests for {@link {{TARGET}}}. */
+@Tag("integration")
+@Import(PostgresContainerConfig.class)
+@SpringBootTest
+@Transactional
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
+class {{TEST_CLS}} {
+
+  /** テスト対象。 */
+  private final {{TARGET}} sut;
+
+  // TODO: 以下を検証するテストを実装する
+  // - CRUD 操作（save / findById / delete）
+  // - ID 生成（generateId が一意の値を返す）
+  // - jOOQ マッピング（ドメインオブジェクト ↔ DB レコード変換）
+  // - ページネーション（findAll + Pageable）
+
+  /** 正常系: 基本動作を確認する。 */
+  @Test
+  void shouldDoSomething() {
+    assertNotNull(sut, "sut should be injected");
+    // TODO: implement integration test
+  }
+}
