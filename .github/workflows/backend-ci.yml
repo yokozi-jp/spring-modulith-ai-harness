@@ -17,6 +17,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Copy .env.test.example to .env.test
         run: cp .env.test.example .env.test
