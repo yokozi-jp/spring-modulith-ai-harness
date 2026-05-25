@@ -43,6 +43,7 @@ frontend/src/
 │       └── types/       # 機能固有型（必要な場合のみ）
 ├── components/
 │   └── ui/             # Shadcn/ui コンポーネント（自動生成、編集禁止）
+├── api/                # Orval 自動生成（編集禁止、npx orval で再生成）
 ├── hooks/              # 汎用 Hooks（機能横断）
 ├── lib/                # ユーティリティ・API クライアント
 ├── types/              # 共有型定義
@@ -74,8 +75,8 @@ frontend/src/
 
 以下は書かない:
 
-- ビジネスロジック → `components/features/<feature>/use-<feature>.ts`
-- UI 部品の実装 → `components/features/` or `components/ui/`
+- ビジネスロジック → `features/<feature>/hooks/use-<feature>.ts`
+- UI 部品の実装 → `features/<feature>/components/` or `components/ui/`
 - API 呼び出しの詳細 → `lib/`
 
 ---
@@ -85,9 +86,11 @@ frontend/src/
 機能コンポーネントは必ず表示と Hook を分離する:
 
 ```
-components/features/member-list/
-├── member-list.tsx      # 表示のみ。Hook から受け取ったデータを描画する
-└── use-member-list.ts   # ロジック。データ取得・状態管理・イベント処理
+features/member-list/
+├── components/
+│   └── member-list.tsx      # 表示のみ。Hook から受け取ったデータを描画する
+└── hooks/
+    └── use-member-list.ts   # ロジック。データ取得・状態管理・イベント処理
 ```
 
 - Hook は `use-` プレフィックス必須
@@ -151,3 +154,29 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 
 エラーが出た場合は修正してからコミットする。
 自動修正可能なものは `./scripts/verify.sh --fix` で修正できる。
+
+---
+
+## テスト
+
+- テストは `vp test` で実行する（Vitest 内蔵）
+- テストファイルは `*.test.ts` / `*.test.tsx` で命名する
+- テストは対象ファイルと同じディレクトリに配置する（例: `lib/utils.test.ts`）
+- import は `vite-plus/test` から行う（`vitest` を直接インストールしない）
+
+```typescript
+import { describe, expect, it } from "vite-plus/test";
+```
+
+---
+
+## Lint エラー修正ワークフロー（AI 向け）
+
+Lint エラーが発生した場合:
+
+1. エラーメッセージのルール名を確認する
+2. `.kiro/steering/frontend-lint-fix-guide.md` を参照して修正方法を特定する
+3. 修正を適用する
+4. `./scripts/verify.sh` で再確認する
+
+ステアリング `frontend-lint-fix-guide.md` に各ルールの具体的な修正方法が記載されている。

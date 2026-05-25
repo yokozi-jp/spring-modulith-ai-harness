@@ -8,7 +8,44 @@
   "toolAliases": {},
   "toolsSettings": null,
   "toolSchema": null,
-  "hooks": {},
+  "hooks": {
+    "agentSpawn": [
+      {
+        "command": ".kiro/hooks/frontend-context.sh",
+        "timeout_ms": 5000
+      }
+    ],
+    "preToolUse": [
+      {
+        "matcher": "write",
+        "command": ".kiro/hooks/frontend-write-guard.sh",
+        "timeout_ms": 5000
+      },
+      {
+        "matcher": "shell",
+        "command": ".kiro/hooks/frontend-shell-guard.sh",
+        "timeout_ms": 5000
+      }
+    ],
+    "postToolUse": [
+      {
+        "matcher": "write",
+        "command": ".kiro/hooks/frontend-test-prompt.sh",
+        "timeout_ms": 5000
+      },
+      {
+        "matcher": "write",
+        "command": ".kiro/hooks/orval-regen-prompt.sh",
+        "timeout_ms": 5000
+      }
+    ],
+    "stop": [
+      {
+        "command": ".kiro/hooks/frontend-lint-check.sh",
+        "timeout_ms": 15000
+      }
+    ]
+  },
   "mcpServers": {},
   "useLegacyMcpJson": true,
   "resources": [

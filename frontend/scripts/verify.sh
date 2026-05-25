@@ -24,6 +24,10 @@ echo "=== Hook 配置チェック ==="
 ./scripts/check-hook-location.sh
 
 echo ""
+echo "=== features/ 構造チェック ==="
+./scripts/check-features-structure.sh
+
+echo ""
 echo "=== components/ui/ 編集チェック ==="
 ./scripts/check-ui-readonly.sh
 
