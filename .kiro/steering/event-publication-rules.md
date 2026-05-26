@@ -4,6 +4,23 @@
 
 Spring Modulith の Event Publication Registry（JDBC）を使用し、ドメインイベントの at-least-once 配信を保証する。
 
+## イベント発行方法
+
+- `CommandHandler` で `ApplicationEventPublisher.publishEvent()` を使用してイベントを発行する
+- 集約内で `registerEvent()` は使わない（Spring Data Repository を使用していないため自動発行されない）
+- イベント発行は `@Transactional` メソッド内で行い、トランザクションコミット後にリスナーに配信される
+
+```java
+@Transactional
+@CommandHandler
+public CreatedOrderDto handle(final CreateOrderCommand command) {
+    final Order order = factory.create(command.customerName());
+    repository.save(order);
+    eventPublisher.publishEvent(new OrderCreated(order.getId()));
+    return new CreatedOrderDto(order.getId().value());
+}
+```
+
 ## completion-mode
 
 `archive` を使用する。

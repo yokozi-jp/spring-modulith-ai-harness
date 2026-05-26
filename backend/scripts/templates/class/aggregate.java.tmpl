@@ -6,20 +6,18 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.jmolecules.ddd.types.AggregateRoot;
-import org.springframework.data.domain.AbstractAggregateRoot;
 
 /** {{NAME}} 集約ルート。 */
 @Getter
-@EqualsAndHashCode(of = "id", callSuper = false)
+@EqualsAndHashCode(of = "id")
 @ToString
-public class {{NAME}} extends AbstractAggregateRoot<{{NAME}}> implements AggregateRoot<{{NAME}}, {{ID_CLS}}> {
+public class {{NAME}} implements AggregateRoot<{{NAME}}, {{ID_CLS}}> {
 
   /** 識別子。 */
   private final {{ID_CLS}} id;
 
   /** 新規作成用コンストラクタ（Factory から呼び出す）。 */
   public {{NAME}}(final {{ID_CLS}} id) {
-    super();
     Objects.requireNonNull(id, "id must not be null");
     this.id = id;
   }
