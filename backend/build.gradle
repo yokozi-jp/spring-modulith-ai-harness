@@ -219,6 +219,11 @@ dependencyManagement {
 }
 
 // --- テスト設定 ---
+// テスト fork JVM のヒープをコンテナメモリの 60% に設定
+tasks.withType(Test).configureEach {
+    jvmArgs '-XX:MaxRAMPercentage=60.0'
+}
+
 // デフォルトの test タスクは integration / e2e タグを除外（高速な unit + slice のみ）
 tasks.named('test') {
     useJUnitPlatform {
@@ -337,6 +342,7 @@ tasks.named('classes') {
 // JAVA_TOOL_OPTIONS は Gradle Daemon にも適用されるため、bootRun の jvmArgs で渡す。
 tasks.named('bootRun') {
     jvmArgs = [
+        '-XX:MaxRAMPercentage=60.0',
         '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'
     ]
 }
