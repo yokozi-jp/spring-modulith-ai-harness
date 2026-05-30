@@ -23,7 +23,7 @@ import { describe, expect, it } from "vite-plus/test";
 |------|--------|--------|
 | ユーティリティ関数 | **作る** | なし（純粋関数） |
 | カスタム Hook | **作る** | API 関数を `vi.mock` |
-| 表示コンポーネント | **作る** | Props で状態を注入（モック不要） |
+| コンポーネント | **作る** | Hook を `vi.mock` |
 | 純粋な見た目 | **作らない** | — |
 
 ---
@@ -136,38 +136,67 @@ describe("useOrderList", () => {
 
 ## コンポーネントのテスト
 
-### Props で状態を注入する（モック不要）
+### Hook をモックする
 
 ```typescript
 // src/features/order/components/order-list.test.tsx
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi, beforeEach } from "vite-plus/test";
 import { render, screen } from "@testing-library/react";
 import { OrderList } from "@/features/order/components/order-list";
+import * as useOrderListModule from "@/features/order/hooks/use-order-list";
+
+vi.mock("@/features/order/hooks/use-order-list");
 
 describe("OrderList", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   it("ローディング中は Skeleton を表示する", () => {
-    render(<OrderList orders={[]} isLoading={true} error={null} />);
+    vi.mocked(useOrderListModule.useOrderList).mockReturnValue({
+      orders: [],
+      isLoading: true,
+      error: null,
+    });
+
+    render(<OrderList />);
 
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("エラー時は ErrorMessage を表示する", () => {
-    const error = new Error("取得失敗");
-    render(<OrderList orders={[]} isLoading={false} error={error} />);
+    vi.mocked(useOrderListModule.useOrderList).mockReturnValue({
+      orders: [],
+      isLoading: false,
+      error: new Error("取得失敗"),
+    });
+
+    render(<OrderList />);
 
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByText("取得失敗")).toBeInTheDocument();
   });
 
   it("空の場合は EmptyState を表示する", () => {
-    render(<OrderList orders={[]} isLoading={false} error={null} />);
+    vi.mocked(useOrderListModule.useOrderList).mockReturnValue({
+      orders: [],
+      isLoading: false,
+      error: null,
+    });
+
+    render(<OrderList />);
 
     expect(screen.getByText("注文がありません")).toBeInTheDocument();
   });
 
   it("データがある場合は一覧を表示する", () => {
-    const orders = [{ id: "1", name: "注文A" }];
-    render(<OrderList orders={orders} isLoading={false} error={null} />);
+    vi.mocked(useOrderListModule.useOrderList).mockReturnValue({
+      orders: [{ id: "1", name: "注文A" }],
+      isLoading: false,
+      error: null,
+    });
+
+    render(<OrderList />);
 
     expect(screen.getByText("注文A")).toBeInTheDocument();
   });
@@ -176,8 +205,8 @@ describe("OrderList", () => {
 
 ### コンポーネントテストのルール
 
-- Hook を内部で呼ぶコンポーネントはテストしない（Hook と表示を分離する設計）
-- 表示コンポーネントは Props で全状態を受け取る → モック不要
+- `vi.mock("@/features/.../hooks/use-xxx")` で Hook をモック
+- `vi.mocked(hook).mockReturnValue(...)` で返り値を設定
 - 要素の取得は `role` > `text` > `label` の順で優先（`data-testid` は最終手段）
 
 ---
