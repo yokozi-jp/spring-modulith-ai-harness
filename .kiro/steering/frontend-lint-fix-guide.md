@@ -57,6 +57,24 @@ import type { User } from "@/types/user";
 
 ---
 
+### typescript/no-restricted-types (React.FC)
+
+**エラー**: `React.FC` / `React.FunctionComponent` / `FC` は使用禁止です。
+
+**修正**: 通常の関数宣言を使う。Props は引数で型注釈する。
+
+```typescript
+// ❌
+const OrderList: React.FC<OrderListProps> = ({ orders }) => { ... }
+
+// ✅
+function OrderList({ orders }: OrderListProps) { ... }
+```
+
+**理由**: `React.FC` は暗黙の `children` を含み、型が不正確になる。関数宣言の方がシンプルで明確。
+
+---
+
 ### react/no-array-index-key
 
 **エラー**: 配列の index を key に使用している。
