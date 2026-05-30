@@ -23,18 +23,19 @@ frontend/src/features/<feature-name>/
 
 ## Workflow
 
-1. ユーザーに確認:
-   - Feature 名（kebab-case）
-   - 何をする機能か
-   - API からデータ取得するか（→ `@/api/` から import）
+1. 必要な情報を確認（不足があれば質問）
 
-2. ステアリングに従ってファイル生成:
+2. API の存在確認:
+   - `src/api/` に該当する hooks があるか確認
+   - なければ「backend 起動 + `npx orval` を実行してください」と案内
+
+3. ステアリングに従ってファイル生成:
    - コンポーネント → `frontend-code-patterns.md`
    - Hook → `frontend-code-patterns.md`, `frontend-data-patterns.md`
    - UI 状態 → `frontend-ui-patterns.md`
    - テスト → `frontend-test-patterns.md`
 
-3. 検証:
+4. 検証:
    ```bash
    cd frontend && ./scripts/verify.sh
    ```
