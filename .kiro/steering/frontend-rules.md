@@ -75,27 +75,9 @@ frontend/src/
 
 以下は書かない:
 
-- ビジネスロジック → `features/<feature>/hooks/use-<feature>.ts`
-- UI 部品の実装 → `features/<feature>/components/` or `components/ui/`
-- API 呼び出しの詳細 → `lib/`
-
----
-
-## Hooks パターン（UI とロジックの分離）
-
-機能コンポーネントは必ず表示と Hook を分離する:
-
-```
-features/member-list/
-├── components/
-│   └── member-list.tsx      # 表示のみ。Hook から受け取ったデータを描画する
-└── hooks/
-    └── use-member-list.ts   # ロジック。データ取得・状態管理・イベント処理
-```
-
-- Hook は `use-` プレフィックス必須
-- Hook は表示に依存しない（テスト可能）
-- 表示コンポーネントは Hook を呼ぶだけ（Storybook 対応しやすい）
+- ビジネスロジック → `features/<feature>/hooks/`
+- UI 部品の実装 → `features/<feature>/components/`
+- API 呼び出しの詳細 → `features/<feature>/hooks/`
 
 ---
 

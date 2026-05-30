@@ -61,6 +61,21 @@ export function OrderCard(props: OrderCardProps) {
 
 ## Hook 定義
 
+### Hooks パターン（UI とロジックの分離）
+
+コンポーネントは Hook を呼び、Hook から受け取った値で条件分岐して表示する:
+
+```
+features/order/
+├── components/
+│   └── order-list.tsx       # Hook を呼び、返り値で表示を切り替える
+└── hooks/
+    └── use-order-list.ts    # ロジック（データ取得・状態管理・イベント処理）
+```
+
+- ロジックは Hook に書く
+- コンポーネントは Hook を呼んで表示するだけ
+
 ### 関数宣言を使う
 
 ```tsx
