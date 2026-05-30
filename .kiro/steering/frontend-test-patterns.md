@@ -193,19 +193,3 @@ describe("<対象の名前>", () => {
 - `it("エラー時にリトライボタンを表示する")`
 
 **「〜すること」ではなく「〜する」** で終わる（断定形）。
-
----
-
-## testing-library の導入
-
-プロジェクトセットアップ時に追加する:
-
-```bash
-cd frontend && vp install -D @testing-library/react @testing-library/jest-dom
-```
-
-tsconfig に型を追加:
-
-```json
-"types": ["vite/client", "@testing-library/jest-dom"]
-```
