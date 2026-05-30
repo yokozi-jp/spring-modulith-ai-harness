@@ -9,8 +9,8 @@
 ### Skeleton を使う（Spinner は使わない）
 
 ```tsx
-// ✅ Skeleton（コンテンツの形を予告）
-export function OrderListSkeleton() {
+// ✅ Skeleton（灰色ブロックで「もうすぐ表示される」感を出す）
+function OrderListSkeleton() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 5 }).map((_, i) => (
@@ -20,17 +20,11 @@ export function OrderListSkeleton() {
   );
 }
 
-// ❌ Spinner（何が表示されるか分からない）
+// ❌ Spinner
 return <Spinner />;
 ```
 
-### Skeleton はコンポーネントと同じディレクトリに配置
-
-```
-features/order/components/
-├── order-list.tsx
-└── order-list-skeleton.tsx
-```
+Skeleton はコンポーネントと同じディレクトリに `<name>-skeleton.tsx` で配置する。
 
 ---
 
