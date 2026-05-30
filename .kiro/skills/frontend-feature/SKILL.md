@@ -1,6 +1,6 @@
 ---
 name: frontend-feature
-description: Scaffold a new frontend feature with components, hooks, types, and tests following project conventions. Use when user wants to create a new feature, add a frontend module, scaffold frontend code, or mentions "new feature" in the frontend context.
+description: Scaffold a NEW frontend feature from scratch. Use ONLY when creating a new feature that does not exist yet. Do NOT use for modifying or extending existing features — follow frontend-rules.md instead.
 ---
 
 # Frontend Feature Scaffold
