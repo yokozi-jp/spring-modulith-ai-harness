@@ -17,9 +17,20 @@ import { describe, expect, it } from "vite-plus/test";
 
 ---
 
+## テスト対象とモック方針
+
+| 対象 | テスト | モック |
+|------|--------|--------|
+| ユーティリティ関数 | **作る** | なし（純粋関数） |
+| カスタム Hook | **作る** | API 関数を `vi.mock` |
+| 表示コンポーネント | **作る** | Props で状態を注入（モック不要） |
+| 純粋な見た目 | **作らない** | — |
+
+---
+
 ## ユーティリティ関数のテスト
 
-最もシンプル。入力→出力を検証。
+モックなし。入力→出力を検証。
 
 ```typescript
 // src/lib/utils.test.ts
@@ -34,10 +45,6 @@ describe("cn", () => {
   it("Tailwind の競合を解決する", () => {
     expect(cn("px-2", "px-4")).toBe("px-4");
   });
-
-  it("undefined と空文字を無視する", () => {
-    expect(cn("px-2", undefined, "", "py-1")).toBe("px-2 py-1");
-  });
 });
 ```
 
@@ -45,15 +52,19 @@ describe("cn", () => {
 
 ## Hook のテスト
 
-### データ取得 Hook（useQuery ベース）
+### API 関数をモックする
 
 ```typescript
 // src/features/order/hooks/use-order-list.test.ts
-import { describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it, vi, beforeEach } from "vite-plus/test";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useOrderList } from "@/features/order/hooks/use-order-list";
+import * as orderApi from "@/api/order";
+
+// API モジュールをモック
+vi.mock("@/api/order");
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -70,7 +81,13 @@ function createWrapper() {
 }
 
 describe("useOrderList", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   it("初期状態で isLoading が true", () => {
+    vi.mocked(orderApi.getOrders).mockReturnValue(new Promise(() => {})); // pending
+
     const { result } = renderHook(() => useOrderList(), {
       wrapper: createWrapper(),
     });
@@ -78,33 +95,48 @@ describe("useOrderList", () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.orders).toEqual([]);
   });
-});
-```
 
-### ミューテーション Hook
+  it("取得成功時に orders を返す", async () => {
+    const mockOrders = [{ id: "1", name: "注文A" }];
+    vi.mocked(orderApi.getOrders).mockResolvedValue(mockOrders);
 
-```typescript
-// src/features/order/hooks/use-create-order.test.ts
-import { describe, expect, it, vi } from "vite-plus/test";
-import { renderHook, act } from "@testing-library/react";
-import { useCreateOrder } from "@/features/order/hooks/use-create-order";
-
-describe("useCreateOrder", () => {
-  it("初期状態で isCreating が false", () => {
-    const { result } = renderHook(() => useCreateOrder(), {
+    const { result } = renderHook(() => useOrderList(), {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.isCreating).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.orders).toEqual(mockOrders);
+  });
+
+  it("取得失敗時に error を返す", async () => {
+    vi.mocked(orderApi.getOrders).mockRejectedValue(new Error("API Error"));
+
+    const { result } = renderHook(() => useOrderList(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).not.toBeNull();
+    });
   });
 });
 ```
+
+### モックのルール
+
+- `vi.mock("@/api/...")` で API モジュール全体をモック
+- `vi.mocked(fn).mockResolvedValue(...)` で戻り値を設定
+- `beforeEach` で `vi.resetAllMocks()` を呼ぶ
+- MSW は使わない（シンプルに `vi.mock` で統一）
 
 ---
 
 ## コンポーネントのテスト
 
-### 表示コンポーネント（Props を渡して描画確認）
+### Props で状態を注入する（モック不要）
 
 ```typescript
 // src/features/order/components/order-list.test.tsx
@@ -142,27 +174,23 @@ describe("OrderList", () => {
 });
 ```
 
+### コンポーネントテストのルール
+
+- Hook を内部で呼ぶコンポーネントはテストしない（Hook と表示を分離する設計）
+- 表示コンポーネントは Props で全状態を受け取る → モック不要
+- 要素の取得は `role` > `text` > `label` の順で優先（`data-testid` は最終手段）
+
 ---
 
 ## テストで使わないもの
 
 | 使わない | 理由 | 代替 |
 |----------|------|------|
+| MSW | 過剰。`vi.mock` で十分 | `vi.mock` + `mockResolvedValue` |
 | `jest` | Vitest を使う | `vite-plus/test` |
 | `enzyme` | 非推奨 | `@testing-library/react` |
 | スナップショットテスト | 脆く保守コスト高い | 具体的なアサーション |
 | `data-testid` の乱用 | アクセシビリティを損なう | `role`, `text`, `label` で取得 |
-
----
-
-## テスト対象
-
-| 対象 | テスト | 理由 |
-|------|--------|------|
-| ユーティリティ関数 | **作る** | ロジックの正しさを担保 |
-| カスタム Hook | **作る** | 状態遷移・副作用の検証 |
-| 表示コンポーネント（条件分岐あり） | **作る** | Loading/Error/Empty/Content の切替 |
-| 純粋な見た目 | **作らない** | Storybook でカバー |
 
 ---
 
