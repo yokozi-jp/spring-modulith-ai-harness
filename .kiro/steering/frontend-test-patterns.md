@@ -198,7 +198,7 @@ describe("<対象の名前>", () => {
 
 ## testing-library の導入
 
-初回テスト作成時に追加する（先に入れない）:
+プロジェクトセットアップ時に追加する:
 
 ```bash
 cd frontend && vp install -D @testing-library/react @testing-library/jest-dom
