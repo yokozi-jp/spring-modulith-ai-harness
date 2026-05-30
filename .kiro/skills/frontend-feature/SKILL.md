@@ -39,6 +39,18 @@ frontend/src/features/<feature-name>/
    cd frontend && ./scripts/verify.sh
    ```
 
+## 必要な入力
+
+以下を指示に含めてください。不足している場合は確認します。
+
+| 項目 | 必須 | 例 |
+|------|:----:|-----|
+| 機能名 | ✅ | 注文一覧、ユーザー詳細 |
+| API エンドポイント | ✅ | GET /api/v1/orders |
+| 表示するフィールド | ✅ | id, customerName, status |
+| 操作（CRUD） | — | 作成、更新、削除 |
+| 特殊な UI 要件 | — | ページネーション、フィルタ |
+
 ## Route File Generation
 
 Feature 作成時に対応するルートファイルも生成する。
