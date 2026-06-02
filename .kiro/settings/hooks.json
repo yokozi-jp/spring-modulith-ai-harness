@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "onSave": [
+      {
+        "pattern": "**/*.{js,ts,jsx,tsx}",
+        "command": "npx prettier --write"
+      }
+    ],
+    "onSessionStop": [
+      {
+        "command": "kspec context",
+        "description": "Update CONTEXT.md on session end"
+      },
+      {
+        "command": "kspec update-readme --if-changed",
+        "description": "Update README if significant changes"
+      }
+    ],
+    "onSpecComplete": [
+      {
+        "command": "kspec sync-jira --progress",
+        "description": "Update Jira with spec progress"
+      }
+    ]
+  }
+}

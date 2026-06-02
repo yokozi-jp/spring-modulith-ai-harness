@@ -1,0 +1,20 @@
+{
+  "dateFormat": "YYYY-MM-DD",
+  "autoExecute": "ask",
+  "initialized": true,
+  "testCommand": "make be-test",
+  "model": "claude-sonnet-4.6",
+  "jira": {
+    "project": null,
+    "enabled": false
+  },
+  "ideAgents": false,
+  "skills": true,
+  "enterprise": {
+    "mcpRegistryUrl": null,
+    "modelRegistryUrl": null,
+    "idp": "Other",
+    "promptLogging": true
+  },
+  "reviewers": null
+}

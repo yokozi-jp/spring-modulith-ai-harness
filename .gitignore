@@ -71,3 +71,19 @@ out/
 # === Environment ===
 .env
 .env.test
+
+# kspec local state (don't commit - personal working state)
+.kiro/.current
+.kiro/CONTEXT.md
+.kiro/settings/*
+!.kiro/settings/hooks.json
+.kiro/audit.log
+
+# DO commit these for team collaboration:
+# .kiro/settings/hooks.json - shared CI / team hooks (auto-included)
+# .kiro/config.json - project preferences
+# .kiro/specs/ - specifications, tasks, memory
+# .kiro/steering/ - product, tech, testing guidelines
+# .kiro/agents/ - agent configurations
+# .kiro/skills/ - Kiro Agent Skills (slash commands)
+# .kiro/mcp.json.template - MCP template (no secrets)

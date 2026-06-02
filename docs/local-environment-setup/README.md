@@ -99,6 +99,7 @@ source ~/.bashrc
 ./03-setup-kiro.sh
 ./04-setup-shell.sh
 ./05-setup-lsp.sh
+./06-setup-kspec.sh
 source ~/.bashrc
 ```
 
