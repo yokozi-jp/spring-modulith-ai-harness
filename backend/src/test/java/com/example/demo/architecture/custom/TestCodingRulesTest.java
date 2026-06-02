@@ -312,6 +312,20 @@ class TestCodingRulesTest {
         if (isModuleTest) {
           return;
         }
+        // RANDOM_PORT テストは除外（別プロセスのため @Transactional が効かない）
+        final boolean isRandomPort =
+            item.getAnnotations().stream()
+                .filter(a -> SPRING_BOOT_TEST.equals(a.getRawType().getName()))
+                .anyMatch(
+                    a ->
+                        a.getProperties().entrySet().stream()
+                            .anyMatch(
+                                e ->
+                                    "webEnvironment".equals(e.getKey())
+                                        && e.getValue().toString().contains("RANDOM_PORT")));
+        if (isRandomPort) {
+          return;
+        }
         final boolean hasTransactional =
             item.getAnnotations().stream()
                 .anyMatch(a -> TRANSACTIONAL.equals(a.getRawType().getName()));

@@ -1,13 +1,12 @@
 SHELL := /bin/bash
 export PATH := /usr/bin:$(PATH)
 
-.PHONY: dev dev-up dev-down build be-up be-test be-test-only be-down be-quick be-lint be-fmt be-jooq be-migrate be-rollback be-rollback-sql e2e e2e-up e2e-only e2e-down clean
+.PHONY: dev dev-up dev-down build be-up be-test be-test-only be-down be-quick be-lint be-fmt be-jooq be-migrate be-rollback be-rollback-sql clean
 
 # イメージ再ビルド
 build:
 	docker compose build
 	docker compose -f compose-test.yaml build
-	docker compose -f compose-e2e.yaml build
 
 # ローカル開発（フォアグラウンド）
 dev:
@@ -32,7 +31,7 @@ be-test: be-up
 
 # 特定テストのみ実行（例: make be-test-only T='*LiquibaseMigrationTest'）
 be-test-only: be-up
-	docker compose -f compose-test.yaml exec backend-test ./gradlew test --tests '$(T)' --project-cache-dir=/gradle/project-cache
+	docker compose -f compose-test.yaml exec backend-test ./gradlew test --tests '$(T)' -x jacocoTestReport --project-cache-dir=/gradle/project-cache
 
 # テストコンテナ停止
 be-down:
@@ -66,27 +65,9 @@ be-rollback-sql:
 be-rollback:
 	docker compose exec backend ./gradlew rollbackCount -PliquibaseCount=$(or $(COUNT),1)
 
-# --- E2E ---
-
-# E2E テスト用コンテナが起動していなければ起動する
-e2e-up:
-	@docker compose -f compose-e2e.yaml up -d --wait
-
-# E2E テスト実行（全コンテナ必要）
-e2e: e2e-up
-	docker compose -f compose-e2e.yaml exec backend-e2e ./gradlew e2eTest --project-cache-dir=/gradle/project-cache
-
-# 特定 E2E テストのみ実行（例: make e2e-only T='*ObservabilityTest'）
-e2e-only: e2e-up
-	docker compose -f compose-e2e.yaml exec backend-e2e ./gradlew e2eTest --tests '$(T)' --project-cache-dir=/gradle/project-cache
-
-e2e-down:
-	docker compose -f compose-e2e.yaml down
-
 # --- 共通 ---
 
 # 全コンテナ・ボリューム・ネットワークを削除
 clean:
 	docker compose down -v --remove-orphans
 	docker compose -f compose-test.yaml down -v --remove-orphans
-	docker compose -f compose-e2e.yaml down -v --remove-orphans

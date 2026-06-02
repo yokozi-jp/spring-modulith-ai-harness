@@ -93,7 +93,7 @@ cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 | `usecase` | `src/test/` | `@SpringBootTest` + `@Tag("integration")` + UseCase→DB結合 |
 | `moduletest` | `src/test/` | `@ApplicationModuleTest` + `@Tag("integration")` + イベント検証 |
 | `jooqquery` | `src/test/` | `@JooqTest` + `@Tag("integration")` + SQL クエリ検証 |
-| `e2e` | `src/test/` | `@SpringBootTest(RANDOM_PORT)` + `@Tag("e2e")` + 全コンテナ |
+| `e2e` | `src/test/` | `@SpringBootTest(RANDOM_PORT)` + `@Tag("integration")` + 全コンテナ |
 
 ### 参照
 
@@ -205,6 +205,6 @@ make be-test
 ## 6. JaCoCo カバレッジ
 
 - カバレッジ閾値は命令カバレッジ 85% 以上（`build.gradle` の `jacocoTestCoverageVerification`）
-- 新規モジュール追加直後はスケルトンのみでカバレッジが不足するが、**閾値未達でもブロックせず実装を進める**
-- テストを追加してカバレッジを満たすように実装する
-- 最終的に全モジュールのテスト実装が完了した時点で 85% を達成すること
+- `make be-test`（`check`）実行時にカバレッジ閾値を検証する
+- 閾値未達の場合ビルドは失敗するが、TDD ループ（`make be-quick`）には影響しない
+- 新規モジュール追加直後はカバレッジが不足するため、テスト実装を進めて 85% を達成すること

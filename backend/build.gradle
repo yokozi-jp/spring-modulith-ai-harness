@@ -229,7 +229,7 @@ tasks.withType(Test).configureEach {
 // デフォルトの test タスクは integration / e2e タグを除外（高速な unit + slice のみ）
 tasks.named('test') {
     useJUnitPlatform {
-        excludeTags 'integration', 'e2e'
+        excludeTags 'integration'
     }
     finalizedBy jacocoTestReport
 }
@@ -247,17 +247,11 @@ tasks.register('integrationTest', Test) {
     shouldRunAfter tasks.named('test')
 }
 
-// --- e2eTest タスク ---
-// @Tag("e2e") が付いたテストのみ実行（全コンテナ必要）
-tasks.register('e2eTest', Test) {
-    description = 'Runs E2E tests (requires all containers: PostgreSQL, Redis, Keycloak).'
-    group = 'verification'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    useJUnitPlatform {
-        includeTags 'e2e'
-    }
-    shouldRunAfter tasks.named('integrationTest')
+// check タスク実行時にカバレッジ閾値は検証しない（実装途中でブロックしないため）。
+// integrationTest とカバレッジ閾値チェックを check に含める。
+tasks.named('check') {
+    dependsOn tasks.named('integrationTest')
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 // --- JaCoCo: カバレッジレポート ---
@@ -294,12 +288,6 @@ jacocoTestCoverageVerification {
             }
         }
     }
-}
-
-// check タスク実行時にカバレッジ閾値は検証しない（実装途中でブロックしないため）。
-// integrationTest も check に含める。e2eTest は重いため手動実行（./gradlew e2eTest）。
-tasks.named('check') {
-    dependsOn tasks.named('integrationTest')
 }
 
 // --- Error Prone + NullAway ---

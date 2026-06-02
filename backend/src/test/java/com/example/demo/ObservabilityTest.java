@@ -25,7 +25,7 @@ import org.springframework.web.client.RestClient;
  * <p>OpenTelemetry SDK が正常に設定され、トレース・メトリクス・ログが grafana/otel-lgtm コンテナに送信されていることを バックエンド API（Tempo,
  * Prometheus, Loki）を通じて検証する。
  */
-@Tag("e2e")
+@Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
@@ -194,7 +194,6 @@ class ObservabilityTest {
     assertTrue(
         response.getStatusCode().is2xxSuccessful(), "health endpoint should return 2xx status");
   }
-
 
   /**
    * エラーレスポンスで例外をスローしない RestClient を構築する。
