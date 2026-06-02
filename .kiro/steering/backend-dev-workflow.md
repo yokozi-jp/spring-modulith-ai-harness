@@ -93,7 +93,7 @@ cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 | `usecase` | `src/test/` | `@SpringBootTest` + `@Tag("integration")` + UseCase→DB結合 |
 | `moduletest` | `src/test/` | `@ApplicationModuleTest` + `@Tag("integration")` + イベント検証 |
 | `jooqquery` | `src/test/` | `@JooqTest` + `@Tag("integration")` + SQL クエリ検証 |
-| `e2e` | `src/test/` | `@SpringBootTest(RANDOM_PORT)` + `@Tag("e2e")` + 全コンテナ |
+| `e2e` | `src/test/` | `@SpringBootTest(RANDOM_PORT)` + `@Tag("integration")` + 全コンテナ |
 
 ### 参照
 
@@ -121,13 +121,30 @@ cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 ### 4-1. フォーマット適用
 
 ```bash
-make fmt
+make be-fmt
 ```
 
-### 4-2. 全チェック実行
+### 4-2. TDD ループ（高速フィードバック）
 
 ```bash
-make test
+make be-quick
+```
+
+`quick` は compile + unit test のみ実行する（PMD/SpotBugs/integration をスキップ）。
+TDD の Red-Green-Refactor サイクルではこれを繰り返し使う。
+
+### 4-3. 静的解析のみ
+
+```bash
+make be-lint
+```
+
+Spotless check + PMD のみ実行する。コード規約違反を素早く確認したいときに使う。
+
+### 4-4. 全チェック実行
+
+```bash
+make be-test
 ```
 
 `check` には以下が含まれる:
@@ -137,9 +154,9 @@ make test
 - ユニットテスト（`src/test/`、タグなし）
 - 統合テスト（`src/test/`、`@Tag("integration")` — PostgreSQL コンテナ自動起動）
 
-### 4-3. 失敗時の対応
+### 4-5. 失敗時の対応
 
-- **Spotless 違反**: `make fmt` を再実行
+- **Spotless 違反**: `make be-fmt` を再実行
 - **PMD 違反**: `java-coding-standards.md` の該当ルールを参照して修正。`@SuppressWarnings("PMD.RuleName")` は最終手段
 - **NullAway 違反**: `@Nullable` の付与漏れを確認
 - **アーキテクチャテスト違反**: `architecture-rules.md` を参照してパッケージ配置・依存方向を修正
@@ -158,10 +175,11 @@ make test
                        + exception + controller + security + integration
                        + usecase + moduletest + jooqquery + e2e）
 4. Liquibase マイグレーション追加（テーブル定義）
-5. jOOQ コード再生成 → make jooq
-6. ビジネスロジック実装（TODO を解消）
-7. spotlessApply    → make fmt
-8. gradlew check    → make test
+5. jOOQ コード再生成 → make be-jooq
+6. TDD ループ       → make be-quick（compile + unit test のみ、高速フィードバック）
+7. ビジネスロジック実装（TODO を解消、6 と 7 を繰り返す）
+8. spotlessApply    → make be-fmt
+9. gradlew check    → make be-test
 ```
 
 典型的な実行例:
@@ -173,10 +191,11 @@ make test
 # → main 29ファイル + test 16ファイルが自動生成される
 # Liquibase マイグレーション追加
 # jOOQ 生成コード更新
-make jooq
+make be-jooq
 # → TODO コメントを解消してビジネスロジックを実装
-make fmt
-make test
+make be-quick  # TDD ループ（compile + unit test のみ）
+make be-fmt
+make be-test
 ```
 
 すべてのステップを完了してからコミットする。
@@ -186,6 +205,6 @@ make test
 ## 6. JaCoCo カバレッジ
 
 - カバレッジ閾値は命令カバレッジ 85% 以上（`build.gradle` の `jacocoTestCoverageVerification`）
-- 新規モジュール追加直後はスケルトンのみでカバレッジが不足するが、**閾値未達でもブロックせず実装を進める**
-- テストを追加してカバレッジを満たすように実装する
-- 最終的に全モジュールのテスト実装が完了した時点で 85% を達成すること
+- `make be-test`（`check`）実行時にカバレッジ閾値を検証する
+- 閾値未達の場合ビルドは失敗するが、TDD ループ（`make be-quick`）には影響しない
+- 新規モジュール追加直後はカバレッジが不足するため、テスト実装を進めて 85% を達成すること

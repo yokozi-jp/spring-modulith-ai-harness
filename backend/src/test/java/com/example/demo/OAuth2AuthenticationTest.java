@@ -18,7 +18,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
  *
  * <p>未認証で API にアクセスすると OAuth2 ログインページにリダイレクトされることを検証する。 Keycloak + Redis（セッション）が必要。
  */
-@Tag("e2e")
+@Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OAuth2AuthenticationTest {
 

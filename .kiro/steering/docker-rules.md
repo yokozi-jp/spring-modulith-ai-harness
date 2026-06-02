@@ -46,20 +46,32 @@ docker compose up --build
 
 ## compose-test.yaml の構成（テスト用）
 
-- `make test` でインフラ + テスト実行コンテナを起動し、`./gradlew check` を実行
-- テスト完了後に全コンテナを自動停止
+- テストコンテナ（backend-test + インフラ）は **開発中は起動しっぱなし** にする
+- `backend-test` は `sleep infinity` で常駐し、`docker compose exec` でコマンドを実行する
+- `make be-test` / `make be-test-only` はコンテナが未起動なら自動で `up -d --wait` してから `exec` する
+- テスト完了後にコンテナを停止しない（次回のテスト実行を高速化）
+- 明示的に停止したい場合のみ `make be-down` を使う
 - `.env.test` で環境変数を注入（コンテナ内ネットワークのサービス名で接続）
 
 ```bash
-# テスト実行（全チェック）
-make test
+# テストコンテナ起動（未起動時のみ）
+make be-up
+
+# テスト実行（全チェック、未起動なら自動起動）
+make be-test
 
 # 特定テストのみ実行
-make test-only T='*LiquibaseMigrationTest'
+make be-test-only T='*LiquibaseMigrationTest'
 
-# テストコンテナ停止
-make test-down
+# テストコンテナ停止（明示的に停止したい場合のみ）
+make be-down
 ```
+
+### テストコンテナのライフサイクル
+
+- 起動: `make be-up` または `make be-test` / `make be-test-only` の初回実行時に自動起動
+- 停止: `make be-down` で明示的に停止、または `make clean` で全削除
+- 再ビルド: `Dockerfile` や依存変更時は `docker compose -f compose-test.yaml up -d --build --wait`
 
 ## ベースイメージ
 

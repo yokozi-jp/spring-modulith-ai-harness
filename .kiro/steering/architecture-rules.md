@@ -116,7 +116,6 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 - **query → domain 禁止**: query パッケージは domain パッケージに依存してはいけない。
 - **domain → Spring 禁止**: domain パッケージは Spring に依存してはいけない。ただし以下は例外とする:
   - `domain/service` と `domain/repository` は jMolecules ByteBuddy プラグインにより Spring ステレオタイプアノテーションがビルド時にバイトコードレベルで付与されるため除外（ソースコード上は jMolecules アノテーションのみ使用）。
-  - `AbstractAggregateRoot`（`org.springframework.data.domain.AbstractAggregateRoot`）の継承は許可する。集約ルートは `AbstractAggregateRoot` を継承し、`registerEvent()` でドメインイベントを登録する。
 - **presentation → infrastructure 禁止**: presentation は infrastructure に依存してはいけない。
 - **presentation → domain 禁止**: presentation パッケージは domain パッケージに依存してはいけない。例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置し、presentation と application の両方から参照可能にする。
 - **子 → 親パッケージ依存禁止**: 子パッケージから親パッケージへの依存を禁止する。
@@ -174,19 +173,18 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 
 ```java
 @Getter
-@EqualsAndHashCode(of = "id", callSuper = false)
-public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot<Order, OrderId> {
+@EqualsAndHashCode(of = "id")
+public class Order implements AggregateRoot<Order, OrderId> {
 
   private final OrderId id;
   private final String customerName;
   private final OrderStatus status;
 
-  // コンストラクタ（Factory から呼び出す）
-  Order(final OrderId id, final String customerName) {
+  // Factory から呼び出す新規作成用コンストラクタ（public）
+  public Order(final OrderId id, final String customerName) {
     this.id = id;
     this.customerName = customerName;
     this.status = OrderStatus.CREATED;
-    registerEvent(new OrderCreated(id));
   }
 
   // 状態変更は新しいインスタンスを返す
@@ -199,7 +197,6 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
 ### equals/hashCode の規約
 
 集約およびエンティティの `equals`/`hashCode` は ID のみで比較する。`@EqualsAndHashCode(of = "id")` を使用すること。
-`AbstractAggregateRoot` を継承する集約ルートでは `@EqualsAndHashCode(of = "id", callSuper = false)` を指定する。
 
 ---
 
@@ -216,8 +213,8 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
 
 ```java
 @Getter
-@EqualsAndHashCode(of = "id", callSuper = false)
-public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot<Order, OrderId> {
+@EqualsAndHashCode(of = "id")
+public class Order implements AggregateRoot<Order, OrderId> {
 
   private final OrderId id;
   private final String customerName;
@@ -228,7 +225,6 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
     this.id = id;
     this.customerName = customerName;
     this.status = OrderStatus.CREATED;
-    registerEvent(new OrderCreated(id));
   }
 
   // RepositoryImpl からの再構築用

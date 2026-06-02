@@ -6,10 +6,10 @@ permissions:
 on:
   push:
     branches: [main]
-    paths: ['backend/**']
+    paths: ['backend/**', 'compose-test.yaml', '.env.test.example', 'Makefile']
   pull_request:
     branches: [main]
-    paths: ['backend/**']
+    paths: ['backend/**', 'compose-test.yaml', '.env.test.example', 'Makefile']
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
         run: chmod -R 777 backend
 
       - name: Run check (compile, test, PMD, SpotBugs, JaCoCo)
-        run: make test; status=$?; make test-down; exit $status
+        run: make be-test; status=$?; make be-down; exit $status
 
       - name: Upload test reports
         if: always()

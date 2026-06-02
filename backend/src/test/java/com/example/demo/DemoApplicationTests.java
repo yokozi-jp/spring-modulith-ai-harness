@@ -3,11 +3,13 @@ package com.example.demo;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 /** アプリケーションコンテキストの統合テスト */
 @SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
-@Tag("e2e")
+@Tag("integration")
 @SpringBootTest
+@Transactional
 class DemoApplicationTests {
 
   @Test

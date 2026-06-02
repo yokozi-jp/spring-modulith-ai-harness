@@ -22,7 +22,7 @@ services:
       - ./.git:/app/.git:ro
       - ./docker:/docker:ro
       - gradle-cache-test:/gradle
-    command: ["./gradlew", "check", "--project-cache-dir=/gradle/project-cache"]
+    command: ["sleep", "infinity"]
     depends_on:
       postgres-test:
         condition: service_healthy

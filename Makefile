@@ -1,13 +1,12 @@
 SHELL := /bin/bash
 export PATH := /usr/bin:$(PATH)
 
-.PHONY: dev dev-up dev-down build test test-only test-down e2e fmt jooq migrate rollback rollback-sql clean
+.PHONY: dev dev-up dev-down build be-up be-test be-test-only be-down be-quick be-lint be-fmt be-jooq be-migrate be-rollback be-rollback-sql clean
 
 # イメージ再ビルド
 build:
 	docker compose build
 	docker compose -f compose-test.yaml build
-	docker compose -f compose-e2e.yaml build
 
 # ローカル開発（フォアグラウンド）
 dev:
@@ -20,46 +19,55 @@ dev-up:
 dev-down:
 	docker compose down
 
+# --- Backend ---
+
+# テスト用コンテナが起動していなければ起動する
+be-up:
+	@docker compose -f compose-test.yaml up -d --wait
+
 # テスト実行（コンテナ内で ./gradlew check）
-test:
-	docker compose -f compose-test.yaml up --build --abort-on-container-exit --exit-code-from backend-test backend-test
+be-test: be-up
+	docker compose -f compose-test.yaml exec backend-test ./gradlew check --project-cache-dir=/gradle/project-cache
 
-# 特定テストのみ実行（例: make test-only T='*LiquibaseMigrationTest'）
-test-only:
-	docker compose -f compose-test.yaml run --rm --name smah-backend-test-only backend-test ./gradlew test --tests '$(T)' --project-cache-dir=/gradle/project-cache; \
-	status=$$?; \
-	docker compose -f compose-test.yaml down; \
-	exit $$status
+# 特定テストのみ実行（例: make be-test-only T='*LiquibaseMigrationTest'）
+be-test-only: be-up
+	docker compose -f compose-test.yaml exec backend-test ./gradlew test --tests '$(T)' -x jacocoTestReport --project-cache-dir=/gradle/project-cache
 
-test-down:
+# テストコンテナ停止
+be-down:
 	docker compose -f compose-test.yaml down
 
-# E2E テスト実行（全コンテナ必要）
-e2e:
-	docker compose -f compose-e2e.yaml up --abort-on-container-exit --exit-code-from backend-e2e backend-e2e
+# TDD 高速ループ用（compile + unit test のみ、PMD/SpotBugs/integration スキップ）
+be-quick: be-up
+	docker compose -f compose-test.yaml exec backend-test ./gradlew classes testClasses test -x integrationTest -x jacocoTestReport --project-cache-dir=/gradle/project-cache
+
+# 静的解析のみ（Spotless check + PMD）
+be-lint: be-up
+	docker compose -f compose-test.yaml exec backend-test ./gradlew spotlessCheck pmdMain pmdTest --project-cache-dir=/gradle/project-cache
 
 # フォーマット適用
-fmt:
+be-fmt:
 	docker compose exec backend ./gradlew spotlessApply
 
 # jOOQ コード生成
-jooq:
+be-jooq:
 	docker compose exec backend ./gradlew generateJooq
 
 # Liquibase マイグレーション適用
-migrate:
+be-migrate:
 	docker compose exec backend ./gradlew update
 
 # Liquibase ロールバック SQL 確認
-rollback-sql:
+be-rollback-sql:
 	docker compose exec backend ./gradlew rollbackCountSql -PliquibaseCount=$(or $(COUNT),1)
 
 # Liquibase ロールバック実行
-rollback:
+be-rollback:
 	docker compose exec backend ./gradlew rollbackCount -PliquibaseCount=$(or $(COUNT),1)
+
+# --- 共通 ---
 
 # 全コンテナ・ボリューム・ネットワークを削除
 clean:
 	docker compose down -v --remove-orphans
 	docker compose -f compose-test.yaml down -v --remove-orphans
-	docker compose -f compose-e2e.yaml down -v --remove-orphans

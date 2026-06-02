@@ -17,7 +17,7 @@ import org.springframework.test.context.TestConstructor;
  *
  * <p>/actuator/health は認証不要で公開。その他の Actuator エンドポイントは Basic 認証が必要。
  */
-@Tag("e2e")
+@Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
