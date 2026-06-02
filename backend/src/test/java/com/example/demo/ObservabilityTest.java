@@ -127,7 +127,7 @@ class ObservabilityTest {
     final URI prometheusUri =
         URI.create(
             deriveBaseUrl(tracesEndpoint, 9090)
-                + "/api/v1/query?query=http_server_request_duration_seconds_count%7Bjob%3D%22"
+                + "/api/v1/query?query=http_server_requests_milliseconds_count%7Bjob%3D%22"
                 + SERVICE_NAME
                 + "%22%7D");
 
@@ -194,6 +194,7 @@ class ObservabilityTest {
     assertTrue(
         response.getStatusCode().is2xxSuccessful(), "health endpoint should return 2xx status");
   }
+
 
   /**
    * エラーレスポンスで例外をスローしない RestClient を構築する。

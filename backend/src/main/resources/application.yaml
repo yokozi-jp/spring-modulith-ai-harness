@@ -151,7 +151,9 @@ management:
   otlp:
     metrics:
       export:
+        enabled: true
         url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT}
+        step: ${OTEL_METRICS_EXPORT_STEP:60s}
 
 # Logging: Micrometer Tracing がクラスパスにあれば traceId/spanId は自動でログに含まれる。
 # structured.format.console: コンソール出力を JSON（ECS 形式）にする。環境変数で制御。

@@ -47,10 +47,10 @@
 
 - 新しい changeset を作成したら、必ずロールバックが正常に動作することを確認する
 - 手順:
-  1. `make migrate` でマイグレーション適用
-  2. `make rollback-sql` でロールバック SQL を確認
-  3. `make rollback` でロールバック実行
-  4. `make migrate` で再適用できることを確認
+  1. `make be-migrate` でマイグレーション適用
+  2. `make be-rollback-sql` でロールバック SQL を確認
+  3. `make be-rollback` でロールバック実行
+  4. `make be-migrate` で再適用できることを確認
 
 ---
 

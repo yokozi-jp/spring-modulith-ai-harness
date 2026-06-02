@@ -220,8 +220,10 @@ dependencyManagement {
 
 // --- テスト設定 ---
 // テスト fork JVM のヒープをコンテナメモリの 60% に設定
+// テストを並列実行（CPU コア数の半分）
 tasks.withType(Test).configureEach {
     jvmArgs '-XX:MaxRAMPercentage=60.0'
+    maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
 }
 
 // デフォルトの test タスクは integration / e2e タグを除外（高速な unit + slice のみ）

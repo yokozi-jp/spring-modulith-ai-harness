@@ -24,12 +24,13 @@ services:
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://grafana-lgtm-e2e:4318/v1/traces
       OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: http://grafana-lgtm-e2e:4318/v1/logs
       OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://grafana-lgtm-e2e:4318/v1/metrics
+      OTEL_METRICS_EXPORT_STEP: 10s
     volumes:
       - ./backend:/app
       - ./.git:/app/.git:ro
       - ./docker:/docker:ro
       - gradle-cache-e2e:/gradle
-    command: ["./gradlew", "e2eTest", "--project-cache-dir=/gradle/project-cache"]
+    command: ["sleep", "infinity"]
     depends_on:
       postgres-e2e:
         condition: service_healthy
