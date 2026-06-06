@@ -408,6 +408,7 @@
 - すべてのデータベースクエリに jOOQ DSL を使用する — 生の SQL 文字列を書かない。
 - jOOQ 生成コードはビルドディレクトリにあり、PMD 解析から除外されている。
 - jOOQ の `Record` 型をドメインオブジェクトに明示的にマッピングする — jOOQ 型を API レイヤーに漏洩させない。
+- `buildSrc/build.gradle` の jOOQ codegen バージョンは Spring Boot が管理する jOOQ runtime バージョンと一致させること。不一致だと生成コードがコンパイルエラーになる。確認コマンド: `./gradlew dependencyInsight --dependency org.jooq:jooq`
 
 ## REST API 規約
 

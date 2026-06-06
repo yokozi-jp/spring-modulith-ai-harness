@@ -4,8 +4,12 @@
 package com.example.demo.jooq;
 
 
+import com.example.demo.jooq.tables.Categories;
+import com.example.demo.jooq.tables.CategoryClosures;
 import com.example.demo.jooq.tables.EventPublication;
 import com.example.demo.jooq.tables.EventPublicationArchive;
+import com.example.demo.jooq.tables.Pricings;
+import com.example.demo.jooq.tables.Products;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +33,16 @@ public class DefaultSchema extends SchemaImpl {
     public static final DefaultSchema DEFAULT_SCHEMA = new DefaultSchema();
 
     /**
+     * The table <code>categories</code>.
+     */
+    public final Categories CATEGORIES = Categories.CATEGORIES;
+
+    /**
+     * The table <code>category_closures</code>.
+     */
+    public final CategoryClosures CATEGORY_CLOSURES = CategoryClosures.CATEGORY_CLOSURES;
+
+    /**
      * The table <code>event_publication</code>.
      */
     public final EventPublication EVENT_PUBLICATION = EventPublication.EVENT_PUBLICATION;
@@ -37,6 +51,16 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>event_publication_archive</code>.
      */
     public final EventPublicationArchive EVENT_PUBLICATION_ARCHIVE = EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE;
+
+    /**
+     * The table <code>pricings</code>.
+     */
+    public final Pricings PRICINGS = Pricings.PRICINGS;
+
+    /**
+     * The table <code>products</code>.
+     */
+    public final Products PRODUCTS = Products.PRODUCTS;
 
     /**
      * No further instances allowed
@@ -54,8 +78,12 @@ public class DefaultSchema extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            Categories.CATEGORIES,
+            CategoryClosures.CATEGORY_CLOSURES,
             EventPublication.EVENT_PUBLICATION,
-            EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE
+            EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE,
+            Pricings.PRICINGS,
+            Products.PRODUCTS
         );
     }
 }

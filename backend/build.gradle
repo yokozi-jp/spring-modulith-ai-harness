@@ -94,6 +94,9 @@ spotbugs {
 // SpotBugs から jOOQ 生成コードを除外
 tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
     classes = classes.filter { !it.path.contains('/jooq/') }
+    reports {
+        xml.required = true
+    }
 }
 
 // --- PIT: ミューテーションテスト ---
