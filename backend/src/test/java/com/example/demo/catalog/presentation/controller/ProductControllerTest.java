@@ -2,6 +2,7 @@ package com.example.demo.catalog.presentation.controller;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import com.example.demo.catalog.application.command.command.CreateProductCommand;
 import com.example.demo.catalog.application.command.dto.CreatedProductDto;
 import com.example.demo.catalog.application.command.handler.ProductCommandHandler;
 import com.example.demo.catalog.application.query.service.ProductQueryService;
@@ -43,7 +44,8 @@ class ProductControllerTest {
   @Test
   @WithMockUser
   void shouldReturn201WithLocationOnCreate() throws Exception {
-    Mockito.when(commandHandler.handle(Mockito.any())).thenReturn(new CreatedProductDto("new-id"));
+    Mockito.when(commandHandler.handle(Mockito.any(CreateProductCommand.class)))
+        .thenReturn(new CreatedProductDto("new-id"));
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/products")

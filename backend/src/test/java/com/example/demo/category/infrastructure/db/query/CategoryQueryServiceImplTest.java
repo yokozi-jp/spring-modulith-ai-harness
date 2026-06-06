@@ -46,7 +46,7 @@ class CategoryQueryServiceImplTest {
     final UUID rootId1 = UUID.randomUUID();
     final UUID rootId2 = UUID.randomUUID();
     final UUID childId = UUID.randomUUID();
-    final OffsetDateTime now = OffsetDateTime.now();
+    final OffsetDateTime now = OffsetDateTime.now(java.time.ZoneOffset.UTC);
 
     insertCategory(rootId1, "ルート1", 1, null, now);
     insertCategory(rootId2, "ルート2", 2, null, now);
@@ -65,7 +65,7 @@ class CategoryQueryServiceImplTest {
     final UUID grandparentId = UUID.randomUUID();
     final UUID parentId = UUID.randomUUID();
     final UUID childId = UUID.randomUUID();
-    final OffsetDateTime now = OffsetDateTime.now();
+    final OffsetDateTime now = OffsetDateTime.now(java.time.ZoneOffset.UTC);
 
     insertCategory(grandparentId, "祖父", 1, null, now);
     insertCategory(parentId, "親", 1, grandparentId, now);
@@ -95,7 +95,7 @@ class CategoryQueryServiceImplTest {
     final UUID parentId = UUID.randomUUID();
     final UUID child1Id = UUID.randomUUID();
     final UUID child2Id = UUID.randomUUID();
-    final OffsetDateTime now = OffsetDateTime.now();
+    final OffsetDateTime now = OffsetDateTime.now(java.time.ZoneOffset.UTC);
 
     insertCategory(parentId, "親", 1, null, now);
     insertCategory(child1Id, "子1", 2, parentId, now);
