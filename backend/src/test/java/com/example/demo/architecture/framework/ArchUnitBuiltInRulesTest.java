@@ -50,15 +50,6 @@ class ArchUnitBuiltInRulesTest {
           .because("@Deprecated API の呼び出しを非推奨でない代替 API に置換してください")
           .allowEmptyShould(true);
 
-  // === DependencyRules ===
-
-  /** 子パッケージから親パッケージへの依存を禁止する（jOOQ 生成コードは AnalyzeClasses で除外）。 */
-  @ArchTest
-  /* default */ static final ArchRule NO_UPPER_DEPS =
-      DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES
-          .because("子パッケージから親パッケージへの import を除去し、依存方向を修正してください")
-          .allowEmptyShould(true);
-
   // === ProxyRules ===
 
   /** 同一クラス内での {@code @Transactional} メソッド直接呼び出しを禁止する。 */

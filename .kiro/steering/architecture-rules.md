@@ -308,3 +308,41 @@ ArchUnit で配置を検証し、CommandHandler 以外のクラスに `@Transact
 
 - **モジュール境界検証**: `ApplicationModules.of(DemoApplication.class).verify()` によりモジュール境界違反と循環依存を検出する。他モジュールの内部（サブパッケージ）クラスに直接アクセスしてはいけない。
 - **ドキュメント自動生成**: モジュール構成図（PlantUML）とモジュールキャンバスを自動生成する。
+
+### モジュール間循環依存の回避
+
+モジュール A → B（同期 API 呼び出し）と B → A が同時に必要な場合、循環依存になる。
+以下のパターンで回避する:
+
+**原則: 同期呼び出しは一方向、逆方向はイベント駆動**
+
+| 方向 | 方式 | 用途 |
+|------|------|------|
+| A → B | 同期（B のルートパッケージの公開 API） | 作成・更新時のバリデーション（頻度高） |
+| B → A | イベント（A が `event/` にイベントを定義、B が listen） | 削除拒否・副作用（頻度低） |
+
+**例: catalog → category（同期）、category の削除時に catalog が拒否（イベント）**
+
+```java
+// category/event/CategoryDeletionRequestedEvent.java（@NamedInterface("event") で公開）
+@DomainEvent
+public record CategoryDeletionRequestedEvent(String categoryId) {}
+
+// category の CommandHandler — 削除時にイベント発行
+eventPublisher.publishEvent(new CategoryDeletionRequestedEvent(id));
+repository.delete(id, version, operatorId);
+
+// catalog の Listener — BEFORE_COMMIT で拒否可能
+@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+public void handleCategoryDeletionRequested(final CategoryDeletionRequestedEvent event) {
+    if (catalogApi.existsProductByCategoryId(event.categoryId())) {
+        throw new IllegalStateException("Cannot delete: products exist");
+    }
+}
+```
+
+`@TransactionalEventListener(phase = BEFORE_COMMIT)` を使うことで、リスナーが例外を投げれば発行元のトランザクションがロールバックされる。
+
+**禁止パターン:**
+- モジュールルートに SPI インターフェースを定義して逆方向から実装させる（循環は解消するが責務が曖昧になる）
+- 双方向の同期 API 呼び出し（`ApplicationModules.verify()` で Cycle detected になる）
