@@ -3,6 +3,7 @@ package com.example.demo.category.infrastructure.db.repository;
 import static com.example.demo.jooq.tables.Categories.CATEGORIES;
 import static com.example.demo.jooq.tables.CategoryClosures.CATEGORY_CLOSURES;
 
+import com.example.demo.OptimisticLockException;
 import com.example.demo.category.domain.model.aggregate.Category;
 import com.example.demo.category.domain.model.valueobject.identifier.CategoryId;
 import com.example.demo.category.domain.repository.CategoryRepository;
@@ -56,16 +57,20 @@ public class CategoryRepositoryImpl implements CategoryRepository {
           .execute();
       insertClosureEntries(id, parentId, operatorId, now);
     } else {
-      dsl.update(CATEGORIES)
-          .set(CATEGORIES.NAME, category.getName())
-          .set(CATEGORIES.SORT_ORDER, category.getSortOrder())
-          .set(CATEGORIES.UPDATED_AT, now)
-          .set(CATEGORIES.UPDATED_BY, operatorId)
-          .set(CATEGORIES.VERSION, version + 1)
-          .where(CATEGORIES.ID.eq(id))
-          .and(CATEGORIES.VERSION.eq(version))
-          .and(SoftDeleteCondition.notDeleted(CATEGORIES))
-          .execute();
+      final int affected =
+          dsl.update(CATEGORIES)
+              .set(CATEGORIES.NAME, category.getName())
+              .set(CATEGORIES.SORT_ORDER, category.getSortOrder())
+              .set(CATEGORIES.UPDATED_AT, now)
+              .set(CATEGORIES.UPDATED_BY, operatorId)
+              .set(CATEGORIES.VERSION, version + 1)
+              .where(CATEGORIES.ID.eq(id))
+              .and(CATEGORIES.VERSION.eq(version))
+              .and(SoftDeleteCondition.notDeleted(CATEGORIES))
+              .execute();
+      if (affected == 0) {
+        throw new OptimisticLockException("Category", category.getId().value());
+      }
     }
   }
 
@@ -102,15 +107,19 @@ public class CategoryRepositoryImpl implements CategoryRepository {
   public void delete(final CategoryId id, final int version, final String operatorId) {
     final UUID uuid = UUID.fromString(id.value());
     final OffsetDateTime now = OffsetDateTime.now(clock);
-    dsl.update(CATEGORIES)
-        .set(CATEGORIES.DELETED_AT, now)
-        .set(CATEGORIES.UPDATED_AT, now)
-        .set(CATEGORIES.UPDATED_BY, operatorId)
-        .set(CATEGORIES.VERSION, version + 1)
-        .where(CATEGORIES.ID.eq(uuid))
-        .and(CATEGORIES.VERSION.eq(version))
-        .and(SoftDeleteCondition.notDeleted(CATEGORIES))
-        .execute();
+    final int affected =
+        dsl.update(CATEGORIES)
+            .set(CATEGORIES.DELETED_AT, now)
+            .set(CATEGORIES.UPDATED_AT, now)
+            .set(CATEGORIES.UPDATED_BY, operatorId)
+            .set(CATEGORIES.VERSION, version + 1)
+            .where(CATEGORIES.ID.eq(uuid))
+            .and(CATEGORIES.VERSION.eq(version))
+            .and(SoftDeleteCondition.notDeleted(CATEGORIES))
+            .execute();
+    if (affected == 0) {
+      throw new OptimisticLockException("Category", id.value());
+    }
   }
 
   @Override
@@ -134,15 +143,19 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     final OffsetDateTime now = OffsetDateTime.now(clock);
 
     // 1. Update parent_category_id in categories table
-    dsl.update(CATEGORIES)
-        .set(CATEGORIES.PARENT_CATEGORY_ID, DSL.val(newParentId, CATEGORIES.PARENT_CATEGORY_ID))
-        .set(CATEGORIES.UPDATED_AT, now)
-        .set(CATEGORIES.UPDATED_BY, operatorId)
-        .set(CATEGORIES.VERSION, version + 1)
-        .where(CATEGORIES.ID.eq(id))
-        .and(CATEGORIES.VERSION.eq(version))
-        .and(SoftDeleteCondition.notDeleted(CATEGORIES))
-        .execute();
+    final int affected =
+        dsl.update(CATEGORIES)
+            .set(CATEGORIES.PARENT_CATEGORY_ID, DSL.val(newParentId, CATEGORIES.PARENT_CATEGORY_ID))
+            .set(CATEGORIES.UPDATED_AT, now)
+            .set(CATEGORIES.UPDATED_BY, operatorId)
+            .set(CATEGORIES.VERSION, version + 1)
+            .where(CATEGORIES.ID.eq(id))
+            .and(CATEGORIES.VERSION.eq(version))
+            .and(SoftDeleteCondition.notDeleted(CATEGORIES))
+            .execute();
+    if (affected == 0) {
+      throw new OptimisticLockException("Category", category.getId().value());
+    }
 
     // 2. Delete old closure entries (ancestors of id × descendants of id)
     //    but keep self-referencing rows of descendants

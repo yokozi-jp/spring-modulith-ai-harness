@@ -2,6 +2,7 @@ package com.example.demo.pricing.infrastructure.db.repository;
 
 import static com.example.demo.jooq.tables.Pricings.PRICINGS;
 
+import com.example.demo.OptimisticLockException;
 import com.example.demo.jooq.SoftDeleteCondition;
 import com.example.demo.pricing.domain.model.aggregate.Pricing;
 import com.example.demo.pricing.domain.model.valueobject.Price;
@@ -61,17 +62,21 @@ public class PricingRepositoryImpl implements PricingRepository {
           .set(PRICINGS.VERSION, 1)
           .execute();
     } else {
-      dsl.update(PRICINGS)
-          .set(PRICINGS.AMOUNT, pricing.getAmount().value())
-          .set(PRICINGS.VALID_FROM, pricing.getValidFrom().atOffset(ZoneOffset.UTC))
-          .set(PRICINGS.VALID_TO, DSL.val(validTo, PRICINGS.VALID_TO))
-          .set(PRICINGS.UPDATED_AT, now)
-          .set(PRICINGS.UPDATED_BY, operatorId)
-          .set(PRICINGS.VERSION, version + 1)
-          .where(PRICINGS.ID.eq(id))
-          .and(PRICINGS.VERSION.eq(version))
-          .and(SoftDeleteCondition.notDeleted(PRICINGS))
-          .execute();
+      final int affected =
+          dsl.update(PRICINGS)
+              .set(PRICINGS.AMOUNT, pricing.getAmount().value())
+              .set(PRICINGS.VALID_FROM, pricing.getValidFrom().atOffset(ZoneOffset.UTC))
+              .set(PRICINGS.VALID_TO, DSL.val(validTo, PRICINGS.VALID_TO))
+              .set(PRICINGS.UPDATED_AT, now)
+              .set(PRICINGS.UPDATED_BY, operatorId)
+              .set(PRICINGS.VERSION, version + 1)
+              .where(PRICINGS.ID.eq(id))
+              .and(PRICINGS.VERSION.eq(version))
+              .and(SoftDeleteCondition.notDeleted(PRICINGS))
+              .execute();
+      if (affected == 0) {
+        throw new OptimisticLockException("Pricing", pricing.getId().value());
+      }
     }
   }
 
@@ -112,15 +117,19 @@ public class PricingRepositoryImpl implements PricingRepository {
   public void delete(final PricingId id, final int version, final String operatorId) {
     final UUID uuid = UUID.fromString(id.value());
     final OffsetDateTime now = OffsetDateTime.now(clock);
-    dsl.update(PRICINGS)
-        .set(PRICINGS.DELETED_AT, now)
-        .set(PRICINGS.UPDATED_AT, now)
-        .set(PRICINGS.UPDATED_BY, operatorId)
-        .set(PRICINGS.VERSION, version + 1)
-        .where(PRICINGS.ID.eq(uuid))
-        .and(PRICINGS.VERSION.eq(version))
-        .and(SoftDeleteCondition.notDeleted(PRICINGS))
-        .execute();
+    final int affected =
+        dsl.update(PRICINGS)
+            .set(PRICINGS.DELETED_AT, now)
+            .set(PRICINGS.UPDATED_AT, now)
+            .set(PRICINGS.UPDATED_BY, operatorId)
+            .set(PRICINGS.VERSION, version + 1)
+            .where(PRICINGS.ID.eq(uuid))
+            .and(PRICINGS.VERSION.eq(version))
+            .and(SoftDeleteCondition.notDeleted(PRICINGS))
+            .execute();
+    if (affected == 0) {
+      throw new OptimisticLockException("Pricing", id.value());
+    }
   }
 
   @Override

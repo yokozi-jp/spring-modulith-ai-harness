@@ -2,6 +2,7 @@ package com.example.demo.catalog.infrastructure.db.repository;
 
 import static com.example.demo.jooq.tables.Products.PRODUCTS;
 
+import com.example.demo.OptimisticLockException;
 import com.example.demo.catalog.domain.model.aggregate.Product;
 import com.example.demo.catalog.domain.model.aggregate.ProductStatus;
 import com.example.demo.catalog.domain.model.valueobject.Sku;
@@ -52,19 +53,23 @@ public class ProductRepositoryImpl implements ProductRepository {
           .set(PRODUCTS.VERSION, 1)
           .execute();
     } else {
-      dsl.update(PRODUCTS)
-          .set(PRODUCTS.NAME, product.getName())
-          .set(PRODUCTS.DESCRIPTION, product.getDescription())
-          .set(PRODUCTS.CATEGORY_ID, UUID.fromString(product.getCategoryId()))
-          .set(PRODUCTS.SKU, product.getSku().value())
-          .set(PRODUCTS.STATUS, product.getStatus().name())
-          .set(PRODUCTS.UPDATED_AT, now)
-          .set(PRODUCTS.UPDATED_BY, operatorId)
-          .set(PRODUCTS.VERSION, version + 1)
-          .where(PRODUCTS.ID.eq(id))
-          .and(PRODUCTS.VERSION.eq(version))
-          .and(SoftDeleteCondition.notDeleted(PRODUCTS))
-          .execute();
+      final int affected =
+          dsl.update(PRODUCTS)
+              .set(PRODUCTS.NAME, product.getName())
+              .set(PRODUCTS.DESCRIPTION, product.getDescription())
+              .set(PRODUCTS.CATEGORY_ID, UUID.fromString(product.getCategoryId()))
+              .set(PRODUCTS.SKU, product.getSku().value())
+              .set(PRODUCTS.STATUS, product.getStatus().name())
+              .set(PRODUCTS.UPDATED_AT, now)
+              .set(PRODUCTS.UPDATED_BY, operatorId)
+              .set(PRODUCTS.VERSION, version + 1)
+              .where(PRODUCTS.ID.eq(id))
+              .and(PRODUCTS.VERSION.eq(version))
+              .and(SoftDeleteCondition.notDeleted(PRODUCTS))
+              .execute();
+      if (affected == 0) {
+        throw new OptimisticLockException("Product", product.getId().value());
+      }
     }
   }
 
@@ -101,14 +106,18 @@ public class ProductRepositoryImpl implements ProductRepository {
   public void delete(final ProductId id, final int version, final String operatorId) {
     final UUID uuid = UUID.fromString(id.value());
     final OffsetDateTime now = OffsetDateTime.now(clock);
-    dsl.update(PRODUCTS)
-        .set(PRODUCTS.DELETED_AT, now)
-        .set(PRODUCTS.UPDATED_AT, now)
-        .set(PRODUCTS.UPDATED_BY, operatorId)
-        .set(PRODUCTS.VERSION, version + 1)
-        .where(PRODUCTS.ID.eq(uuid))
-        .and(PRODUCTS.VERSION.eq(version))
-        .and(SoftDeleteCondition.notDeleted(PRODUCTS))
-        .execute();
+    final int affected =
+        dsl.update(PRODUCTS)
+            .set(PRODUCTS.DELETED_AT, now)
+            .set(PRODUCTS.UPDATED_AT, now)
+            .set(PRODUCTS.UPDATED_BY, operatorId)
+            .set(PRODUCTS.VERSION, version + 1)
+            .where(PRODUCTS.ID.eq(uuid))
+            .and(PRODUCTS.VERSION.eq(version))
+            .and(SoftDeleteCondition.notDeleted(PRODUCTS))
+            .execute();
+    if (affected == 0) {
+      throw new OptimisticLockException("Product", id.value());
+    }
   }
 }

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,7 +46,8 @@ public class ProductController {
   @Operation(summary = "商品を作成する")
   @ApiResponse(responseCode = "201", description = "作成成功")
   @PostMapping
-  public ResponseEntity<Void> create(@RequestBody @Valid final CreateProductRequest request) {
+  public ResponseEntity<Void> create(
+      @RequestBody @Valid final CreateProductRequest request, final Principal principal) {
     final CreatedProductDto result =
         commandHandler.handle(
             new CreateProductCommand(
@@ -53,7 +55,7 @@ public class ProductController {
                 request.description(),
                 request.categoryId(),
                 request.sku(),
-                "system"));
+                principal.getName()));
     final URI location =
         ServletUriComponentsBuilder.fromCurrentRequest()
             .path("/{id}")
