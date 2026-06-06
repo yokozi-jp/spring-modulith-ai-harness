@@ -583,6 +583,10 @@ class ProductControllerE2eTest {
 - テストクラスに `@Import` でコンテナ設定を指定する必要はない
 - `make be-test` で全チェック、`make be-test-only T='*ClassName'` で特定テストを実行
 
+### 統合テストのデータ投入
+
+全アプリケーションテーブルへの直接 INSERT（`DSLContext` 経由）では、必須カラム（`created_at`, `updated_at`, `created_by`, `updated_by`, `version`）を必ず設定すること。`category_closures` のような関係テーブルも例外ではない。未設定だと NOT NULL 制約違反でテストが失敗する。
+
 ---
 
 ## PMD 抑制の許容範囲

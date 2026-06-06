@@ -373,6 +373,18 @@
 
 ---
 
+## SpotBugs 除外パターン
+
+除外設定ファイル: `backend/config/spotbugs/exclusion-filter.xml`
+
+| パターン | 除外対象 | 理由 |
+|----------|----------|------|
+| `CT_CONSTRUCTOR_THROW` | 全クラス | DDD 集約のコンストラクタでバリデーション例外を投げるのは正当なパターン |
+| `EI_EXPOSE_REP` / `EI_EXPOSE_REP2` | DTO / Response record（`List` フィールド） | Java record は事実上不変であり SpotBugs の誤検知 |
+| `RV_RETURN_VALUE_IGNORED_INFERRED` | テストクラス | `assertThrows` 内で戻り値を無視するのは正当 |
+
+---
+
 ## Spring Modulith 規約
 
 - 各モジュールは `com.example.demo` の直下サブパッケージとする（例: `com.example.demo.order`）。
@@ -418,3 +430,4 @@
   - **グローバルハンドラ**（`com.example.demo.GlobalExceptionHandler`）: `IllegalStateException` → 409、`IllegalArgumentException` → 400 等のアプリ共通例外を処理。
   - **モジュール別ハンドラ**（`<module>/presentation/controller/<Name>ExceptionHandler`）: モジュール固有の業務例外（`XxxNotFoundException` 等）を処理。`@RestControllerAdvice(basePackages = "...")` でスコープを限定する。
 - `Instant.now()` をドメイン層やファクトリで直接呼ばない — `ClockConfig`（`com.example.demo.ClockConfig`）が `Clock.systemUTC()` を Bean として提供するので、`java.time.Clock` をコンストラクタインジェクションで受け取り `clock.instant()` で現在時刻を取得する。テストでは `Clock.fixed(...)` で時刻を固定する。
+- `Clock` を DI するのは**実際に使用するクラスのみ** — 将来用に予備フィールドとして持たせると ErrorProne の `UnusedVariable` で検出されビルドが失敗する。典型的には `RepositoryImpl`（save/delete 時に `OffsetDateTime.now(clock)`）に DI する。Factory やドメインサービスには不要な場合が多い。

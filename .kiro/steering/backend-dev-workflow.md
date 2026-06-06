@@ -27,6 +27,9 @@ cd backend && ./scripts/scaffold.sh class <module> <layer> <name> [--aggregate <
 
 - 必ず `scaffold.sh module` でモジュールを先に作成してから実行する
 - ディレクトリと `package-info.java` は自動生成される（手動作成しない）
+- `<name>` にはレイヤーサフィックスを含めない（scaffold が自動付与する）
+  - ✅ `./scripts/scaffold.sh class category command UpdateCategory` → `UpdateCategoryCommand.java`
+  - ❌ `./scripts/scaffold.sh class category command UpdateCategoryCommand` → `UpdateCategoryCommandCommand.java`
 - `aggregate` 生成時は Identifier・Factory・Repository・RepositoryImpl が自動連鎖生成される
 - `entity` 生成時は `--aggregate` 必須。Identifier・Factory・IdGenerator・IdGeneratorImpl が自動連鎖生成される
 - `exception` 生成時は ExceptionHandler（`@RestControllerAdvice`）が自動連鎖生成される
