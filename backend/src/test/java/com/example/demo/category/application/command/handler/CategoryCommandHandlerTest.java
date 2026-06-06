@@ -8,7 +8,6 @@ import com.example.demo.category.application.command.command.DeleteCategoryComma
 import com.example.demo.category.domain.model.aggregate.Category;
 import com.example.demo.category.domain.model.valueobject.identifier.CategoryId;
 import com.example.demo.category.domain.repository.CategoryRepository;
-import com.example.demo.category.domain.service.CategoryFactory;
 import com.example.demo.category.event.CategoryDeletionRequestedEvent;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -27,9 +26,6 @@ class CategoryCommandHandlerTest {
 
   /** オペレータ ID 定数。 */
   private static final String OPERATOR_ID = "operator-1";
-
-  /** ファクトリモック。 */
-  @Mock private CategoryFactory factory;
 
   /** リポジトリモック。 */
   @Mock private CategoryRepository repository;

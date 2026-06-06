@@ -299,6 +299,8 @@ jacocoTestCoverageVerification {
 tasks.withType(JavaCompile).configureEach {
     options.errorprone {
         error('NullAway')
+        error('UnusedVariable')
+        error('JavaTimeDefaultTimeZone')
         option('NullAway:AnnotatedPackages', 'com.example.demo')
         option('NullAway:JSpecifyMode', 'true')
     }

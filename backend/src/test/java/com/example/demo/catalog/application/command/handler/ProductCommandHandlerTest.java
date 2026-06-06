@@ -31,7 +31,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 /** Unit tests for {@link ProductCommandHandler}. */
-@SuppressWarnings("PMD.TooManyMethods")
 @ExtendWith(MockitoExtension.class)
 class ProductCommandHandlerTest {
 
@@ -91,7 +90,8 @@ class ProductCommandHandlerTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> sut.handle(new UpdateProductCommand(PRODUCT_ID, "名前", "説明", "bad-cat", 1, OPERATOR_ID)),
+        () ->
+            sut.handle(new UpdateProductCommand(PRODUCT_ID, "名前", "説明", "bad-cat", 1, OPERATOR_ID)),
         "should throw when category not found");
   }
 
@@ -163,7 +163,6 @@ class ProductCommandHandlerTest {
   }
 
   private Product createDraftProduct() {
-    return new Product(
-        new ProductId(PRODUCT_ID), "テスト商品", "テスト説明", "cat-1", new Sku(SKU_VALUE));
+    return new Product(new ProductId(PRODUCT_ID), "テスト商品", "テスト説明", "cat-1", new Sku(SKU_VALUE));
   }
 }
