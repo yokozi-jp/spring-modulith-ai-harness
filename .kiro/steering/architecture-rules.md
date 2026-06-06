@@ -308,3 +308,75 @@ ArchUnit で配置を検証し、CommandHandler 以外のクラスに `@Transact
 
 - **モジュール境界検証**: `ApplicationModules.of(DemoApplication.class).verify()` によりモジュール境界違反と循環依存を検出する。他モジュールの内部（サブパッケージ）クラスに直接アクセスしてはいけない。
 - **ドキュメント自動生成**: モジュール構成図（PlantUML）とモジュールキャンバスを自動生成する。
+
+### モジュール間循環依存の回避
+
+モジュール A → B（同期 API 呼び出し）と B → A が同時に必要な場合、循環依存になる。
+以下のパターンで回避する:
+
+**原則: 同期呼び出しは一方向、逆方向はイベント駆動**
+
+| 方向 | 方式 | 用途 |
+|------|------|------|
+| A → B | 同期（B のルートパッケージの公開 API） | 作成・更新時のバリデーション（頻度高） |
+| B → A | イベント（A が `event/` にイベントを定義、B が listen） | 削除拒否・副作用（頻度低） |
+
+**例: catalog → category（同期）、category の削除時に catalog が拒否（イベント）**
+
+```java
+// category/event/CategoryDeletionRequestedEvent.java（@NamedInterface("event") で公開）
+@DomainEvent
+public record CategoryDeletionRequestedEvent(String categoryId) {}
+
+// category の CommandHandler — 削除時にイベント発行
+eventPublisher.publishEvent(new CategoryDeletionRequestedEvent(id));
+repository.delete(id, version, operatorId);
+
+// catalog の Listener — BEFORE_COMMIT で拒否可能
+@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+public void handleCategoryDeletionRequested(final CategoryDeletionRequestedEvent event) {
+    if (catalogApi.existsProductByCategoryId(event.categoryId())) {
+        throw new IllegalStateException("Cannot delete: products exist");
+    }
+}
+```
+
+`@TransactionalEventListener(phase = BEFORE_COMMIT)` を使うことで、リスナーが例外を投げれば発行元のトランザクションがロールバックされる。
+
+**禁止パターン:**
+- モジュールルートに SPI インターフェースを定義して逆方向から実装させる（循環は解消するが責務が曖昧になる）
+- 双方向の同期 API 呼び出し（`ApplicationModules.verify()` で Cycle detected になる）
+
+### モジュール間通信の全体設計
+
+| 関係 | 方式 | 理由 |
+|------|------|------|
+| catalog → category | 同期 `CategoryApi.existsById()` | 商品作成時に必須チェック。頻度高 |
+| pricing → catalog | 同期 `CatalogApi.existsProductById()` | 価格登録時に必須チェック。頻度高 |
+| category 削除 → 商品存在チェック | イベント `CategoryDeletionRequestedEvent` を catalog が listen | 循環回避。頻度低（削除は稀） |
+| product 削除 → 価格無効化 | イベント `ProductDeletedEvent` を pricing が listen | 非同期でOK。結果整合性 |
+
+### モジュール公開インターフェース構成
+
+```
+category/
+├── CategoryApi.java                          ← 公開（catalog, pricing が使用）
+├── event/CategoryDeletionRequestedEvent.java ← 公開（catalog が listen）
+
+catalog/
+├── CatalogApi.java                           ← 公開（pricing が使用）
+├── event/ProductDeletedEvent.java            ← 公開（pricing が listen）
+
+pricing/
+├── （公開 API なし — 他モジュールから呼ばれない）
+```
+
+### イベントリスナーの使い分け
+
+| アノテーション | フェーズ | 用途 |
+|---------------|---------|------|
+| `@TransactionalEventListener(phase = BEFORE_COMMIT)` | コミット前 | 削除拒否（例外で発行元トランザクションをロールバック） |
+| `@ApplicationModuleListener` | コミット後（Spring Modulith デフォルト） | 副作用（別リソースの論理削除、通知等）。失敗時は Event Publication Registry が再配信 |
+
+- **削除拒否**: `BEFORE_COMMIT` を使う。リスナーが例外を投げれば発行元のトランザクション全体がロールバックされる
+- **副作用（結果整合性）**: `@ApplicationModuleListener` を使う。コミット後に実行され、失敗時は Event Publication Registry が at-least-once 再配信を保証する

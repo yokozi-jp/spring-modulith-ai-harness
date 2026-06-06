@@ -4,4 +4,20 @@
   <Match>
     <Bug pattern="CT_CONSTRUCTOR_THROW" />
   </Match>
+
+  <!-- Java record の List フィールドは record 自体が不変のため、EI_EXPOSE_REP は誤検知 -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP" />
+    <Class name="~.*Dto.*|.*Response.*" />
+  </Match>
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" />
+    <Class name="~.*Dto.*|.*Response.*" />
+  </Match>
+
+  <!-- テストコードで assertThrows 内の戻り値無視は正当 -->
+  <Match>
+    <Bug pattern="RV_RETURN_VALUE_IGNORED_INFERRED" />
+    <Class name="~.*Test$" />
+  </Match>
 </FindBugsFilter>

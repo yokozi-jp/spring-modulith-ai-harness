@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: "004-create-category-closures"
+      author: "system"
+      changes:
+        - createTable:
+            tableName: category_closures
+            columns:
+              - column:
+                  name: ancestor_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: descendant_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: depth
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_by
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: timestamptz
+        - addPrimaryKey:
+            tableName: category_closures
+            columnNames: ancestor_id, descendant_id
+            constraintName: category_closures_pkey

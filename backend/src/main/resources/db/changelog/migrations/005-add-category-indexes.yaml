@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: "005-add-category-indexes"
+      author: "system"
+      changes:
+        - sql:
+            sql: >-
+              CREATE UNIQUE INDEX categories_parent_category_id_name_key
+              ON categories (COALESCE(parent_category_id, '00000000-0000-0000-0000-000000000000'), name)
+              WHERE deleted_at IS NULL
+        - createIndex:
+            indexName: category_closures_descendant_id_idx
+            tableName: category_closures
+            columns:
+              - column:
+                  name: descendant_id
+        - createIndex:
+            indexName: category_closures_ancestor_id_depth_idx
+            tableName: category_closures
+            columns:
+              - column:
+                  name: ancestor_id
+              - column:
+                  name: depth
+      rollback:
+        - sql:
+            sql: DROP INDEX IF EXISTS categories_parent_category_id_name_key
+        - dropIndex:
+            indexName: category_closures_descendant_id_idx
+            tableName: category_closures
+        - dropIndex:
+            indexName: category_closures_ancestor_id_depth_idx
+            tableName: category_closures

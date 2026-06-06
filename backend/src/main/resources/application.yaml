@@ -64,7 +64,7 @@ spring:
             token-uri: ${OAUTH2_TOKEN_URI}
             jwk-set-uri: ${OAUTH2_JWK_SET_URI}
             user-info-uri: ${OAUTH2_USERINFO_URI}
-            user-name-attribute: preferred_username
+            user-name-attribute: sub
 
   # Spring Modulith Events: JDBC ベースの Event Publication Registry。
   # completion-mode: archive — 完了イベントを event_publication_archive テーブルへ移動し、
