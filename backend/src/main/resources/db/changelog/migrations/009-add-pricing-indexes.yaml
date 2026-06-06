@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: "009-add-pricing-indexes"
+      author: "system"
+      changes:
+        - createIndex:
+            indexName: pricings_product_id_level_area_code_idx
+            tableName: pricings
+            columns:
+              - column:
+                  name: product_id
+              - column:
+                  name: level
+              - column:
+                  name: area_code
+        - createIndex:
+            indexName: pricings_product_id_idx
+            tableName: pricings
+            columns:
+              - column:
+                  name: product_id
+      rollback:
+        - dropIndex:
+            indexName: pricings_product_id_level_area_code_idx
+            tableName: pricings
+        - dropIndex:
+            indexName: pricings_product_id_idx
+            tableName: pricings

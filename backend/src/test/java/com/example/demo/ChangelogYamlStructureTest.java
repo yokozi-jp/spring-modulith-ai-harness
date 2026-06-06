@@ -37,7 +37,7 @@ class ChangelogYamlStructureTest {
 
   /** 許可されたカラム型。 */
   private static final Set<String> ALLOWED_TYPES =
-      Set.of("uuid", "text", "int", "bigint", "timestamptz", "boolean");
+      Set.of("uuid", "text", "int", "bigint", "timestamptz", "boolean", "numeric(12,4)");
 
   /** マイグレーションファイルが存在すること。 */
   @Test
