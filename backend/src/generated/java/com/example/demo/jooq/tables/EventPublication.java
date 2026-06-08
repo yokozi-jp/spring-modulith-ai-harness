@@ -4,7 +4,7 @@
 package com.example.demo.jooq.tables;
 
 
-import com.example.demo.jooq.Demo;
+import com.example.demo.jooq.DefaultSchema;
 import com.example.demo.jooq.Indexes;
 import com.example.demo.jooq.Keys;
 import com.example.demo.jooq.tables.records.EventPublicationRecord;
@@ -43,7 +43,7 @@ public class EventPublication extends TableImpl<EventPublicationRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>demo.event_publication</code>
+     * The reference instance of <code>event_publication</code>
      */
     public static final EventPublication EVENT_PUBLICATION = new EventPublication();
 
@@ -56,47 +56,47 @@ public class EventPublication extends TableImpl<EventPublicationRecord> {
     }
 
     /**
-     * The column <code>demo.event_publication.id</code>.
+     * The column <code>event_publication.id</code>.
      */
     public final TableField<EventPublicationRecord, UUID> ID = createField(DSL.name("id"), SQLDataType.UUID.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication.listener_id</code>.
+     * The column <code>event_publication.listener_id</code>.
      */
     public final TableField<EventPublicationRecord, String> LISTENER_ID = createField(DSL.name("listener_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication.event_type</code>.
+     * The column <code>event_publication.event_type</code>.
      */
     public final TableField<EventPublicationRecord, String> EVENT_TYPE = createField(DSL.name("event_type"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication.serialized_event</code>.
+     * The column <code>event_publication.serialized_event</code>.
      */
     public final TableField<EventPublicationRecord, String> SERIALIZED_EVENT = createField(DSL.name("serialized_event"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication.publication_date</code>.
+     * The column <code>event_publication.publication_date</code>.
      */
     public final TableField<EventPublicationRecord, OffsetDateTime> PUBLICATION_DATE = createField(DSL.name("publication_date"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "");
 
     /**
-     * The column <code>demo.event_publication.completion_date</code>.
+     * The column <code>event_publication.completion_date</code>.
      */
     public final TableField<EventPublicationRecord, OffsetDateTime> COMPLETION_DATE = createField(DSL.name("completion_date"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
     /**
-     * The column <code>demo.event_publication.status</code>.
+     * The column <code>event_publication.status</code>.
      */
     public final TableField<EventPublicationRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>demo.event_publication.completion_attempts</code>.
+     * The column <code>event_publication.completion_attempts</code>.
      */
     public final TableField<EventPublicationRecord, Integer> COMPLETION_ATTEMPTS = createField(DSL.name("completion_attempts"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>demo.event_publication.last_resubmission_date</code>.
+     * The column <code>event_publication.last_resubmission_date</code>.
      */
     public final TableField<EventPublicationRecord, OffsetDateTime> LAST_RESUBMISSION_DATE = createField(DSL.name("last_resubmission_date"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
@@ -109,21 +109,21 @@ public class EventPublication extends TableImpl<EventPublicationRecord> {
     }
 
     /**
-     * Create an aliased <code>demo.event_publication</code> table reference
+     * Create an aliased <code>event_publication</code> table reference
      */
     public EventPublication(String alias) {
         this(DSL.name(alias), EVENT_PUBLICATION);
     }
 
     /**
-     * Create an aliased <code>demo.event_publication</code> table reference
+     * Create an aliased <code>event_publication</code> table reference
      */
     public EventPublication(Name alias) {
         this(alias, EVENT_PUBLICATION);
     }
 
     /**
-     * Create a <code>demo.event_publication</code> table reference
+     * Create a <code>event_publication</code> table reference
      */
     public EventPublication() {
         this(DSL.name("event_publication"), null);
@@ -131,7 +131,7 @@ public class EventPublication extends TableImpl<EventPublicationRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Demo.DEMO;
+        return aliased() ? null : DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override

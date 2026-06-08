@@ -1,0 +1,96 @@
+# テスト用 Docker Compose
+# テスト実行:
+#   docker compose -f compose-test.yaml run --rm backend-test
+# 停止:
+#   docker compose -f compose-test.yaml down
+
+name: smah-test
+
+services:
+  backend-test:
+    container_name: smah-backend-test
+    build:
+      context: ./backend
+      target: dev
+    mem_limit: 4g
+    user: root
+    env_file: .env.test
+    environment:
+      GRADLE_USER_HOME: /gradle
+    volumes:
+      - ./backend:/app
+      - ./.git:/app/.git:ro
+      - ./docker:/docker:ro
+      - gradle-cache-test:/gradle
+    command: ["sleep", "infinity"]
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      keycloak-test:
+        condition: service_healthy
+
+  postgres-test:
+    container_name: smah-postgres-test
+    image: postgres:18.3
+    mem_limit: 512m
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      TZ: UTC
+    volumes:
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d demo"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+
+  redis-test:
+    container_name: smah-redis-test
+    image: redis:8.6.2
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+
+  keycloak-test:
+    container_name: smah-keycloak-test
+    image: quay.io/keycloak/keycloak:26.6.0
+    mem_limit: 1g
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: http://localhost:18080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    volumes:
+      - ./docker/keycloak/demo-realm.json:/opt/keycloak/data/import/demo-realm.json:ro
+    command: start-dev --import-realm --health-enabled=true
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  grafana-lgtm-test:
+    container_name: smah-grafana-lgtm-test
+    image: grafana/otel-lgtm:0.26.0
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/ready"]
+      interval: 5s
+      timeout: 2s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  gradle-cache-test:

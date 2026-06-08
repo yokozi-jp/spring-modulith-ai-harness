@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 /** {@link Clock} Bean の構成。テストでは {@code Clock.fixed()} に差し替え可能。 */
 @Configuration
-class ClockConfig {
+public class ClockConfig {
 
   /** UTC の Clock を提供する。 */
   @Bean

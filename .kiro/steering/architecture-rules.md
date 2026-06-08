@@ -14,6 +14,8 @@
 例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置する。
 モジュール内には以下のディレクトリ構成が必須であり、すべてに `package-info.java` を含めること。
 
+> **Query-only モジュール**は domain 層を持たず、`application/query/` + `presentation/` + `infrastructure/db/query/` のみで構成してよい。
+
 ```
 <module>/
 ├── exception/
@@ -64,14 +66,14 @@ import org.jspecify.annotations.NullMarked;
 
 各パッケージの `package-info.java` に、以下の対応に従って jMolecules Onion Architecture アノテーションを付与すること。
 
-| パッケージ | アノテーション |
-|---|---|
-| `event/` | `@DomainModelRing` |
-| `domain/` およびそのサブパッケージ全体 (`model/`, `aggregate/`, `entity/`, `valueobject/`, `identifier/`, `repository/`) | `@DomainModelRing` |
-| `domain/service/` | `@DomainServiceRing` |
+| パッケージ                                                                                                                                                                 | アノテーション            |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `event/`                                                                                                                                                                   | `@DomainModelRing`        |
+| `domain/` およびそのサブパッケージ全体 (`model/`, `aggregate/`, `entity/`, `valueobject/`, `identifier/`, `repository/`)                                                   | `@DomainModelRing`        |
+| `domain/service/`                                                                                                                                                          | `@DomainServiceRing`      |
 | `application/` およびそのサブパッケージ全体 (`command/`, `command/command/`, `command/dto/`, `command/handler/`, `query/`, `query/param/`, `query/dto/`, `query/service/`) | `@ApplicationServiceRing` |
-| `presentation/` およびそのサブパッケージ全体 (`controller/`, `request/`, `response/`) | `@InfrastructureRing` |
-| `infrastructure/` およびそのサブパッケージ全体 (`db/`, `db/repository/`, `db/query/`) | `@InfrastructureRing` |
+| `presentation/` およびそのサブパッケージ全体 (`controller/`, `request/`, `response/`)                                                                                      | `@InfrastructureRing`     |
+| `infrastructure/` およびそのサブパッケージ全体 (`db/`, `db/repository/`, `db/query/`)                                                                                      | `@InfrastructureRing`     |
 
 ---
 
@@ -79,21 +81,21 @@ import org.jspecify.annotations.NullMarked;
 
 ### クラスレベルアノテーション
 
-| アノテーション | 配置先パッケージ |
-|---|---|
-| `@Command` | `..command.command..` のみ |
-| `@CommandResult` | `..command.dto..` のみ |
-| `@QueryParam` | `..query.param..` のみ |
-| `@QueryModel` | `..query.dto..` のみ |
-| `@DomainEvent` | `..event..` のみ |
+| アノテーション    | 配置先パッケージ                   |
+| ----------------- | ---------------------------------- |
+| `@Command`        | `..command.command..` のみ         |
+| `@CommandResult`  | `..command.dto..` のみ             |
+| `@QueryParam`     | `..query.param..` のみ             |
+| `@QueryModel`     | `..query.dto..` のみ               |
+| `@DomainEvent`    | `..event..` のみ                   |
 | `@RestController` | `..presentation.controller..` のみ |
 
 command パッケージに `@QueryModel` を、query パッケージに `@Command` を配置してはいけない。
 
 ### メソッドレベルアノテーション
 
-| アノテーション | 付与可能な場所 |
-|---|---|
+| アノテーション    | 付与可能な場所                                           |
+| ----------------- | -------------------------------------------------------- |
 | `@CommandHandler` | `..command.handler..` 内のクラスのメソッドにのみ付与可能 |
 
 ### 使用すべき完全修飾名
@@ -114,10 +116,19 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 - **query → domain 禁止**: query パッケージは domain パッケージに依存してはいけない。
 - **domain → Spring 禁止**: domain パッケージは Spring に依存してはいけない。ただし以下は例外とする:
   - `domain/service` と `domain/repository` は jMolecules ByteBuddy プラグインにより Spring ステレオタイプアノテーションがビルド時にバイトコードレベルで付与されるため除外（ソースコード上は jMolecules アノテーションのみ使用）。
-  - `AbstractAggregateRoot`（`org.springframework.data.domain.AbstractAggregateRoot`）の継承は許可する。集約ルートは `AbstractAggregateRoot` を継承し、`registerEvent()` でドメインイベントを登録する。
 - **presentation → infrastructure 禁止**: presentation は infrastructure に依存してはいけない。
 - **presentation → domain 禁止**: presentation パッケージは domain パッケージに依存してはいけない。例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置し、presentation と application の両方から参照可能にする。
 - **子 → 親パッケージ依存禁止**: 子パッケージから親パッケージへの依存を禁止する。
+
+### Query-only モジュールの DB 直接アクセス
+
+**Query-only モジュール**（domain 層を持たないモジュール）は、他モジュールの DB テーブルを jOOQ で直接クエリしてよい。これは以下の理由による:
+
+- Query-only モジュールは読み取り専用であり、他モジュールのドメインロジックに影響しない
+- 他モジュールの QueryService インターフェースを DI すると、モジュール間の結合度が上がる
+- CQRS の Query 側は DB を直接参照するのが自然なパターン
+
+ただし、他モジュールのテーブルへの **書き込み（INSERT/UPDATE/DELETE）は禁止** する。書き込みは必ず該当モジュールの CommandHandler 経由で行う。
 
 ---
 
@@ -140,13 +151,14 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 
 ### DDD 型とパッケージの双方向制約
 
-| 型 | 配置先パッケージ |
-|---|---|
-| `AggregateRoot` 実装 | `model/aggregate/` のみ |
-| `Entity` 実装（AggregateRoot 除く） | `model/entity/` のみ |
-| `Identifier` 実装 | `model/valueobject/identifier/` のみ |
-| `ValueObject` 実装 | `model/valueobject/` のみ |
-| `Repository` 実装 | `domain/repository/` のみ |
+| 型                                  | 配置先パッケージ                     |
+| ----------------------------------- | ------------------------------------ |
+| `AggregateRoot` 実装                | `model/aggregate/` のみ              |
+| `Entity` 実装（AggregateRoot 除く） | `model/entity/` のみ                 |
+| `Identifier` 実装                   | `model/valueobject/identifier/` のみ |
+| `ValueObject` 実装                  | `model/valueobject/` のみ            |
+| `Repository` 実装                   | `domain/repository/` のみ            |
+| enum（集約の状態・区分値）          | `model/aggregate/` に集約と同居      |
 
 逆方向も検証される: 各パッケージには対応する型の実装のみ配置可能。
 
@@ -161,19 +173,18 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 
 ```java
 @Getter
-@EqualsAndHashCode(of = "id", callSuper = false)
-public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot<Order, OrderId> {
+@EqualsAndHashCode(of = "id")
+public class Order implements AggregateRoot<Order, OrderId> {
 
   private final OrderId id;
   private final String customerName;
   private final OrderStatus status;
 
-  // コンストラクタ（Factory から呼び出す）
-  Order(final OrderId id, final String customerName) {
+  // Factory から呼び出す新規作成用コンストラクタ（public）
+  public Order(final OrderId id, final String customerName) {
     this.id = id;
     this.customerName = customerName;
     this.status = OrderStatus.CREATED;
-    registerEvent(new OrderCreated(id));
   }
 
   // 状態変更は新しいインスタンスを返す
@@ -186,30 +197,34 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
 ### equals/hashCode の規約
 
 集約およびエンティティの `equals`/`hashCode` は ID のみで比較する。`@EqualsAndHashCode(of = "id")` を使用すること。
-`AbstractAggregateRoot` を継承する集約ルートでは `@EqualsAndHashCode(of = "id", callSuper = false)` を指定する。
 
 ---
 
 ## 集約の再構築パターン
 
 `RepositoryImpl` から集約を再構築する場合は、集約クラス内に `public static reconstitute(...)` メソッドを定義する。
-直接 `new` による集約の生成は `model/aggregate/` 内と `domain/service/` 内でのみ許可する。
+直接 `new` による集約の生成は `model/aggregate/` 内と `domain/service/` 内でのみ許可する（ArchUnit `AGG_CTOR` ルールで検証）。
+
+### コンストラクタの可視性
+
+- 新規作成用コンストラクタは `public` とする。Factory が `domain/service/` パッケージにあるため package-private ではアクセスできない。
+- ArchUnit の `AGG_CTOR` ルールにより、呼び出し元は `model/aggregate/` と `domain/service/` に制限されるため、`public` でも安全性は担保される。
+- `reconstitute` 用の全フィールドコンストラクタは `private` とする。
 
 ```java
 @Getter
-@EqualsAndHashCode(of = "id", callSuper = false)
-public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot<Order, OrderId> {
+@EqualsAndHashCode(of = "id")
+public class Order implements AggregateRoot<Order, OrderId> {
 
   private final OrderId id;
   private final String customerName;
   private final OrderStatus status;
 
-  // Factory から呼び出す新規作成用コンストラクタ
-  Order(final OrderId id, final String customerName) {
+  // Factory から呼び出す新規作成用コンストラクタ（public）
+  public Order(final OrderId id, final String customerName) {
     this.id = id;
     this.customerName = customerName;
     this.status = OrderStatus.CREATED;
-    registerEvent(new OrderCreated(id));
   }
 
   // RepositoryImpl からの再構築用
@@ -234,15 +249,15 @@ public class Order extends AbstractAggregateRoot<Order> implements AggregateRoot
 実装クラスには以下のアノテーションを付与し、Spring Bean として登録する。
 jMolecules アノテーションは ByteBuddy プラグインにより対応する Spring ステレオタイプアノテーションにビルド時変換される。
 
-| クラス | 付与するアノテーション | ByteBuddy 変換先 |
-|---|---|---|
-| `*RepositoryImpl` | `@org.jmolecules.ddd.annotation.Repository` | → `@springframework.stereotype.Repository` |
-| `*Factory` | `@org.jmolecules.ddd.annotation.Factory` | → `@springframework.stereotype.Component` |
-| `*DomainService` | `@org.jmolecules.ddd.annotation.Service` | → `@springframework.stereotype.Service` |
-| `*QueryServiceImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
-| `*IdGeneratorImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
-| `*CommandHandler` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし） |
-| `*EventListener` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）。`@ApplicationModuleListener` だけでは Bean 登録されない |
+| クラス              | 付与するアノテーション                      | ByteBuddy 変換先                                                                                 |
+| ------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `*RepositoryImpl`   | `@org.jmolecules.ddd.annotation.Repository` | → `@springframework.stereotype.Repository`                                                       |
+| `*Factory`          | `@org.jmolecules.ddd.annotation.Factory`    | → `@springframework.stereotype.Component`                                                        |
+| `*DomainService`    | `@org.jmolecules.ddd.annotation.Service`    | → `@springframework.stereotype.Service`                                                          |
+| `*QueryServiceImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
+| `*IdGeneratorImpl`  | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
+| `*CommandHandler`   | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
+| `*EventListener`    | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）。`@ApplicationModuleListener` だけでは Bean 登録されない |
 
 上記以外の Spring Bean（jMolecules マッピング対象外）は `@org.springframework.stereotype.Component` を直接付与する。
 
@@ -293,3 +308,75 @@ ArchUnit で配置を検証し、CommandHandler 以外のクラスに `@Transact
 
 - **モジュール境界検証**: `ApplicationModules.of(DemoApplication.class).verify()` によりモジュール境界違反と循環依存を検出する。他モジュールの内部（サブパッケージ）クラスに直接アクセスしてはいけない。
 - **ドキュメント自動生成**: モジュール構成図（PlantUML）とモジュールキャンバスを自動生成する。
+
+### モジュール間循環依存の回避
+
+モジュール A → B（同期 API 呼び出し）と B → A が同時に必要な場合、循環依存になる。
+以下のパターンで回避する:
+
+**原則: 同期呼び出しは一方向、逆方向はイベント駆動**
+
+| 方向 | 方式 | 用途 |
+|------|------|------|
+| A → B | 同期（B のルートパッケージの公開 API） | 作成・更新時のバリデーション（頻度高） |
+| B → A | イベント（A が `event/` にイベントを定義、B が listen） | 削除拒否・副作用（頻度低） |
+
+**例: catalog → category（同期）、category の削除時に catalog が拒否（イベント）**
+
+```java
+// category/event/CategoryDeletionRequestedEvent.java（@NamedInterface("event") で公開）
+@DomainEvent
+public record CategoryDeletionRequestedEvent(String categoryId) {}
+
+// category の CommandHandler — 削除時にイベント発行
+eventPublisher.publishEvent(new CategoryDeletionRequestedEvent(id));
+repository.delete(id, version, operatorId);
+
+// catalog の Listener — BEFORE_COMMIT で拒否可能
+@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+public void handleCategoryDeletionRequested(final CategoryDeletionRequestedEvent event) {
+    if (catalogApi.existsProductByCategoryId(event.categoryId())) {
+        throw new IllegalStateException("Cannot delete: products exist");
+    }
+}
+```
+
+`@TransactionalEventListener(phase = BEFORE_COMMIT)` を使うことで、リスナーが例外を投げれば発行元のトランザクションがロールバックされる。
+
+**禁止パターン:**
+- モジュールルートに SPI インターフェースを定義して逆方向から実装させる（循環は解消するが責務が曖昧になる）
+- 双方向の同期 API 呼び出し（`ApplicationModules.verify()` で Cycle detected になる）
+
+### モジュール間通信の全体設計
+
+| 関係 | 方式 | 理由 |
+|------|------|------|
+| catalog → category | 同期 `CategoryApi.existsById()` | 商品作成時に必須チェック。頻度高 |
+| pricing → catalog | 同期 `CatalogApi.existsProductById()` | 価格登録時に必須チェック。頻度高 |
+| category 削除 → 商品存在チェック | イベント `CategoryDeletionRequestedEvent` を catalog が listen | 循環回避。頻度低（削除は稀） |
+| product 削除 → 価格無効化 | イベント `ProductDeletedEvent` を pricing が listen | 非同期でOK。結果整合性 |
+
+### モジュール公開インターフェース構成
+
+```
+category/
+├── CategoryApi.java                          ← 公開（catalog, pricing が使用）
+├── event/CategoryDeletionRequestedEvent.java ← 公開（catalog が listen）
+
+catalog/
+├── CatalogApi.java                           ← 公開（pricing が使用）
+├── event/ProductDeletedEvent.java            ← 公開（pricing が listen）
+
+pricing/
+├── （公開 API なし — 他モジュールから呼ばれない）
+```
+
+### イベントリスナーの使い分け
+
+| アノテーション | フェーズ | 用途 |
+|---------------|---------|------|
+| `@TransactionalEventListener(phase = BEFORE_COMMIT)` | コミット前 | 削除拒否（例外で発行元トランザクションをロールバック） |
+| `@ApplicationModuleListener` | コミット後（Spring Modulith デフォルト） | 副作用（別リソースの論理削除、通知等）。失敗時は Event Publication Registry が再配信 |
+
+- **削除拒否**: `BEFORE_COMMIT` を使う。リスナーが例外を投げれば発行元のトランザクション全体がロールバックされる
+- **副作用（結果整合性）**: `@ApplicationModuleListener` を使う。コミット後に実行され、失敗時は Event Publication Registry が at-least-once 再配信を保証する

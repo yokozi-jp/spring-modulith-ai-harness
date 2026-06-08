@@ -1,0 +1,18 @@
+package {{PKG}};
+
+import {{PARAM_PKG}}.{{NAME}}ListParam;
+import {{QRY_DTO_PKG}}.{{NAME}}DetailDto;
+import {{QRY_DTO_PKG}}.{{NAME}}SummaryDto;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+/** {{NAME}} クエリサービス。 */
+public interface {{NAME}}QueryService {
+
+  /** 一覧取得。 */
+  Page<{{NAME}}SummaryDto> findAll({{NAME}}ListParam param, Pageable pageable);
+
+  /** ID で取得。 */
+  Optional<{{NAME}}DetailDto> findById(String id);
+}

@@ -1,0 +1,54 @@
+package {{PKG}};
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
+import {{HANDLER_PKG}}.{{AGG_NAME}}CommandHandler;
+import {{QRY_SVC_PKG}}.{{AGG_NAME}}QueryService;
+import com.example.demo.config.WebMvcConfig;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+/** Controller tests for {@link {{TARGET}}}. */
+@SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@WebMvcTest(
+    controllers = {{{TARGET}}.class},
+    excludeFilters =
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebMvcConfig.class))
+class {{TEST_CLS}} {
+
+  /** MockMvc。 */
+  private final MockMvc mockMvc;
+
+  /** コマンドハンドラモック。 */
+  @MockitoBean private {{AGG_NAME}}CommandHandler commandHandler;
+
+  /** クエリサービスモック。 */
+  @MockitoBean private {{AGG_NAME}}QueryService queryService;
+
+  // TODO: 以下の観点でテストを実装する
+  // - POST: 201 Created + Location ヘッダー（when + csrf()）
+  // - POST: バリデーション違反で 400 Bad Request
+  // - GET /{id}: 200 + JSON レスポンス（when + Optional.of）
+  // - GET /{id}: 存在しない場合 404（when + Optional.empty）
+  // - GET (一覧): 200 + Page レスポンス
+
+  /** TODO: Controller テストを実装する。 */
+  @Test
+  @WithMockUser
+  void shouldDoSomething() throws Exception {
+    // TODO: mockMvc.perform(MockMvcRequestBuilders.get("/path"))
+    //     .andExpect(MockMvcResultMatchers.status().isOk());
+  }
+}

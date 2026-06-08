@@ -4,23 +4,47 @@
 package com.example.demo.jooq;
 
 
+import com.example.demo.jooq.tables.Categories;
+import com.example.demo.jooq.tables.CategoryClosures;
 import com.example.demo.jooq.tables.EventPublication;
 import com.example.demo.jooq.tables.EventPublicationArchive;
+import com.example.demo.jooq.tables.Pricings;
+import com.example.demo.jooq.tables.Products;
 
 
 /**
- * Convenience access to all tables in demo.
+ * Convenience access to all tables in the default schema.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
 
     /**
-     * The table <code>demo.event_publication</code>.
+     * The table <code>categories</code>.
+     */
+    public static final Categories CATEGORIES = Categories.CATEGORIES;
+
+    /**
+     * The table <code>category_closures</code>.
+     */
+    public static final CategoryClosures CATEGORY_CLOSURES = CategoryClosures.CATEGORY_CLOSURES;
+
+    /**
+     * The table <code>event_publication</code>.
      */
     public static final EventPublication EVENT_PUBLICATION = EventPublication.EVENT_PUBLICATION;
 
     /**
-     * The table <code>demo.event_publication_archive</code>.
+     * The table <code>event_publication_archive</code>.
      */
     public static final EventPublicationArchive EVENT_PUBLICATION_ARCHIVE = EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE;
+
+    /**
+     * The table <code>pricings</code>.
+     */
+    public static final Pricings PRICINGS = Pricings.PRICINGS;
+
+    /**
+     * The table <code>products</code>.
+     */
+    public static final Products PRODUCTS = Products.PRODUCTS;
 }

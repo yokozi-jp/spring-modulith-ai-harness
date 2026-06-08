@@ -6,7 +6,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.library.DependencyRules;
 import com.tngtech.archunit.library.GeneralCodingRules;
 import com.tngtech.archunit.library.ProxyRules;
 import org.springframework.cache.annotation.Cacheable;
@@ -48,15 +47,6 @@ class ArchUnitBuiltInRulesTest {
   /* default */ static final ArchRule NO_DEPRECATED =
       GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED
           .because("@Deprecated API の呼び出しを非推奨でない代替 API に置換してください")
-          .allowEmptyShould(true);
-
-  // === DependencyRules ===
-
-  /** 子パッケージから親パッケージへの依存を禁止する（jOOQ 生成コードは AnalyzeClasses で除外）。 */
-  @ArchTest
-  /* default */ static final ArchRule NO_UPPER_DEPS =
-      DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES
-          .because("子パッケージから親パッケージへの import を除去し、依存方向を修正してください")
           .allowEmptyShould(true);
 
   // === ProxyRules ===

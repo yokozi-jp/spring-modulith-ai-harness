@@ -1,0 +1,24 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.net.URI;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+
+/** Unit tests for {@link {{TARGET}}}. */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+class {{TEST_CLS}} {
+
+  /** テスト対象。 */
+  private final {{TARGET}} sut = new {{TARGET}}();
+
+  /** 正常系: 適切なステータスコードを返すこと。 */
+  @Test
+  void shouldReturnExpectedStatus() {
+    // TODO: call sut.handleXxx(new XxxException("id"))
+    // final ProblemDetail result = sut.handleNotFound(...);
+    // assertEquals(HttpStatus.NOT_FOUND.value(), result.getStatus(), "status should be 404");
+  }
+}

@@ -44,6 +44,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return problem;
   }
 
+  /** 楽観ロックの競合。 */
+  @ExceptionHandler(OptimisticLockException.class)
+  /* default */ ProblemDetail handleOptimisticLock(final OptimisticLockException ex) {
+    log.warn("Optimistic lock conflict: {}", ex.getMessage());
+    final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+    problem.setTitle("Conflict");
+    problem.setDetail(ex.getMessage());
+    problem.setType(URI.create("about:blank"));
+    return problem;
+  }
+
   /** 不正な引数（バリデーション漏れ等）。 */
   @ExceptionHandler(IllegalArgumentException.class)
   /* default */ ProblemDetail handleIllegalArgument(final IllegalArgumentException ex) {

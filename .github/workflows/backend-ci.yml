@@ -6,39 +6,28 @@ permissions:
 on:
   push:
     branches: [main]
-    paths: ['backend/**']
+    paths: ['backend/**', 'compose-test.yaml', '.env.test.example', 'Makefile']
   pull_request:
     branches: [main]
-    paths: ['backend/**']
+    paths: ['backend/**', 'compose-test.yaml', '.env.test.example', 'Makefile']
 
 jobs:
   build:
     runs-on: ubuntu-24.04
 
-    services:
-      docker:
-        image: docker:dind
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Fetch origin/main for Spotless ratchetFrom
-        run: git fetch origin main:refs/remotes/origin/main
-
-      - uses: actions/setup-java@v4
         with:
-          distribution: corretto
-          java-version: '25'
+          fetch-depth: 0
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Copy .env.test.example to .env.test
+        run: cp .env.test.example .env.test
 
-      - name: Run spotlessCheck
-        working-directory: backend
-        run: ./gradlew spotlessCheck
+      - name: Fix permissions for Docker bind mount
+        run: chmod -R 777 backend
 
       - name: Run check (compile, test, PMD, SpotBugs, JaCoCo)
-        working-directory: backend
-        run: ./gradlew check
+        run: make be-test; status=$?; make be-down; exit $status
 
       - name: Upload test reports
         if: always()

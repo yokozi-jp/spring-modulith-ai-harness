@@ -1,7 +1,7 @@
 # Backend 開発ワークフロー
 
 本プロジェクトの backend コード変更時に従うワークフロー。
-すべての作業は `backend/` ディレクトリを起点とする。
+すべての作業は開発コンテナ内（`docker compose exec backend bash`）で実行する。
 
 ---
 
@@ -27,6 +27,9 @@ cd backend && ./scripts/scaffold.sh class <module> <layer> <name> [--aggregate <
 
 - 必ず `scaffold.sh module` でモジュールを先に作成してから実行する
 - ディレクトリと `package-info.java` は自動生成される（手動作成しない）
+- `<name>` にはレイヤーサフィックスを含めない（scaffold が自動付与する）
+  - ✅ `./scripts/scaffold.sh class category command UpdateCategory` → `UpdateCategoryCommand.java`
+  - ❌ `./scripts/scaffold.sh class category command UpdateCategoryCommand` → `UpdateCategoryCommandCommand.java`
 - `aggregate` 生成時は Identifier・Factory・Repository・RepositoryImpl が自動連鎖生成される
 - `entity` 生成時は `--aggregate` 必須。Identifier・Factory・IdGenerator・IdGeneratorImpl が自動連鎖生成される
 - `exception` 生成時は ExceptionHandler（`@RestControllerAdvice`）が自動連鎖生成される
@@ -58,6 +61,8 @@ cd backend && ./scripts/scaffold.sh class <module> <layer> <name> [--aggregate <
 | `request` | `presentation/request/` | record |
 | `response` | `presentation/response/` | record |
 | `api` | 複数パッケージ | Controller + Request + 2 Response + Command + CommandResult DTO + CommandHandler + Param + 2 QueryDto + QueryService + QueryServiceImpl + Exception + ExceptionHandler（14ファイル連鎖生成、aggregate 必須） |
+
+> **ExceptionHandler 命名規則**: モジュール別 ExceptionHandler のクラス名は `<Aggregate名>ExceptionHandler`（例: `ScheduleExceptionHandler`, `PerformanceIdeaExceptionHandler`）とする。モジュール名ではなく集約名（PascalCase）を使う。scaffold が自動生成する。
 
 ---
 
@@ -91,7 +96,7 @@ cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 | `usecase` | `src/test/` | `@SpringBootTest` + `@Tag("integration")` + UseCase→DB結合 |
 | `moduletest` | `src/test/` | `@ApplicationModuleTest` + `@Tag("integration")` + イベント検証 |
 | `jooqquery` | `src/test/` | `@JooqTest` + `@Tag("integration")` + SQL クエリ検証 |
-| `e2e` | `src/test/` | `@SpringBootTest(RANDOM_PORT)` + `@Tag("e2e")` + 全コンテナ |
+| `e2e` | `src/test/` | `@SpringBootTest(RANDOM_PORT)` + `@Tag("integration")` + 全コンテナ |
 
 ### 参照
 
@@ -119,13 +124,30 @@ cd backend && ./scripts/scaffold.sh test <module> <type> <target-class>
 ### 4-1. フォーマット適用
 
 ```bash
-cd backend && ./gradlew spotlessApply
+make be-fmt
 ```
 
-### 4-2. 全チェック実行
+### 4-2. TDD ループ（高速フィードバック）
 
 ```bash
-cd backend && ./gradlew check
+make be-quick
+```
+
+`quick` は compile + unit test のみ実行する（PMD/SpotBugs/integration をスキップ）。
+TDD の Red-Green-Refactor サイクルではこれを繰り返し使う。
+
+### 4-3. 静的解析のみ
+
+```bash
+make be-lint
+```
+
+Spotless check + PMD のみ実行する。コード規約違反を素早く確認したいときに使う。
+
+### 4-4. 全チェック実行
+
+```bash
+make be-test
 ```
 
 `check` には以下が含まれる:
@@ -135,9 +157,9 @@ cd backend && ./gradlew check
 - ユニットテスト（`src/test/`、タグなし）
 - 統合テスト（`src/test/`、`@Tag("integration")` — PostgreSQL コンテナ自動起動）
 
-### 4-3. 失敗時の対応
+### 4-5. 失敗時の対応
 
-- **Spotless 違反**: `spotlessApply` を再実行
+- **Spotless 違反**: `make be-fmt` を再実行
 - **PMD 違反**: `java-coding-standards.md` の該当ルールを参照して修正。`@SuppressWarnings("PMD.RuleName")` は最終手段
 - **NullAway 違反**: `@Nullable` の付与漏れを確認
 - **アーキテクチャテスト違反**: `architecture-rules.md` を参照してパッケージ配置・依存方向を修正
@@ -155,9 +177,12 @@ cd backend && ./gradlew check
                       （テスト自動連鎖: handler + exceptionhandler + response×2
                        + exception + controller + security + integration
                        + usecase + moduletest + jooqquery + e2e）
-4. ビジネスロジック実装（TODO を解消）
-5. spotlessApply    → フォーマット適用
-6. gradlew check    → 全検証パス確認
+4. Liquibase マイグレーション追加（テーブル定義）
+5. jOOQ コード再生成 → make be-jooq
+6. TDD ループ       → make be-quick（compile + unit test のみ、高速フィードバック）
+7. ビジネスロジック実装（TODO を解消、6 と 7 を繰り返す）
+8. spotlessApply    → make be-fmt
+9. gradlew check    → make be-test
 ```
 
 典型的な実行例:
@@ -167,9 +192,22 @@ cd backend && ./gradlew check
 ./scripts/scaffold.sh class order aggregate Order
 ./scripts/scaffold.sh class order api Order
 # → main 29ファイル + test 16ファイルが自動生成される
+# Liquibase マイグレーション追加
+# jOOQ 生成コード更新
+make be-jooq
 # → TODO コメントを解消してビジネスロジックを実装
-./gradlew spotlessApply
-./gradlew check
+make be-quick  # TDD ループ（compile + unit test のみ）
+make be-fmt
+make be-test
 ```
 
 すべてのステップを完了してからコミットする。
+
+---
+
+## 6. JaCoCo カバレッジ
+
+- カバレッジ閾値は命令カバレッジ 85% 以上（`build.gradle` の `jacocoTestCoverageVerification`）
+- `make be-test`（`check`）実行時にカバレッジ閾値を検証する
+- 閾値未達の場合ビルドは失敗するが、TDD ループ（`make be-quick`）には影響しない
+- 新規モジュール追加直後はカバレッジが不足するため、テスト実装を進めて 85% を達成すること

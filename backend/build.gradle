@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.jmolecules.integrations:jmolecules-bytebuddy:1.6.0'
-        classpath 'org.liquibase:liquibase-core:5.0.2'
+        classpath 'org.liquibase:liquibase-core:5.0.3'
     }
 }
 
@@ -18,9 +18,9 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.6'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'com.diffplug.spotless' version '8.4.0'         // コードフォーマッター（Google Java Format）
+    id 'com.diffplug.spotless' version '8.6.0'         // コードフォーマッター（Google Java Format）
     id 'pmd'                                            // 静的解析（PMD 7）
-    id 'com.github.spotbugs' version '6.5.4'           // バグパターン検出
+    id 'com.github.spotbugs' version '6.5.5'           // バグパターン検出
     id 'info.solidsoft.pitest' version '1.19.0'         // ミューテーションテスト
     id 'jacoco'                                         // コードカバレッジ
     id 'net.ltgt.errorprone' version '5.1.0'            // Error Prone + NullAway
@@ -61,10 +61,10 @@ sourceSets {
 
 // --- jOOQ codegen: Testcontainers + Liquibase + jOOQ ---
 // Testcontainers が一時的な PostgreSQL を起動し、Liquibase でマイグレーション後に codegen する。
-// 使い方: ./gradlew --no-daemon generateJooq（または ./gradlew build で自動実行）
+// 使い方: make jooq（開発コンテナ起動中に実行）
 tasks.register('generateJooq', jooq.GenerateJooqTask) {
     group = 'jooq'
-    description = 'Start PostgreSQL Testcontainer, run Liquibase, then generate jOOQ classes'
+    description = 'Run Liquibase on temp schema, then generate jOOQ classes'
     outputDirectory.set(jooqGeneratedDir)
 }
 
@@ -88,11 +88,15 @@ spotbugs {
     ignoreFailures = false
     showStackTraces = true
     showProgress = true
+    excludeFilter = file('config/spotbugs/exclusion-filter.xml')
 }
 
 // SpotBugs から jOOQ 生成コードを除外
 tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
     classes = classes.filter { !it.path.contains('/jooq/') }
+    reports {
+        xml.required = true
+    }
 }
 
 // --- PIT: ミューテーションテスト ---
@@ -134,6 +138,9 @@ dependencies {
 
     // OpenTelemetry Logback Appender: ログを OTLP 経由で Loki 等に送信する。
     // Spring Boot 4 は SDK を自動設定するが、Logback appender は別途必要。
+    // NOTE: 2.27.0-alpha は opentelemetry-api 1.61.0 を要求するが、Spring Boot 4.0.6 の
+    // dependency management が 1.55.0 に強制ダウングレードするためバージョン不整合が生じる。
+    // Spring Boot 側の OTel BOM が 1.61+ に上がるまで 2.21.0-alpha を維持する。
     implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.21.0-alpha'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
@@ -186,6 +193,7 @@ dependencies {
     // テスト: Spring Boot テストスターター
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-resttestclient'
+    testImplementation 'org.springframework.boot:spring-boot-restclient'
     testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-opentelemetry-test'
@@ -193,14 +201,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-
-    // テスト: Testcontainers（統合テスト用コンテナ管理）
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'com.github.dasniko:testcontainers-keycloak:4.2.1'
-    testImplementation 'org.testcontainers:testcontainers-grafana'
-    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
-    testImplementation 'org.testcontainers:testcontainers-postgresql'
-    testImplementation 'com.redis:testcontainers-redis:2.2.4'
 
     // テスト: Spring Modulith テストサポート
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
@@ -222,10 +222,17 @@ dependencyManagement {
 }
 
 // --- テスト設定 ---
+// テスト fork JVM のヒープをコンテナメモリの 60% に設定
+// テストを並列実行（CPU コア数の半分）
+tasks.withType(Test).configureEach {
+    jvmArgs '-XX:MaxRAMPercentage=60.0'
+    maxParallelForks = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
+}
+
 // デフォルトの test タスクは integration / e2e タグを除外（高速な unit + slice のみ）
 tasks.named('test') {
     useJUnitPlatform {
-        excludeTags 'integration', 'e2e'
+        excludeTags 'integration'
     }
     finalizedBy jacocoTestReport
 }
@@ -243,17 +250,11 @@ tasks.register('integrationTest', Test) {
     shouldRunAfter tasks.named('test')
 }
 
-// --- e2eTest タスク ---
-// @Tag("e2e") が付いたテストのみ実行（全コンテナ必要）
-tasks.register('e2eTest', Test) {
-    description = 'Runs E2E tests (requires all containers: PostgreSQL, Redis, Keycloak).'
-    group = 'verification'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    useJUnitPlatform {
-        includeTags 'e2e'
-    }
-    shouldRunAfter tasks.named('integrationTest')
+// check タスク実行時にカバレッジ閾値は検証しない（実装途中でブロックしないため）。
+// integrationTest とカバレッジ閾値チェックを check に含める。
+tasks.named('check') {
+    dependsOn tasks.named('integrationTest')
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 // --- JaCoCo: カバレッジレポート ---
@@ -273,7 +274,8 @@ jacocoTestReport {
 }
 
 // --- JaCoCo: カバレッジ閾値チェック ---
-// 命令カバレッジ 85% 以上を要求。
+// 命令カバレッジ 85% 以上を要求。check からは除外し、手動実行（./gradlew jacocoTestCoverageVerification）。
+// 全モジュールのテスト実装完了後に 85% を達成すること。
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
     executionData.setFrom(fileTree(layout.buildDirectory).include("jacoco/*.exec"))
@@ -291,19 +293,14 @@ jacocoTestCoverageVerification {
     }
 }
 
-// check タスク実行時にカバレッジ閾値も検証する。
-// integrationTest も check に含める。e2eTest は重いため手動実行（./gradlew e2eTest）。
-tasks.named('check') {
-    dependsOn jacocoTestCoverageVerification
-    dependsOn tasks.named('integrationTest')
-}
-
 // --- Error Prone + NullAway ---
 // 本番コード: NullAway を error レベルで有効化（JSpecifyMode）。
 // テストコード: NullAway を無効化。
 tasks.withType(JavaCompile).configureEach {
     options.errorprone {
         error('NullAway')
+        error('UnusedVariable')
+        error('JavaTimeDefaultTimeZone')
         option('NullAway:AnnotatedPackages', 'com.example.demo')
         option('NullAway:JSpecifyMode', 'true')
     }
@@ -340,7 +337,7 @@ tasks.named('classes') {
 // JAVA_TOOL_OPTIONS は Gradle Daemon にも適用されるため、bootRun の jvmArgs で渡す。
 tasks.named('bootRun') {
     jvmArgs = [
-        '-Duser.timezone=UTC',
+        '-XX:MaxRAMPercentage=60.0',
         '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'
     ]
 }
@@ -369,7 +366,7 @@ liquibase {
 // --- Liquibase / jOOQ codegen ランタイム依存 ---
 dependencies {
     // Liquibase Gradle プラグイン用（./gradlew update, rollbackCount 等）
-    liquibaseRuntime 'org.liquibase:liquibase-core:5.0.2'
+    liquibaseRuntime 'org.liquibase:liquibase-core:5.0.3'
     liquibaseRuntime 'org.postgresql:postgresql'
     liquibaseRuntime 'info.picocli:picocli:4.7.7'  // Liquibase 5 の CLI パーサーが必要
 }

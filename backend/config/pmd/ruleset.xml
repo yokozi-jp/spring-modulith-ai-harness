@@ -23,8 +23,15 @@
         <exclude name="LongVariable"/>
         <!-- DDD ではドメインモデル名が短くなることがあるため無効化 -->
         <exclude name="ShortClassName"/>
+        <!-- DDD のガード節（早期 return/throw）を自然に書くため無効化 -->
+        <exclude name="OnlyOneReturn"/>
     </rule>
-    <rule ref="category/java/design.xml"/>
+    <rule ref="category/java/design.xml">
+        <!-- jOOQ メソッドチェーン・Optional チェーン等、流暢 API では不可避なため無効化 -->
+        <exclude name="LawOfDemeter"/>
+        <!-- CRUD Controller は Command/DTO/Request/Response 等で import が多くなるため無効化 -->
+        <exclude name="ExcessiveImports"/>
+    </rule>
     <rule ref="category/java/documentation.xml">
         <!-- Javadoc の行数・行長制限は Google Java Format に委ねるため無効化 -->
         <exclude name="CommentSize"/>

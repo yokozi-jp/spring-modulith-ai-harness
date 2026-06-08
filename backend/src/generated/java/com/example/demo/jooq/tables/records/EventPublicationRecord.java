@@ -22,126 +22,126 @@ public class EventPublicationRecord extends UpdatableRecordImpl<EventPublication
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>demo.event_publication.id</code>.
+     * Setter for <code>event_publication.id</code>.
      */
     public void setId(UUID value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.id</code>.
+     * Getter for <code>event_publication.id</code>.
      */
     public UUID getId() {
         return (UUID) get(0);
     }
 
     /**
-     * Setter for <code>demo.event_publication.listener_id</code>.
+     * Setter for <code>event_publication.listener_id</code>.
      */
     public void setListenerId(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.listener_id</code>.
+     * Getter for <code>event_publication.listener_id</code>.
      */
     public String getListenerId() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>demo.event_publication.event_type</code>.
+     * Setter for <code>event_publication.event_type</code>.
      */
     public void setEventType(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.event_type</code>.
+     * Getter for <code>event_publication.event_type</code>.
      */
     public String getEventType() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>demo.event_publication.serialized_event</code>.
+     * Setter for <code>event_publication.serialized_event</code>.
      */
     public void setSerializedEvent(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.serialized_event</code>.
+     * Getter for <code>event_publication.serialized_event</code>.
      */
     public String getSerializedEvent() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>demo.event_publication.publication_date</code>.
+     * Setter for <code>event_publication.publication_date</code>.
      */
     public void setPublicationDate(OffsetDateTime value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.publication_date</code>.
+     * Getter for <code>event_publication.publication_date</code>.
      */
     public OffsetDateTime getPublicationDate() {
         return (OffsetDateTime) get(4);
     }
 
     /**
-     * Setter for <code>demo.event_publication.completion_date</code>.
+     * Setter for <code>event_publication.completion_date</code>.
      */
     public void setCompletionDate(OffsetDateTime value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.completion_date</code>.
+     * Getter for <code>event_publication.completion_date</code>.
      */
     public OffsetDateTime getCompletionDate() {
         return (OffsetDateTime) get(5);
     }
 
     /**
-     * Setter for <code>demo.event_publication.status</code>.
+     * Setter for <code>event_publication.status</code>.
      */
     public void setStatus(String value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.status</code>.
+     * Getter for <code>event_publication.status</code>.
      */
     public String getStatus() {
         return (String) get(6);
     }
 
     /**
-     * Setter for <code>demo.event_publication.completion_attempts</code>.
+     * Setter for <code>event_publication.completion_attempts</code>.
      */
     public void setCompletionAttempts(Integer value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.completion_attempts</code>.
+     * Getter for <code>event_publication.completion_attempts</code>.
      */
     public Integer getCompletionAttempts() {
         return (Integer) get(7);
     }
 
     /**
-     * Setter for <code>demo.event_publication.last_resubmission_date</code>.
+     * Setter for <code>event_publication.last_resubmission_date</code>.
      */
     public void setLastResubmissionDate(OffsetDateTime value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>demo.event_publication.last_resubmission_date</code>.
+     * Getter for <code>event_publication.last_resubmission_date</code>.
      */
     public OffsetDateTime getLastResubmissionDate() {
         return (OffsetDateTime) get(8);

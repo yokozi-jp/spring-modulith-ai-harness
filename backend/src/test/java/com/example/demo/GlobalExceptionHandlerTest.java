@@ -24,6 +24,20 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
+  void shouldReturn409ForOptimisticLock() {
+    final ProblemDetail result =
+        handler.handleOptimisticLock(new OptimisticLockException("Product", "abc-123"));
+
+    assertEquals(HttpStatus.CONFLICT.value(), result.getStatus(), "status should be 409");
+    assertEquals("Conflict", result.getTitle(), "title should be Conflict");
+    assertEquals(
+        "Product with id abc-123 has been modified by another transaction",
+        result.getDetail(),
+        "detail should contain entity info");
+    assertEquals(URI.create("about:blank"), result.getType(), "type should be about:blank");
+  }
+
+  @Test
   void shouldReturn400ForIllegalArgument() {
     final ProblemDetail result =
         handler.handleIllegalArgument(new IllegalArgumentException("bad arg"));

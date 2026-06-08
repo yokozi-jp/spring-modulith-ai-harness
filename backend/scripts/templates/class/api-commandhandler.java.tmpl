@@ -1,0 +1,33 @@
+package {{PKG}};
+
+import {{CMD_DTO_PKG}}.Created{{NAME}}Dto;
+import {{CMD_PKG}}.Create{{NAME}}Command;
+import {{FACTORY_PKG}}.{{NAME}}Factory;
+import {{AGG_PKG}}.{{NAME}};
+import lombok.RequiredArgsConstructor;
+import org.jmolecules.architecture.cqrs.CommandHandler;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/** {{NAME}} コマンドハンドラ。 */
+@RequiredArgsConstructor
+@Component
+public class {{NAME}}CommandHandler {
+
+  /** ファクトリ。 */
+  private final {{NAME}}Factory factory;
+
+  /** イベント発行。 */
+  private final ApplicationEventPublisher eventPublisher;
+
+  /** 作成コマンドを処理する。 */
+  @Transactional
+  @CommandHandler
+  public Created{{NAME}}Dto handle(final Create{{NAME}}Command command) {
+    final {{NAME}} aggregate = factory.create();
+    final String id = aggregate.getId().value();
+    // TODO: eventPublisher.publishEvent(new {{NAME}}Created(aggregate.getId()));
+    return new Created{{NAME}}Dto(id);
+  }
+}

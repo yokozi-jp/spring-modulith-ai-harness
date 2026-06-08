@@ -4,8 +4,11 @@
 package com.example.demo.jooq;
 
 
+import com.example.demo.jooq.tables.CategoryClosures;
 import com.example.demo.jooq.tables.EventPublication;
 import com.example.demo.jooq.tables.EventPublicationArchive;
+import com.example.demo.jooq.tables.Pricings;
+import com.example.demo.jooq.tables.Products;
 
 import org.jooq.Index;
 import org.jooq.OrderField;
@@ -14,7 +17,7 @@ import org.jooq.impl.Internal;
 
 
 /**
- * A class modelling indexes of tables in demo.
+ * A class modelling indexes of tables in the default schema.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Indexes {
@@ -23,8 +26,14 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index CATEGORY_CLOSURES_ANCESTOR_ID_DEPTH_IDX = Internal.createIndex(DSL.name("category_closures_ancestor_id_depth_idx"), CategoryClosures.CATEGORY_CLOSURES, new OrderField[] { CategoryClosures.CATEGORY_CLOSURES.ANCESTOR_ID, CategoryClosures.CATEGORY_CLOSURES.DEPTH }, false);
+    public static final Index CATEGORY_CLOSURES_DESCENDANT_ID_IDX = Internal.createIndex(DSL.name("category_closures_descendant_id_idx"), CategoryClosures.CATEGORY_CLOSURES, new OrderField[] { CategoryClosures.CATEGORY_CLOSURES.DESCENDANT_ID }, false);
     public static final Index EVENT_PUBLICATION_ARCHIVE_BY_COMPLETION_DATE_IDX = Internal.createIndex(DSL.name("event_publication_archive_by_completion_date_idx"), EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE, new OrderField[] { EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE.COMPLETION_DATE }, false);
     public static final Index EVENT_PUBLICATION_ARCHIVE_SERIALIZED_EVENT_HASH_IDX = Internal.createIndex(DSL.name("event_publication_archive_serialized_event_hash_idx"), EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE, new OrderField[] { EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE.SERIALIZED_EVENT }, false);
     public static final Index EVENT_PUBLICATION_BY_COMPLETION_DATE_IDX = Internal.createIndex(DSL.name("event_publication_by_completion_date_idx"), EventPublication.EVENT_PUBLICATION, new OrderField[] { EventPublication.EVENT_PUBLICATION.COMPLETION_DATE }, false);
     public static final Index EVENT_PUBLICATION_SERIALIZED_EVENT_HASH_IDX = Internal.createIndex(DSL.name("event_publication_serialized_event_hash_idx"), EventPublication.EVENT_PUBLICATION, new OrderField[] { EventPublication.EVENT_PUBLICATION.SERIALIZED_EVENT }, false);
+    public static final Index PRICINGS_PRODUCT_ID_IDX = Internal.createIndex(DSL.name("pricings_product_id_idx"), Pricings.PRICINGS, new OrderField[] { Pricings.PRICINGS.PRODUCT_ID }, false);
+    public static final Index PRICINGS_PRODUCT_ID_LEVEL_AREA_CODE_IDX = Internal.createIndex(DSL.name("pricings_product_id_level_area_code_idx"), Pricings.PRICINGS, new OrderField[] { Pricings.PRICINGS.PRODUCT_ID, Pricings.PRICINGS.LEVEL, Pricings.PRICINGS.AREA_CODE }, false);
+    public static final Index PRODUCTS_CATEGORY_ID_STATUS_IDX = Internal.createIndex(DSL.name("products_category_id_status_idx"), Products.PRODUCTS, new OrderField[] { Products.PRODUCTS.CATEGORY_ID, Products.PRODUCTS.STATUS }, false);
+    public static final Index PRODUCTS_SKU_KEY = Internal.createIndex(DSL.name("products_sku_key"), Products.PRODUCTS, new OrderField[] { Products.PRODUCTS.SKU }, true);
 }

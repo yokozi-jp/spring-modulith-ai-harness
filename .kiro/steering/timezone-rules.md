@@ -3,8 +3,7 @@
 ## タイムゾーン
 
 - サーバー（JVM）と DB は UTC に統一する
-- JVM（dev）: `build.gradle` の `bootRun.jvmArgs` で `-Duser.timezone=UTC` を指定
-- JVM（本番）: 環境変数 `TZ=UTC` を設定（`JAVA_TOOL_OPTIONS=-Duser.timezone=UTC` でも可）
+- JVM: `.env` の `TZ=UTC` を Docker コンテナの環境変数として注入（OS レベルで JVM に反映される）
 - PostgreSQL: `.env` の `TZ=UTC` を compose.yaml 経由で設定
 - タイムゾーン変換はフロントエンドで行う
 

@@ -29,39 +29,27 @@ repositories {
 // ルート build.gradle 側や pluginManagement 側での対処が別途必要になる場合がある。
 configurations.all {
     resolutionStrategy {
-        force 'org.apache.commons:commons-compress:1.27.1'
+        force 'org.apache.commons:commons-compress:1.28.0'
     }
 }
 
 dependencies {
-    // GenerateJooqTask 内で PostgreSQL の Testcontainer を起動するために必要。
-    // jOOQ codegen 用の一時DBを立ち上げ、Liquibase migration を適用してから
-    // そのDBを introspection して jOOQ のコードを生成する。
-    implementation 'org.testcontainers:postgresql:1.21.3'
-
-    // Testcontainers で起動した PostgreSQL に JDBC 接続するためのドライバ。
+    // PostgreSQL に JDBC 接続するためのドライバ。
     // Liquibase と jOOQ codegen の両方がこの JDBC ドライバを使う。
-    implementation 'org.postgresql:postgresql:42.7.8'
+    implementation 'org.postgresql:postgresql:42.7.11'
 
     // GenerateJooqTask 内で Liquibase migration を実行するために必要。
-    // Gradle の liquibase plugin をタスクとして呼ぶのではなく、
-    // Liquibase Java API を直接呼び出して、Testcontainers の同一DBに migration を流す。
-    implementation 'org.liquibase:liquibase-core:5.0.2'
+    implementation 'org.liquibase:liquibase-core:5.0.3'
 
     // jOOQ のコード生成エンジン本体。
-    // GenerateJooqTask 内の GenerationTool.generate(...) を使うために必要。
+    // バージョンは Spring Boot が管理する jOOQ runtime と一致させること。
+    // 不一致だと生成コードが runtime API と合わずコンパイルエラーになる。
+    // 確認: ./gradlew dependencyInsight --dependency org.jooq:jooq
     implementation 'org.jooq:jooq-codegen:3.19.32'
 
     // jOOQ がDBメタデータを読み取るためのモジュール。
-    // PostgreSQL のテーブル、カラム、制約、型などを解析して codegen に渡す。
     implementation 'org.jooq:jooq-meta:3.19.32'
 
     // jOOQ のコアAPI。
-    // codegen 設定クラスや生成処理の一部で必要になる。
-    //
-    // 注意:
-    // アプリ本体側でも spring-boot-starter-jooq 経由で jOOQ が入るため、
-    // buildSrc 側の jOOQ バージョンとアプリ実行時の jOOQ バージョンは
-    // できるだけ揃えるのが安全。
     implementation 'org.jooq:jooq:3.19.32'
 }

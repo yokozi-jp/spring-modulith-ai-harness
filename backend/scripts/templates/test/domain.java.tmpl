@@ -1,0 +1,40 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
+/** Unit tests for {@link {{TARGET}}}. */
+class {{TEST_CLS}} {
+
+  // TODO: テスト用定数を定義する（ID値、名前等）
+  // private static final String ID_VALUE = "test-id";
+
+  // TODO: 以下の観点でテストを実装する
+  // - 正常系: 新規作成時の初期状態（ステータス、フィールド値）
+  // - 正常系: 状態遷移メソッド（publish, confirm 等）
+  // - 正常系: ドメインイベントの登録（getDomainEvents()）
+  // - 異常系: null / blank 引数で例外
+  // - 異常系: 不正な状態遷移で例外
+  // - reconstitute で再構築した場合にイベントが登録されないこと
+
+  /** TODO: 正常系テストを実装する。 */
+  @Test
+  void shouldCreateSuccessfully() {
+    // TODO: new {{TARGET}}(...) or reconstitute(...) で生成し、状態を検証
+    assertNotNull(null, "TODO: replace with actual assertion");
+  }
+
+  /** TODO: 異常系テストを実装する。 */
+  @Test
+  void shouldThrowWhenInvalidArgument() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          // TODO: 不正な引数で生成を試みる
+        },
+        "should throw on invalid argument");
+  }
+}

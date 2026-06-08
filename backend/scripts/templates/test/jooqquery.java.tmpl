@@ -1,0 +1,35 @@
+package {{PKG}};
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import lombok.RequiredArgsConstructor;
+import org.jooq.DSLContext;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.jooq.test.autoconfigure.JooqTest;
+import org.springframework.test.context.TestConstructor;
+
+/** jOOQ query tests for {@link {{TARGET}}}. */
+@Tag("integration")
+@JooqTest
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
+class {{TEST_CLS}} {
+
+  /** jOOQ DSLContext。 */
+  private final DSLContext dsl;
+
+  // TODO: 以下の観点でテストを実装する
+  // - SELECT クエリが正しい結果を返すこと
+  // - WHERE 条件が正しくフィルタすること
+  // - ページネーション（LIMIT / OFFSET）が正しく動作すること
+  // - JOIN が正しいデータを結合すること
+  // - INSERT / UPDATE が正しく永続化すること
+
+  /** TODO: クエリが正しく動作すること。 */
+  @Test
+  void shouldExecuteQuery() {
+    assertNotNull(dsl, "DSLContext should be injected");
+    // TODO: dsl.selectFrom(TABLE).where(...).fetch() を検証する
+  }
+}

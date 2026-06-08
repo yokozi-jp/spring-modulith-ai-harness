@@ -4,10 +4,18 @@
 package com.example.demo.jooq;
 
 
+import com.example.demo.jooq.tables.Categories;
+import com.example.demo.jooq.tables.CategoryClosures;
 import com.example.demo.jooq.tables.EventPublication;
 import com.example.demo.jooq.tables.EventPublicationArchive;
+import com.example.demo.jooq.tables.Pricings;
+import com.example.demo.jooq.tables.Products;
+import com.example.demo.jooq.tables.records.CategoriesRecord;
+import com.example.demo.jooq.tables.records.CategoryClosuresRecord;
 import com.example.demo.jooq.tables.records.EventPublicationArchiveRecord;
 import com.example.demo.jooq.tables.records.EventPublicationRecord;
+import com.example.demo.jooq.tables.records.PricingsRecord;
+import com.example.demo.jooq.tables.records.ProductsRecord;
 
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
@@ -16,8 +24,8 @@ import org.jooq.impl.Internal;
 
 
 /**
- * A class modelling foreign key relationships and constraints of tables in
- * demo.
+ * A class modelling foreign key relationships and constraints of tables in the
+ * default schema.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Keys {
@@ -26,6 +34,10 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<CategoriesRecord> CATEGORIES_PKEY = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), new TableField[] { Categories.CATEGORIES.ID }, true);
+    public static final UniqueKey<CategoryClosuresRecord> CATEGORY_CLOSURES_PKEY = Internal.createUniqueKey(CategoryClosures.CATEGORY_CLOSURES, DSL.name("category_closures_pkey"), new TableField[] { CategoryClosures.CATEGORY_CLOSURES.ANCESTOR_ID, CategoryClosures.CATEGORY_CLOSURES.DESCENDANT_ID }, true);
     public static final UniqueKey<EventPublicationRecord> EVENT_PUBLICATION_PKEY = Internal.createUniqueKey(EventPublication.EVENT_PUBLICATION, DSL.name("event_publication_pkey"), new TableField[] { EventPublication.EVENT_PUBLICATION.ID }, true);
     public static final UniqueKey<EventPublicationArchiveRecord> EVENT_PUBLICATION_ARCHIVE_PKEY = Internal.createUniqueKey(EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE, DSL.name("event_publication_archive_pkey"), new TableField[] { EventPublicationArchive.EVENT_PUBLICATION_ARCHIVE.ID }, true);
+    public static final UniqueKey<PricingsRecord> PRICINGS_PKEY = Internal.createUniqueKey(Pricings.PRICINGS, DSL.name("pricings_pkey"), new TableField[] { Pricings.PRICINGS.ID }, true);
+    public static final UniqueKey<ProductsRecord> PRODUCTS_PKEY = Internal.createUniqueKey(Products.PRODUCTS, DSL.name("products_pkey"), new TableField[] { Products.PRODUCTS.ID }, true);
 }

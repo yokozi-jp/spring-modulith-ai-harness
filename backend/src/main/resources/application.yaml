@@ -64,17 +64,20 @@ spring:
             token-uri: ${OAUTH2_TOKEN_URI}
             jwk-set-uri: ${OAUTH2_JWK_SET_URI}
             user-info-uri: ${OAUTH2_USERINFO_URI}
-            user-name-attribute: preferred_username
+            user-name-attribute: sub
 
   # Spring Modulith Events: JDBC ベースの Event Publication Registry。
-  # completion-mode: update で完了イベントに日時をマーク。
-  # republish-outstanding-events-on-restart: false はマルチインスタンスデプロイ時の安全策。
+  # completion-mode: archive — 完了イベントを event_publication_archive テーブルへ移動し、
+  #   主テーブルには未完了イベントのみ残す。監査ログとしてアーカイブを保持しつつ性能を維持する。
+  # republish-outstanding-events-on-restart: false — マルチインスタンスデプロイ時に
+  #   他インスタンスが処理中のイベントを誤って再送するリスクを防ぐ。
+  #   未完了イベントのリカバリは IncompleteEventPublications API の定期実行で行う。
   modulith:
     events:
       jdbc:
         schema-initialization:
           enabled: false
-      completion-mode: update
+      completion-mode: archive
       republish-outstanding-events-on-restart: false
 
   # Graceful Shutdown: シャットダウン時に処理中リクエストの完了を最大 30 秒待機。
@@ -148,7 +151,9 @@ management:
   otlp:
     metrics:
       export:
+        enabled: true
         url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT}
+        step: ${OTEL_METRICS_EXPORT_STEP:60s}
 
 # Logging: Micrometer Tracing がクラスパスにあれば traceId/spanId は自動でログに含まれる。
 # structured.format.console: コンソール出力を JSON（ECS 形式）にする。環境変数で制御。

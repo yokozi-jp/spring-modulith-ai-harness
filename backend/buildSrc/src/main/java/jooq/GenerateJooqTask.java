@@ -24,37 +24,29 @@ import org.jooq.meta.jaxb.Generate;
 import org.jooq.meta.jaxb.Generator;
 import org.jooq.meta.jaxb.Jdbc;
 import org.jooq.meta.jaxb.Target;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
  * jOOQ コード生成用 Gradle タスク。
  *
  * <p>
- * 以下の手順で型安全なデータベースアクセスコードを自動生成する:
- *
- * <ol>
- * <li>Testcontainers で一時的な PostgreSQL コンテナを起動
- * <li>Liquibase で最新のマイグレーションを適用し、スキーマを構築
- * <li>jOOQ codegen が実際のスキーマを読み取り、Java ソースを生成
- * <li>コンテナを破棄（使い捨て）
- * </ol>
+ * 開発用 PostgreSQL（smah-postgres）に一時スキーマを作成し、
+ * Liquibase マイグレーション → jOOQ codegen → スキーマ DROP の手順で
+ * 型安全なデータベースアクセスコードを自動生成する。
  *
  * <p>
- * この方式により、開発者のローカル DB や CI 環境に依存せず、
- * 常にマイグレーション定義と一致した jOOQ コードが生成される。
- *
- * <p>
- * 使い方: {@code ./gradlew generateJooq}（{@code compileJava} から自動実行される）
+ * 使い方: {@code make jooq}（開発コンテナ起動中に実行）
  */
 public abstract class GenerateJooqTask extends DefaultTask {
 
+    /** codegen 専用の一時スキーマ名。 */
+    private static final String CODEGEN_SCHEMA = "jooq_codegen";
+
     /** コンストラクタ。プロジェクト規約に基づくデフォルト値を設定する。 */
     @javax.inject.Inject
-    protected GenerateJooqTask() {
-        getPostgresImage().convention("postgres:18.3");
-        getDatabaseName().convention("jooq-codegen");
-        getUsername().convention("jooq-codegen");
-        getPassword().convention("jooq-codegen");
+    public GenerateJooqTask() {
+        getJdbcUrl().convention("jdbc:postgresql://postgres:5432/demo");
+        getUsername().convention("demo");
+        getPassword().convention("demo");
         getLiquibaseSearchPath().convention("src/main/resources");
         getLiquibaseChangelog().convention("db/changelog/db.changelog-master.yaml");
         getPackageName().convention("com.example.demo.jooq");
@@ -62,17 +54,12 @@ public abstract class GenerateJooqTask extends DefaultTask {
     }
 
     // ========================================================================
-    // 入力プロパティ — convention デフォルト値を持つ。build.gradle でオーバーライド可能
-    // Gradle はこれらの値をキャッシュキーに使い、変更時のみタスクを再実行する
+    // 入力プロパティ
     // ========================================================================
 
-    /** PostgreSQL の Docker イメージ名（例: {@code postgres:18.3}）。 */
+    /** PostgreSQL の JDBC URL。 */
     @Input
-    public abstract Property<String> getPostgresImage();
-
-    /** コンテナ内に作成するデータベース名。 */
-    @Input
-    public abstract Property<String> getDatabaseName();
+    public abstract Property<String> getJdbcUrl();
 
     /** PostgreSQL の接続ユーザー名。 */
     @Input
@@ -94,12 +81,12 @@ public abstract class GenerateJooqTask extends DefaultTask {
     @Input
     public abstract Property<String> getPackageName();
 
-    /** jOOQ codegen が読み取る PostgreSQL スキーマ名。 */
+    /** jOOQ codegen が生成するコードのスキーマ名（生成コード内の参照名）。 */
     @Input
     public abstract Property<String> getInputSchema();
 
     // ========================================================================
-    // 出力プロパティ — Gradle の UP-TO-DATE 判定に使用される
+    // 出力プロパティ
     // ========================================================================
 
     /** jOOQ 生成コードの出力先ディレクトリ。 */
@@ -114,69 +101,49 @@ public abstract class GenerateJooqTask extends DefaultTask {
      * タスクのメインエントリポイント。
      *
      * <p>
-     * PostgreSQL コンテナのライフサイクルは try-with-resources で管理し、
-     * タスク完了後（成功・失敗問わず）に確実にコンテナを停止・削除する。
+     * 一時スキーマを作成→マイグレーション→codegen→DROP する。
+     * 失敗時も確実にスキーマを DROP する。
      */
     @TaskAction
-    @SuppressWarnings("resource")
     public void generate() throws Exception {
-        // Docker Desktop 4.71+ は API バージョン 1.40 未満を拒否する。
-        // docker-java 3.4.x のデフォルトは 1.25 のため、/info で 400 エラーになる。
-        // このシステムプロパティで docker-java に対応バージョンを強制する。
-        System.setProperty("api.version", "1.43");
+        Class.forName("org.postgresql.Driver");
 
-        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(getPostgresImage().get())
-                .withDatabaseName(getDatabaseName().get())
-                .withUsername(getUsername().get())
-                .withPassword(getPassword().get())) {
+        String jdbcUrl = getJdbcUrl().get();
+        String user = getUsername().get();
+        String pass = getPassword().get();
 
-            postgres.start();
-
-            String jdbcUrl = postgres.getJdbcUrl();
-            String user = postgres.getUsername();
-            String pass = postgres.getPassword();
-
-            // 1. アプリケーション用スキーマを作成（public スキーマとは分離）
+        try {
             createSchema(jdbcUrl, user, pass);
-            // 2. Liquibase マイグレーションを実行してテーブル等を構築
             runLiquibase(jdbcUrl, user, pass);
-            // 3. 構築済みスキーマから jOOQ コードを生成
             runJooq(jdbcUrl, user, pass);
+        } finally {
+            dropSchema(jdbcUrl, user, pass);
         }
     }
 
-    /**
-     * アプリケーション用スキーマを作成する。
-     *
-     * <p>
-     * PostgreSQL のデフォルト {@code public} スキーマとは分離し、
-     * jOOQ codegen が不要なシステムテーブルを拾わないようにする。
-     */
     private void createSchema(String jdbcUrl, String username, String password) throws Exception {
         try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
                 Statement stmt = connection.createStatement()) {
-            String schemaName = getInputSchema().get();
-            if (!schemaName.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
-                throw new IllegalArgumentException("Invalid schema name: " + schemaName);
-            }
-            stmt.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
+            stmt.execute("DROP SCHEMA IF EXISTS " + CODEGEN_SCHEMA + " CASCADE");
+            stmt.execute("CREATE SCHEMA " + CODEGEN_SCHEMA);
         }
     }
 
-    /**
-     * Liquibase マイグレーションを実行する。
-     *
-     * <p>
-     * {@code defaultSchemaName} と {@code liquibaseSchemaName} の両方を設定し、
-     * アプリケーションテーブルと Liquibase 管理テーブル（databasechangelog 等）を
-     * 同一スキーマに配置する。
-     */
+    private void dropSchema(String jdbcUrl, String username, String password) {
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
+                Statement stmt = connection.createStatement()) {
+            stmt.execute("DROP SCHEMA IF EXISTS " + CODEGEN_SCHEMA + " CASCADE");
+        } catch (Exception e) {
+            getLogger().warn("Failed to drop codegen schema: " + e.getMessage());
+        }
+    }
+
     private void runLiquibase(String jdbcUrl, String username, String password) throws Exception {
         try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password)) {
             Database database = DatabaseFactory.getInstance()
                     .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            database.setDefaultSchemaName(getInputSchema().get());
-            database.setLiquibaseSchemaName(getInputSchema().get());
+            database.setDefaultSchemaName(CODEGEN_SCHEMA);
+            database.setLiquibaseSchemaName(CODEGEN_SCHEMA);
 
             Path searchPath = getProject().file(getLiquibaseSearchPath().get()).toPath();
 
@@ -189,21 +156,14 @@ public abstract class GenerateJooqTask extends DefaultTask {
         }
     }
 
-    /**
-     * jOOQ codegen を実行し、型安全なテーブル・レコードクラスを生成する。
-     *
-     * <p>
-     * 生成前に出力ディレクトリを削除し、古いコードが残らないようにする。
-     * Liquibase 管理テーブル（databasechangelog, databasechangeloglock）は
-     * excludes パターンで除外する。
-     */
     private void runJooq(String jdbcUrl, String username, String password) throws Exception {
         File targetDir = getOutputDirectory().get().getAsFile();
 
-        // 前回の生成コードを削除（テーブル削除時に古いクラスが残るのを防止）
         deleteDirectory(targetDir);
         targetDir.mkdirs();
 
+        // codegen は jooq_codegen スキーマを読むが、生成コード内のスキーマ参照は
+        // inputSchema（demo）にする。outputSchemaToDefault で実行時のデフォルトスキーマを使う。
         GenerationTool.generate(
                 new Configuration()
                         .withJdbc(new Jdbc()
@@ -215,27 +175,20 @@ public abstract class GenerateJooqTask extends DefaultTask {
                                 .withName("org.jooq.codegen.JavaGenerator")
                                 .withDatabase(new org.jooq.meta.jaxb.Database()
                                         .withName("org.jooq.meta.postgres.PostgresDatabase")
-                                        .withInputSchema(getInputSchema().get())
-                                        // Liquibase 管理テーブルは生成対象から除外
+                                        .withInputSchema(CODEGEN_SCHEMA)
+                                        .withOutputSchemaToDefault(true)
                                         .withExcludes("databasechangelog|databasechangeloglock"))
                                 .withGenerate(new Generate()
-                                        .withDeprecated(false) // 非推奨 API を生成しない
-                                        .withRecords(true) // Record クラスを生成
-                                        .withPojos(false) // POJO は不要（ドメインモデルを使用）
-                                        .withFluentSetters(false) // fluent setter は不要
-                                        .withJavaTimeTypes(true)) // java.time 型を使用
+                                        .withDeprecated(false)
+                                        .withRecords(true)
+                                        .withPojos(false)
+                                        .withFluentSetters(false)
+                                        .withJavaTimeTypes(true))
                                 .withTarget(new Target()
                                         .withPackageName(getPackageName().get())
                                         .withDirectory(targetDir.getAbsolutePath()))));
     }
 
-    /**
-     * ディレクトリを再帰的に削除する。
-     *
-     * <p>
-     * ファイルツリーを逆順（深い方から）にソートして削除することで、
-     * 空でないディレクトリの削除エラーを回避する。
-     */
     private void deleteDirectory(File directory) throws Exception {
         if (!directory.exists()) {
             return;

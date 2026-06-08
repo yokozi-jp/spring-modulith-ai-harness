@@ -98,6 +98,33 @@ ensure_package_info() {
   IFS="$IFS_BAK"
 }
 
+TEMPLATE_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}/templates"
+
+# テンプレートファイルを読み込み、プレースホルダーを置換して出力する
+# 引数: $1=テンプレートパス（TEMPLATE_DIR からの相対）
+#       残り=KEY=VALUE ペア（{{KEY}} を VALUE に置換）
+# 使用例: render_template "class/aggregate.java.tmpl" "PKG=com.example.demo.order" "NAME=Order"
+render_template() {
+  local tmpl_file="$TEMPLATE_DIR/$1"
+  shift
+  if [ ! -f "$tmpl_file" ]; then
+    echo "Error: Template not found: $tmpl_file" >&2
+    return 1
+  fi
+  local sed_args=()
+  for pair in "$@"; do
+    local key="${pair%%=*}"
+    local val="${pair#*=}"
+    # sed のデリミタに | を使用（パッケージ名に / が含まれないため安全）
+    sed_args+=(-e "s|{{${key}}}|${val}|g")
+  done
+  if [ ${#sed_args[@]} -eq 0 ]; then
+    cat "$tmpl_file"
+  else
+    sed "${sed_args[@]}" "$tmpl_file"
+  fi
+}
+
 _ensure_single_package_info() {
   local module="$1"
   local rel="$2"
