@@ -5,11 +5,12 @@ import {{REPO_PKG}}.{{AGG}}Repository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jmolecules.ddd.annotation.Repository;
+import org.springframework.stereotype.Repository;
 
 /** {{AGG}} リポジトリ実装。 */
 @Slf4j
 @RequiredArgsConstructor
+@org.jmolecules.ddd.annotation.Repository
 @Repository
 public class {{AGG}}RepositoryImpl implements {{AGG}}Repository {
 

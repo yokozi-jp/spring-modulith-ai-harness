@@ -14,11 +14,12 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.jmolecules.ddd.annotation.Repository;
 import org.jooq.DSLContext;
+import org.springframework.stereotype.Repository;
 
 /** Product リポジトリ実装。 */
 @RequiredArgsConstructor
+@org.jmolecules.ddd.annotation.Repository
 @Repository
 public class ProductRepositoryImpl implements ProductRepository {
 

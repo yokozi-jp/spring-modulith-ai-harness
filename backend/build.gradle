@@ -1,14 +1,12 @@
 // --- ビルドスクリプト依存 ---
 // buildscript ブロックの依存は Gradle プラグインやビルドタスクが使用するライブラリ。
 // アプリケーションの dependencies とは別のクラスパスに載る。
-//   - jmolecules-bytebuddy: ByteBuddy プラグインが jMolecules → Spring アノテーション変換に使用
 //   - liquibase-core: Liquibase Gradle プラグインが rollback/status 等の CLI コマンドに使用
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.jmolecules.integrations:jmolecules-bytebuddy:1.6.0'
         classpath 'org.liquibase:liquibase-core:5.0.3'
     }
 }
@@ -16,7 +14,7 @@ buildscript {
 // --- Gradle プラグイン ---
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.7'
+    id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.diffplug.spotless' version '8.6.0'         // コードフォーマッター（Google Java Format）
     id 'pmd'                                            // 静的解析（PMD 7）
@@ -24,7 +22,6 @@ plugins {
     id 'info.solidsoft.pitest' version '1.19.0'         // ミューテーションテスト
     id 'jacoco'                                         // コードカバレッジ
     id 'net.ltgt.errorprone' version '5.1.0'            // Error Prone + NullAway
-    id 'net.bytebuddy.byte-buddy-gradle-plugin' version '1.18.8-jdk5' // jMolecules バイトコード変換
     id 'org.liquibase.gradle' version '3.1.0'           // Liquibase CLI コマンド（rollback, status 等）
 }
 
@@ -138,10 +135,7 @@ dependencies {
 
     // OpenTelemetry Logback Appender: ログを OTLP 経由で Loki 等に送信する。
     // Spring Boot 4 は SDK を自動設定するが、Logback appender は別途必要。
-    // NOTE: 2.27.0-alpha は opentelemetry-api 1.61.0 を要求するが、Spring Boot 4.0.6 の
-    // dependency management が 1.55.0 に強制ダウングレードするためバージョン不整合が生じる。
-    // Spring Boot 側の OTel BOM が 1.61+ に上がるまで 2.21.0-alpha を維持する。
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.21.0-alpha'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.28.1-alpha'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
@@ -162,9 +156,6 @@ dependencies {
     implementation 'org.jmolecules:jmolecules-events'
     implementation 'org.jmolecules.integrations:jmolecules-spring'
     implementation 'org.jmolecules.integrations:jmolecules-starter-test'
-
-    // jMolecules ByteBuddy: コンパイル後のバイトコード変換用
-    byteBuddy 'org.jmolecules.integrations:jmolecules-bytebuddy:1.6.0'
 
     // Lombok（コンパイル時のみ）
     compileOnly 'org.projectlombok:lombok'
@@ -309,28 +300,6 @@ tasks.withType(JavaCompile).configureEach {
             disable('NullAway')
         }
     }
-}
-
-// --- ByteBuddy + jMolecules: バイトコード変換 ---
-// jMolecules の DDD アノテーション（@Entity, @Repository 等）は単なるマーカーであり、
-// そのままではフレームワークが認識しない。ByteBuddy の jMolecules プラグインが
-// コンパイル後の .class ファイルを書き換え、Spring や JPA 固有のアノテーション・
-// インターフェース実装を自動付与する。これによりドメインコードがフレームワークに
-// 直接依存しなくなる。
-//
-// adjustment = NONE: デフォルトの自動タスク依存調整は Spotless プラグインの
-// 入力プロパティ走査時に NPE を起こすため無効化している。
-// 代わりに classes タスクの依存を手動で設定し、
-// compileJava → byteBuddy → classes の順序を保証する。
-byteBuddy {
-    adjustment = net.bytebuddy.build.gradle.Adjustment.NONE
-    transformation {
-        pluginName = "org.jmolecules.bytebuddy.JMoleculesPlugin"
-    }
-}
-
-tasks.named('classes') {
-    dependsOn tasks.named('byteBuddy')
 }
 
 // --- bootRun: JVM 引数 ---

@@ -16,14 +16,15 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.jmolecules.ddd.annotation.Repository;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Repository;
 
 /** Pricing リポジトリ実装。 */
 @RequiredArgsConstructor
+@org.jmolecules.ddd.annotation.Repository
 @Repository
 public class PricingRepositoryImpl implements PricingRepository {
 

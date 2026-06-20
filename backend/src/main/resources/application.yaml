@@ -95,12 +95,10 @@ spring:
     virtual:
       enabled: true
 
-  # DevTools: コンテナ内のバインドマウントではファイル変更イベントが遅延するため、
-  # ポーリング間隔を明示する。本番では devtools 自体が無効化される。
+  # DevTools 本番では devtools 自体が無効化される。
   devtools:
     restart:
-      poll-interval: ${SPRING_DEVTOOLS_RESTART_POLL_INTERVAL}
-      quiet-period: ${SPRING_DEVTOOLS_RESTART_QUIET_PERIOD}
+      enabled: true
 
 # Server: graceful shutdown を有効化。
 server:
