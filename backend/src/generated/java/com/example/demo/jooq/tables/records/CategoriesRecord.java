@@ -197,6 +197,6 @@ public class CategoriesRecord extends UpdatableRecordImpl<CategoriesRecord> {
         setUpdatedBy(updatedBy);
         setVersion(version);
         setDeletedAt(deletedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }
