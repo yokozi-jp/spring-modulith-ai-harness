@@ -182,6 +182,6 @@ public class EventPublicationRecord extends UpdatableRecordImpl<EventPublication
         setStatus(status);
         setCompletionAttempts(completionAttempts);
         setLastResubmissionDate(lastResubmissionDate);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }
