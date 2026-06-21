@@ -6,10 +6,12 @@ import {{TARGET_PKG}}.{{TARGET}};
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 import org.jmolecules.ddd.annotation.Factory;
+import org.springframework.stereotype.Component;
 
 /** {{TARGET}} ファクトリ。 */
 @RequiredArgsConstructor
 @Factory
+@Component
 public class {{TARGET}}Factory {
 
   /** リポジトリ。 */

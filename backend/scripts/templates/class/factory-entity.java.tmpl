@@ -4,10 +4,12 @@ import {{GEN_PKG}}.{{TARGET}}IdGenerator;
 import {{TARGET_PKG}}.{{TARGET}};
 import lombok.RequiredArgsConstructor;
 import org.jmolecules.ddd.annotation.Factory;
+import org.springframework.stereotype.Component;
 
 /** {{TARGET}} ファクトリ。 */
 @RequiredArgsConstructor
 @Factory
+@Component
 public class {{TARGET}}Factory {
 
   /** ID ジェネレータ。 */

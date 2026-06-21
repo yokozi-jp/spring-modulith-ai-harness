@@ -6,10 +6,12 @@ import com.example.demo.category.domain.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.jmolecules.ddd.annotation.Factory;
 import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Component;
 
 /** Category ファクトリ。 */
 @RequiredArgsConstructor
 @Factory
+@Component
 public class CategoryFactory {
 
   /** リポジトリ。 */

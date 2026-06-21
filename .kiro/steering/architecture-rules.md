@@ -115,7 +115,7 @@ command パッケージに `@QueryModel` を、query パッケージに `@Comman
 
 - **query → domain 禁止**: query パッケージは domain パッケージに依存してはいけない。
 - **domain → Spring 禁止**: domain パッケージは Spring に依存してはいけない。ただし以下は例外とする:
-  - `domain/service` と `domain/repository` は jMolecules ByteBuddy プラグインにより Spring ステレオタイプアノテーションがビルド時にバイトコードレベルで付与されるため除外（ソースコード上は jMolecules アノテーションのみ使用）。
+  - `domain/service` は jMolecules アノテーション（`@Factory`, `@Service`）と Spring ステレオタイプアノテーション（`@Component`, `@Service`）を併用するため除外。
 - **presentation → infrastructure 禁止**: presentation は infrastructure に依存してはいけない。
 - **presentation → domain 禁止**: presentation パッケージは domain パッケージに依存してはいけない。例外クラスは `exception/` パッケージ（`@NamedInterface("exception")` で公開）に配置し、presentation と application の両方から参照可能にする。
 - **子 → 親パッケージ依存禁止**: 子パッケージから親パッケージへの依存を禁止する。
@@ -246,22 +246,43 @@ public class Order implements AggregateRoot<Order, OrderId> {
 
 ## Bean 登録アノテーション規約
 
-実装クラスには以下のアノテーションを付与し、Spring Bean として登録する。
-jMolecules アノテーションは ByteBuddy プラグインにより対応する Spring ステレオタイプアノテーションにビルド時変換される。
+実装クラスには jMolecules DDD アノテーション（マーカー）と Spring ステレオタイプアノテーション（Bean 登録）を併用する。
+ArchUnit の `BeanRegistrationPolicy` が併用を検証する。
 
-| クラス              | 付与するアノテーション                      | ByteBuddy 変換先                                                                                 |
-| ------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `*RepositoryImpl`   | `@org.jmolecules.ddd.annotation.Repository` | → `@springframework.stereotype.Repository`                                                       |
-| `*Factory`          | `@org.jmolecules.ddd.annotation.Factory`    | → `@springframework.stereotype.Component`                                                        |
-| `*DomainService`    | `@org.jmolecules.ddd.annotation.Service`    | → `@springframework.stereotype.Service`                                                          |
-| `*QueryServiceImpl` | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
-| `*IdGeneratorImpl`  | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
-| `*CommandHandler`   | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）                                                          |
-| `*EventListener`    | `@org.springframework.stereotype.Component` | （直接付与、jMolecules マッピングなし）。`@ApplicationModuleListener` だけでは Bean 登録されない |
+| クラス              | jMolecules アノテーション                   | Spring アノテーション                           |
+| ------------------- | ------------------------------------------- | ----------------------------------------------- |
+| `*RepositoryImpl`   | `@org.jmolecules.ddd.annotation.Repository` | `@org.springframework.stereotype.Repository`    |
+| `*Factory`          | `@org.jmolecules.ddd.annotation.Factory`    | `@org.springframework.stereotype.Component`     |
+| `*DomainService`    | `@org.jmolecules.ddd.annotation.Service`    | `@org.springframework.stereotype.Service`       |
+| `*QueryServiceImpl` | （なし）                                    | `@org.springframework.stereotype.Component`     |
+| `*IdGeneratorImpl`  | （なし）                                    | `@org.springframework.stereotype.Component`     |
+| `*CommandHandler`   | （なし）                                    | `@org.springframework.stereotype.Component`     |
+| `*EventListener`    | （なし）                                    | `@org.springframework.stereotype.Component`     |
 
-上記以外の Spring Bean（jMolecules マッピング対象外）は `@org.springframework.stereotype.Component` を直接付与する。
+### 名前衝突時の記法
 
-`create-class.sh` が自動付与するため手動で追加する必要はない。
+`@Repository` と `@Service` は jMolecules と Spring で同名のため、import は Spring 側を優先し jMolecules は FQN で記述する:
+
+```java
+import org.springframework.stereotype.Repository;
+
+@org.jmolecules.ddd.annotation.Repository
+@Repository
+public class OrderRepositoryImpl implements OrderRepository { ... }
+```
+
+`@Factory` は Spring に同名がないため、両方 import して使用する:
+
+```java
+import org.jmolecules.ddd.annotation.Factory;
+import org.springframework.stereotype.Component;
+
+@Factory
+@Component
+public class OrderFactory { ... }
+```
+
+`scaffold.sh` が自動付与するため手動で追加する必要はない。
 
 ### IdGenerator の構成
 

@@ -10,10 +10,12 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.jmolecules.ddd.annotation.Factory;
 import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Component;
 
 /** Pricing ファクトリ。 */
 @RequiredArgsConstructor
 @Factory
+@Component
 public class PricingFactory {
 
   /** リポジトリ。 */

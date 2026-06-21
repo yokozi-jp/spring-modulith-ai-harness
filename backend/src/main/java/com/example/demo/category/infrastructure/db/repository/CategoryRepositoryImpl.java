@@ -13,13 +13,14 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.jmolecules.ddd.annotation.Repository;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Repository;
 
 /** Category リポジトリ実装。 */
 @RequiredArgsConstructor
+@org.jmolecules.ddd.annotation.Repository
 @Repository
 public class CategoryRepositoryImpl implements CategoryRepository {
 
