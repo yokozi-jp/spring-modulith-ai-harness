@@ -256,65 +256,82 @@ function handleSubmit() {
 
 ---
 
-## API クライアント（api-client.ts）
+## API クライアント（Orval 自動生成）
 
-### Content-Type ヘッダーの設定
+**Orval で生成する。手書き API は禁止。**
 
-`Content-Type: application/json` は **body がある場合のみ** 付ける。GETリクエストにこのヘッダーを付けると、Spring が body を読もうとして `"Failed to read request"` エラーになる。
+### ワークフロー
 
-```typescript
-const headers: Record<string, string> = {};
+1. backend で `make be-test` を実行すると OpenAPI spec が `backend/build/openapi.json` に生成される
+2. `npx orval` を実行すると `src/api/` に TanStack Query Hook + 型が自動生成される
+3. features の Hook から `src/api/` の生成 Hook をラップして使う
 
-// body がある場合のみ Content-Type を付ける
-if (config.data !== undefined) {
-  headers["Content-Type"] = "application/json";
-  init.body = JSON.stringify(config.data);
-}
+```bash
+# backend の OpenAPI spec を生成（be-test の副産物）
+cd backend && make be-test
+
+# Orval でクライアントコード生成
+cd frontend && npx orval
 ```
 
-### CSRF トークン送信（Spring Security 連携）
+### 生成されるファイル
 
-Spring Security の CSRF 保護と連携するため、Cookie から `XSRF-TOKEN` を取得してヘッダーに送信する:
+```
+src/api/
+├── category.ts          # Category API の Hook + 型
+├── product.ts           # Product API の Hook + 型
+├── pricing.ts           # Pricing API の Hook + 型
+└── openAPIDefinition.schemas.ts  # 共通型
+```
 
-```typescript
-// src/lib/api-client.ts
-function getCsrfToken(): string | null {
-  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-  const token = match?.[1];
-  return token !== undefined ? decodeURIComponent(token) : null;
-}
+### features Hook での使い方
 
-export async function apiClient<T>(url: string, options?: RequestInit): Promise<T> {
-  const csrfToken = getCsrfToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options?.headers as Record<string, string> | undefined),
+```tsx
+// src/features/category/hooks/use-category-list.ts
+import { useGetCategories } from "@/api/category";
+
+export function useCategoryList() {
+  const query = useGetCategories();
+
+  return {
+    categories: query.data?.content ?? [],
+    isLoading: query.isLoading,
+    error: query.error,
   };
-  if (csrfToken !== null) {
-    headers["X-XSRF-TOKEN"] = csrfToken;
-  }
-  const response = await fetch(url, { ...options, headers, credentials: "include" });
-  // ...
 }
 ```
 
-- `credentials: "include"` で Cookie を送信する
-- POST/PUT/DELETE リクエスト時に `X-XSRF-TOKEN` ヘッダーが必須
+### 禁止
 
-### 201/204 レスポンスの考慮
+- `src/lib/*-api.ts` に API 関数を手書きしない
+- `src/features/*/hooks/` で fetch を直接呼ばない
+- `src/api/` を手動編集しない（再生成で上書きされる）
 
-REST API 規約では POST は `201 Created`（ボディなし）を返す。api-client でボディなしレスポンスを考慮する:
+### api-client.ts の役割
+
+`src/lib/api-client.ts` は Orval のカスタム fetch 実装として使う。以下を担当:
+
+- CSRF トークン送信（Spring Security 連携）
+- `credentials: "include"` で Cookie 送信
+- エラーレスポンスの ProblemDetail パース
 
 ```typescript
-if (response.status === 204 || response.status === 201) {
-  return { data: undefined, status: response.status, headers: response.headers } as T;
-}
-const data = await response.json();
-return { data, status: response.status, headers: response.headers } as T;
+// orval.config.ts で指定
+export default defineConfig({
+  api: {
+    output: {
+      client: "react-query",
+      httpClient: "fetch",
+      override: {
+        mutator: {
+          path: "./src/lib/api-client.ts",
+          name: "apiClient",
+        },
+      },
+    },
+  },
+});
 ```
-
-- 201: 作成成功。`Location` ヘッダーから作成リソースの URI を取得可能
-- 204: 削除成功。レスポンスボディなし
 
 ---
 

@@ -19,16 +19,23 @@ vp dlx shadcn@latest add table
 
 ## 共通 UI コンポーネントの作成
 
-複数の feature で使う UI パターン（ErrorMessage, EmptyState 等）は、**インラインで重複させず `src/components/` に共通コンポーネントとして作成してから使う。**
+**原則: 同じ構造の UI パターンを 2 箇所以上に書く前に、`src/components/` に共通コンポーネントを作成する。**
+
+判断基準:
+- JSX 構造が同じ（props の値だけ違う）→ 共通化する
+- 構造が異なる → feature 固有で OK
 
 ```
 src/components/
 ├── error-message.tsx    # エラー表示
 ├── empty-state.tsx      # 空状態表示
+├── confirm-dialog.tsx   # 削除確認等のダイアログ
+├── list-skeleton.tsx    # 一覧ローディング
 └── layout/              # レイアウト
 ```
 
 初回の feature 作成時に必要な共通コンポーネントがなければ作成する。
+2 つ目の feature で同じパターンが必要になったら、先に共通化してから使う。
 
 ---
 
