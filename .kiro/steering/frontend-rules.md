@@ -42,6 +42,7 @@ frontend/src/
 │       ├── hooks/       # 機能固有 Hook
 │       └── types/       # 機能固有型（必要な場合のみ）
 ├── components/
+│   ├── layout/         # レイアウト（Header, Sidebar, Footer）
 │   └── ui/             # Shadcn/ui コンポーネント（自動生成、編集禁止）
 ├── api/                # Orval 自動生成（編集禁止、npx orval で再生成）
 ├── hooks/              # 汎用 Hooks（機能横断）
@@ -62,6 +63,18 @@ frontend/src/
 - Hook: `use-user-list.ts`
 - 型定義: `member.ts`
 - ルートファイル: TanStack Router の規約に従う（`__root.tsx`, `_layout.tsx`, `$param.tsx`, `index.tsx`）
+
+### TanStack Router ルート命名規則
+
+| パターン | ファイル名 | URL |
+|----------|-----------|-----|
+| 基本 | `products.tsx` | `/products` |
+| ネスト（レイアウトなし） | `products_.new.tsx` | `/products/new` |
+| ネスト（レイアウトあり） | `products/new.tsx` | `/products/new`（`products.tsx` が layout） |
+| 動的パラメータ | `products_.$id.tsx` | `/products/:id` |
+
+- ネストルートでレイアウトを共有しない場合は `_` を使う（例: `products_.new.tsx`）
+- `createFileRoute` の引数はファイル名と一致させる（例: `createFileRoute("/products_/new")`）
 
 ---
 

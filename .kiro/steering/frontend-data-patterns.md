@@ -240,3 +240,51 @@ function handleSubmit() {
 ```
 
 **先に作らない**。必要になるまでグローバル状態は追加しない。
+
+---
+
+## API クライアント（api-client.ts）
+
+### CSRF トークン送信（Spring Security 連携）
+
+Spring Security の CSRF 保護と連携するため、Cookie から `XSRF-TOKEN` を取得してヘッダーに送信する:
+
+```typescript
+// src/lib/api-client.ts
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  const token = match?.[1];
+  return token !== undefined ? decodeURIComponent(token) : null;
+}
+
+export async function apiClient<T>(url: string, options?: RequestInit): Promise<T> {
+  const csrfToken = getCsrfToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string> | undefined),
+  };
+  if (csrfToken !== null) {
+    headers["X-XSRF-TOKEN"] = csrfToken;
+  }
+  const response = await fetch(url, { ...options, headers, credentials: "include" });
+  // ...
+}
+```
+
+- `credentials: "include"` で Cookie を送信する
+- POST/PUT/DELETE リクエスト時に `X-XSRF-TOKEN` ヘッダーが必須
+
+### 201/204 レスポンスの考慮
+
+REST API 規約では POST は `201 Created`（ボディなし）を返す。api-client でボディなしレスポンスを考慮する:
+
+```typescript
+if (response.status === 204 || response.status === 201) {
+  return { data: undefined, status: response.status, headers: response.headers } as T;
+}
+const data = await response.json();
+return { data, status: response.status, headers: response.headers } as T;
+```
+
+- 201: 作成成功。`Location` ヘッダーから作成リソースの URI を取得可能
+- 204: 削除成功。レスポンスボディなし

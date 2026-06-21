@@ -244,3 +244,139 @@ export function OrderList({ orders, onSelect }: OrderListProps) {
 // 同日注文は1件にまとめるビジネスルール
 const grouped = groupBySameDay(orders);
 ```
+
+---
+
+## レイアウト構成
+
+### 基本構造
+
+```
+┌─────────────────────────────────────┐
+│ Header（ロゴ、ユーザー名、ログアウト）│
+├──────────┬──────────────────────────┤
+│ Sidebar  │ Main Content             │
+│ (メニュー)│ <Outlet />               │
+├──────────┴──────────────────────────┤
+│ Footer（省略可）                     │
+└─────────────────────────────────────┘
+```
+
+### ファイル配置
+
+```
+src/components/layout/
+├── app-layout.tsx       # 全体レイアウト（Header + Sidebar + Main）
+├── header.tsx           # ヘッダー
+├── sidebar.tsx          # サイドバーメニュー
+└── footer.tsx           # フッター（必要な場合のみ）
+```
+
+### __root.tsx のパターン
+
+```tsx
+// src/routes/__root.tsx
+import type { QueryClient } from "@tanstack/react-query";
+import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { AppLayout } from "@/components/layout/app-layout";
+
+interface RouterContext {
+  readonly queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootLayout,
+});
+
+function RootLayout() {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  );
+}
+```
+
+### AppLayout コンポーネント
+
+```tsx
+// src/components/layout/app-layout.tsx
+import type { ReactNode } from "react";
+import { Header } from "@/components/layout/header";
+import { Sidebar } from "@/components/layout/sidebar";
+
+interface AppLayoutProps {
+  readonly children: ReactNode;
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 p-6">{children}</main>
+      </div>
+    </div>
+  );
+}
+```
+
+### Header コンポーネント
+
+```tsx
+// src/components/layout/header.tsx
+export function Header() {
+  return (
+    <header className="flex h-14 items-center justify-between border-b px-6">
+      <div className="font-semibold">アプリ名</div>
+      <div className="flex items-center gap-4">
+        <span className="text-sm text-muted-foreground">ユーザー名</span>
+        <a href="/logout" className="text-sm underline">ログアウト</a>
+      </div>
+    </header>
+  );
+}
+```
+
+### Sidebar コンポーネント
+
+```tsx
+// src/components/layout/sidebar.tsx
+import { Link } from "@tanstack/react-router";
+
+const MENU_ITEMS = [
+  { to: "/", label: "ホーム" },
+  { to: "/products", label: "商品管理" },
+  { to: "/categories", label: "カテゴリ管理" },
+] as const;
+
+export function Sidebar() {
+  return (
+    <aside className="w-56 border-r bg-muted/40 p-4">
+      <nav className="space-y-1">
+        {MENU_ITEMS.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
+            activeProps={{ className: "bg-muted font-medium" }}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+```
+
+### 認証情報の取得（将来）
+
+認証状態（ユーザー名等）が必要になったら:
+
+1. backend に `/api/v1/me` エンドポイントを追加
+2. `useCurrentUser` Hook を作成
+3. Header でユーザー名を表示
+
+**先に作らない**。必要になるまで実装しない。

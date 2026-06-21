@@ -27,7 +27,12 @@ frontend/src/features/<feature-name>/
 
 2. API の存在確認:
    - `src/api/` に該当する hooks があるか確認
-   - なければ「backend 起動 + `npx orval` を実行してください」と案内
+   - なければ Orval でコード生成:
+     ```bash
+     cd frontend
+     ./scripts/orval-generate.sh   # backend 起動中に実行
+     ```
+   - スクリプトが backend から OpenAPI spec を取得し、`src/api/` に hooks を生成する
 
 3. ステアリングに従ってファイル生成:
    - コンポーネント → `frontend-code-patterns.md`
