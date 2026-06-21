@@ -49,6 +49,18 @@ if [[ "$FILENAME" == use-*.ts ]]; then
   fi
 fi
 
+# hook 内容ルール（apiClient/fetch 直接使用禁止）
+if [[ "$FILE_PATH" == *src/features/*/hooks/* && "$FILENAME" == *.ts && "$FILENAME" != *.test.* ]]; then
+  # EVENT から content を抽出（JSON の "content" フィールド）
+  CONTENT=$(echo "$EVENT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('content',''))" 2>/dev/null || true)
+  if [[ -n "$CONTENT" ]]; then
+    RESULT=$(echo "$CONTENT" | "$SCRIPTS_DIR/check-hook-content.sh" "$FILE_PATH" - 2>&1) || true
+    if [[ -n "$RESULT" ]]; then
+      while IFS= read -r line; do errors+=("$line"); done <<< "$RESULT"
+    fi
+  fi
+fi
+
 # 結果
 if [[ ${#errors[@]} -gt 0 ]]; then
   {
