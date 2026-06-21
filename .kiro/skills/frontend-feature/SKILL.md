@@ -1,11 +1,28 @@
 ---
 name: frontend-feature
-description: Scaffold a NEW frontend feature from scratch. Use ONLY when creating a new feature that does not exist yet. Do NOT use for modifying or extending existing features — follow frontend-rules.md instead.
+description: >-
+  Scaffold a NEW frontend feature from scratch. Use when user says
+  "フロントエンドを作って", "画面を作って", "CRUD画面", "一覧画面", "詳細画面",
+  "create frontend", "create UI", or requests a new feature that does not exist yet.
+  Do NOT use for modifying existing features.
 ---
 
 # Frontend Feature Scaffold
 
 Generate a complete feature structure under `frontend/src/features/<name>/`.
+
+## When to Use This Skill
+
+Use this skill when the user:
+- Asks to create a new frontend feature (e.g., "カテゴリのCRUDを作って")
+- Requests a new screen/page (e.g., "商品一覧画面を作って")
+- Mentions creating UI for an existing backend API
+- Uses keywords: フロントエンド, 画面, CRUD, 一覧, 詳細, create frontend, create UI
+
+Do NOT use when:
+- Modifying an existing feature (follow `frontend-rules.md` instead)
+- Fixing bugs in existing code
+- Adding fields to existing components
 
 ## Generated Structure
 

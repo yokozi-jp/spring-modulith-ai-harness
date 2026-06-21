@@ -191,6 +191,26 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 
 ---
 
+## ライブラリドキュメントの参照（Context7）
+
+TanStack Router、TanStack Query、Radix UI 等のライブラリについて不明点がある場合は、**Context7 CLI** でドキュメントを参照する。
+
+```bash
+# ライブラリを検索
+npx ctx7@latest library "TanStack Router" "createFileRoute の使い方"
+
+# ドキュメントを取得（library コマンドで取得した ID を使用）
+npx ctx7@latest docs /tanstack/router "createFileRoute params"
+```
+
+以下のケースで Context7 を使う:
+- TanStack Router のルート定義（`createFileRoute` の引数、params の取り方）
+- TanStack Query のオプション（`queryKey`、`staleTime`、`gcTime`）
+- Radix UI / Shadcn/ui のコンポーネント Props（`asChild`、`onOpenChange`）
+- Tailwind CSS v4 の新しい構文
+
+---
+
 ## テスト
 
 - テストは `vp test` で実行する（Vitest 内蔵）
