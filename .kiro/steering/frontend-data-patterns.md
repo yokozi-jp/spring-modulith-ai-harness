@@ -262,24 +262,30 @@ function handleSubmit() {
 
 ### 前提条件
 
-Orval 実行前に backend の OpenAPI spec が必要。**OpenAPI spec がない状態で手書き API を作成しない。先に backend を起動する。**
+Orval 実行前に backend の OpenAPI spec が必要。**OpenAPI spec がない状態で手書き API を作成しない。**
 
 ```bash
-# 1. バックエンドコンテナを起動
-make be-up
+# 1. backend が起動しているか確認
+docker ps | grep smah-backend
 
-# 2. OpenAPI spec を生成（be-test の副産物）
-make be-test
+# 2. 起動していなければ起動（開発用コンテナ一式）
+docker compose up -d
 
-# 3. Orval でクライアント生成
+# 3. OpenAPI spec を取得（Basic認証: admin:admin）
+curl -s -u admin:admin http://localhost:18080/v3/api-docs -o frontend/openapi.json
+
+# 4. Orval でクライアント生成
 cd frontend && npx orval
 ```
 
+**AI は上記を自動実行してよい。** backend が起動していれば手順 3-4 のみ、起動していなければ手順 2 から実行する。
+
 ### ワークフロー
 
-1. backend で `make be-test` を実行すると OpenAPI spec が `backend/build/openapi.json` に生成される
-2. `npx orval` を実行すると `src/api/` に TanStack Query Hook + 型が自動生成される
-3. features の Hook から `src/api/` の生成 Hook をラップして使う
+1. backend が起動していることを確認（`docker ps | grep smah-backend`）
+2. `curl -s -u admin:admin http://localhost:18080/v3/api-docs -o frontend/openapi.json` で spec を取得
+3. `cd frontend && npx orval` で `src/api/` に TanStack Query Hook + 型が自動生成される
+4. features の Hook から `src/api/` の生成 Hook をラップして使う
 
 ### 生成されるファイル
 
