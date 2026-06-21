@@ -1,48 +1,26 @@
-const BASE_URL = "/api/v1";
-
 function getCsrfToken(): string | null {
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
   const token = match?.[1];
   return token !== undefined ? decodeURIComponent(token) : null;
 }
 
-export async function apiClient<T>(config: {
-  url: string;
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  data?: unknown;
-  params?: Record<string, string>;
-}): Promise<T> {
-  const url = new URL(`${BASE_URL}${config.url}`, window.location.origin);
-
-  if (config.params) {
-    for (const [key, value] of Object.entries(config.params)) {
-      url.searchParams.set(key, value);
-    }
-  }
-
-  const headers: Record<string, string> = {};
+export async function apiClient<T>(url: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers);
 
   const csrfToken = getCsrfToken();
   if (csrfToken !== null) {
-    headers["X-XSRF-TOKEN"] = csrfToken;
+    headers.set("X-XSRF-TOKEN", csrfToken);
   }
 
-  const init: RequestInit = {
-    method: config.method,
+  const response = await fetch(url, {
+    ...options,
     headers,
     credentials: "include",
-  };
-
-  if (config.data !== undefined) {
-    headers["Content-Type"] = "application/json";
-    init.body = JSON.stringify(config.data);
-  }
-
-  const response = await fetch(url.toString(), init);
+  });
 
   if (!response.ok) {
     const text = await response.text();
-    let message = `${response.status} ${response.statusText}`;
+    let message = `${String(response.status)} ${response.statusText}`;
     if (text.length > 0) {
       try {
         const problem = JSON.parse(text) as { detail?: string };
@@ -56,14 +34,9 @@ export async function apiClient<T>(config: {
     throw new Error(message);
   }
 
-  if (response.status === 204 || response.status === 201) {
-    return undefined as T;
-  }
-
   const text = await response.text();
-  if (text.length === 0) {
-    return undefined as T;
-  }
+  const data = text.length > 0 ? JSON.parse(text) : undefined;
 
-  return JSON.parse(text) as T;
+  // Orval 生成コードが期待する形式で返す
+  return { data, status: response.status, headers: response.headers } as T;
 }
