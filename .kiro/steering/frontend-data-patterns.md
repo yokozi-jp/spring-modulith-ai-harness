@@ -310,20 +310,47 @@ export function useCategoryList() {
 
 ### 禁止
 
+以下は **絶対禁止** であり、いかなる理由でも回避策を発明してはいけない:
+
 - `src/lib/*-api.ts` に API 関数を手書きしない
 - `src/features/*/hooks/` で fetch を直接呼ばない
 - `src/features/*/hooks/` で apiClient を直接呼ばない（Orval 生成 Hook を使う）
 - `src/api/` を手動編集しない（再生成で上書きされる）
 
+**「Orval がないから apiClient を直接使う」は禁止**。Orval がなければ frontend 実装を中断する。
+
 ### API が存在しない・生成できない場合
 
-backend に必要な API がない、または OpenAPI spec が生成されていない場合:
+**⛔ 絶対禁止: 回避策を発明しない**
 
-1. **frontend の実装を中断する**
-2. ユーザーに「backend を先に起動/実装して API を用意してください」と伝える
-3. backend が準備できたら `npx orval` で生成してから続行する
+backend が起動していない、または OpenAPI spec が生成されていない場合:
 
-**回避策として手書き API や apiClient 直接呼び出しをしない。**
+1. **frontend の実装を即座に中断する**
+2. ユーザーに「backend を先に起動して `npx orval` で API を生成してください」と伝える
+3. **絶対に以下をしない**:
+   - `apiClient` を直接呼び出す Hook を書く
+   - `fetch` を直接呼び出す
+   - 手書きの API 関数を作成する
+   - 「パターンに従って」と称して Orval 以外の方法を使う
+   - 「一時的に」「暫定的に」と称して代替実装を作る
+
+**理由**: 手書き API は型安全性がなく、OpenAPI spec との乖離を招く。Orval 生成コードと混在すると保守が困難になる。
+
+**正しい対応**:
+```
+AI: 「src/api/ に Orval 生成コードがありません。
+     backend を起動して以下を実行してください:
+     1. make be-up
+     2. make be-test  
+     3. cd frontend && npx orval
+     その後、frontend 実装を再開します。」
+```
+
+**誤った対応（絶対禁止）**:
+```
+AI: 「Orval 生成コードがないので、パターンに従って
+     apiClient を直接使う Hook を作成します...」  ← ❌ これは禁止
+```
 
 ### api-client.ts の役割
 
