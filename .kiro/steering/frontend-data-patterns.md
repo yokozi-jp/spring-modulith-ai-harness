@@ -90,7 +90,7 @@ export function useCreateOrder() {
   const mutation = useMutation({
     mutationFn: createOrder,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      void queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
   });
 
@@ -112,15 +112,28 @@ export function useCreateOrder() {
 
 ### onSuccess での invalidation
 
+`invalidateQueries` は Promise を返すため、`void` 演算子を付けて `no-floating-promises` 警告を防ぐ:
+
 ```tsx
 // 一覧を再取得
 onSuccess: () => {
-  queryClient.invalidateQueries({ queryKey: ["orders"] });
+  void queryClient.invalidateQueries({ queryKey: ["orders"] });
 }
 
 // 特定リソースを再取得
 onSuccess: (_, variables) => {
-  queryClient.invalidateQueries({ queryKey: ["orders", variables.id] });
+  void queryClient.invalidateQueries({ queryKey: ["orders"] });
+  void queryClient.invalidateQueries({ queryKey: ["orders", variables.id] });
+}
+```
+
+### navigate も void を付ける
+
+`useNavigate` の `navigate()` も Promise を返すため同様:
+
+```tsx
+onSuccess: () => {
+  void navigate({ to: "/orders" });
 }
 ```
 
@@ -244,6 +257,20 @@ function handleSubmit() {
 ---
 
 ## API クライアント（api-client.ts）
+
+### Content-Type ヘッダーの設定
+
+`Content-Type: application/json` は **body がある場合のみ** 付ける。GETリクエストにこのヘッダーを付けると、Spring が body を読もうとして `"Failed to read request"` エラーになる。
+
+```typescript
+const headers: Record<string, string> = {};
+
+// body がある場合のみ Content-Type を付ける
+if (config.data !== undefined) {
+  headers["Content-Type"] = "application/json";
+  init.body = JSON.stringify(config.data);
+}
+```
 
 ### CSRF トークン送信（Spring Security 連携）
 

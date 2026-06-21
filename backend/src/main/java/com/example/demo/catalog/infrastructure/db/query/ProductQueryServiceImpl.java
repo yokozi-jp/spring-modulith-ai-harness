@@ -35,13 +35,19 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     final int total = totalCount != null ? totalCount : 0;
 
     final List<ProductSummaryDto> content =
-        dsl.select(PRODUCTS.ID)
+        dsl.select(PRODUCTS.ID, PRODUCTS.NAME, PRODUCTS.STATUS, PRODUCTS.CATEGORY_ID)
             .from(PRODUCTS)
             .where(SoftDeleteCondition.notDeleted(PRODUCTS))
             .orderBy(PRODUCTS.CREATED_AT.desc())
             .limit(pageable.getPageSize())
             .offset((int) pageable.getOffset())
-            .fetch(r -> new ProductSummaryDto(r.get(PRODUCTS.ID).toString()));
+            .fetch(
+                r ->
+                    new ProductSummaryDto(
+                        r.get(PRODUCTS.ID).toString(),
+                        r.get(PRODUCTS.NAME),
+                        r.get(PRODUCTS.STATUS),
+                        r.get(PRODUCTS.CATEGORY_ID).toString()));
 
     return new PageImpl<>(content, pageable, total);
   }
@@ -53,6 +59,15 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         .where(PRODUCTS.ID.eq(uuid))
         .and(SoftDeleteCondition.notDeleted(PRODUCTS))
         .fetchOptional()
-        .map(r -> new ProductDetailDto(r.getId().toString()));
+        .map(
+            r ->
+                new ProductDetailDto(
+                    r.getId().toString(),
+                    r.getName(),
+                    r.getDescription(),
+                    r.getCategoryId().toString(),
+                    r.getSku(),
+                    r.getStatus(),
+                    r.getVersion()));
   }
 }

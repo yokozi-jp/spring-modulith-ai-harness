@@ -20,9 +20,7 @@ export async function apiClient<T>(config: {
     }
   }
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
 
   const csrfToken = getCsrfToken();
   if (csrfToken !== null) {
@@ -36,6 +34,7 @@ export async function apiClient<T>(config: {
   };
 
   if (config.data !== undefined) {
+    headers["Content-Type"] = "application/json";
     init.body = JSON.stringify(config.data);
   }
 

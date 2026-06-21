@@ -1,8 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { AppLayout } from "@/components/layout/app-layout";
 
 interface RouterContext {
-  queryClient: QueryClient;
+  readonly queryClient: QueryClient;
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -11,8 +12,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootLayout() {
   return (
-    <div className="min-h-screen bg-background font-sans antialiased">
+    <AppLayout>
       <Outlet />
-    </div>
+    </AppLayout>
   );
 }
