@@ -12,8 +12,9 @@ on:
     paths: ['backend/**', 'compose-test.yaml', '.env.test.example', 'Makefile']
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-24.04
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,45 +25,9 @@ jobs:
 
       - name: Fix permissions for Docker bind mount
         run: chmod -R 777 backend
-
-      - name: Start test containers
-        run: docker compose -f compose-test.yaml up -d --wait
-
-      - name: Lint (Spotless + PMD + SpotBugs)
-        run: docker compose -f compose-test.yaml exec backend-test ./gradlew spotlessCheck pmdMain pmdTest spotbugsMain --project-cache-dir=/gradle/project-cache
-
-      - name: Stop containers
-        if: always()
-        run: docker compose -f compose-test.yaml down
-
-  test:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Copy .env.test.example to .env.test
-        run: cp .env.test.example .env.test
-
-      - name: Fix permissions for Docker bind mount
-        run: chmod -R 777 backend
-
-      - name: Start test containers
-        run: docker compose -f compose-test.yaml up -d --wait
 
       - name: Run check (compile, test, PMD, SpotBugs, JaCoCo)
-        run: docker compose -f compose-test.yaml exec backend-test ./gradlew check --project-cache-dir=/gradle/project-cache
-
-      - name: Copy reports from container
-        if: always()
-        run: |
-          mkdir -p backend/build/reports
-          docker compose -f compose-test.yaml cp backend-test:/app/build/reports/. backend/build/reports/ 2>/dev/null || true
-
-      - name: Stop containers
-        if: always()
-        run: docker compose -f compose-test.yaml down
+        run: make be-test; status=$?; make be-down; exit $status
 
       - name: Upload test reports
         if: always()
