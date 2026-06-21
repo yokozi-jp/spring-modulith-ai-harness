@@ -86,15 +86,21 @@ frontend/src/
 
 ### TanStack Router ルート命名規則
 
-| パターン | ファイル名 | URL |
-|----------|-----------|-----|
-| 基本 | `products.tsx` | `/products` |
-| ネスト（レイアウトなし） | `products_.new.tsx` | `/products/new` |
-| ネスト（レイアウトあり） | `products/new.tsx` | `/products/new`（`products.tsx` が layout） |
-| 動的パラメータ | `products_.$id.tsx` | `/products/:id` |
+| パターン | ファイル名 | URL | 親ルート |
+|----------|-----------|-----|----------|
+| 基本 | `products.tsx` | `/products` | `__root` |
+| ネスト（レイアウトなし） | `products_.new.tsx` | `/products/new` | `__root`（独立） |
+| ネスト（レイアウトあり） | `products/new.tsx` | `/products/new` | `products.tsx` が layout |
+| 動的パラメータ | `products_.$id.tsx` | `/products/:id` | `__root`（独立） |
+| 動的パラメータの子 | `products_.$id.edit.tsx` | `/products/:id/edit` | `products_.$id.tsx`（子ルート） |
+| 動的パラメータ後の独立 | `products_.$id_.edit.tsx` | `/products/:id/edit` | `__root`（独立） |
 
 - ネストルートでレイアウトを共有しない場合は `_` を使う（例: `products_.new.tsx`）
 - `createFileRoute` の引数はファイル名と一致させる（例: `createFileRoute("/products_/new")`）
+- **動的パラメータの後に独立ルートを作る場合は `$id_` のように `_` を追加する**
+  - `products_.$id.edit.tsx` → 詳細ページの子ルート（詳細ページに `<Outlet />` が必要）
+  - `products_.$id_.edit.tsx` → 独立ルート（詳細ページと並列、`<Outlet />` 不要）
+- CRUD 画面では編集・削除は詳細ページと**独立**させる（`$id_.edit.tsx` 形式を使う）
 
 ---
 

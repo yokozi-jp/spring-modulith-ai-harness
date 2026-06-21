@@ -247,6 +247,29 @@ const grouped = groupBySameDay(orders);
 
 ---
 
+## Link と Button の組み合わせ
+
+### `<Link>` 内に `<Button>` をネストしない
+
+HTML 仕様上、`<a>` 内に `<button>` は配置できない。クリックイベントが正しく動作しない。
+
+```tsx
+// ❌ 動かない（HTML 仕様違反）
+<Link to={`/orders/${id}/edit`}>
+  <Button>編集</Button>
+</Link>
+
+// ✅ asChild を使う（Button が Link の子要素としてレンダリング）
+<Button asChild>
+  <Link to={`/orders/${id}/edit`}>編集</Link>
+</Button>
+```
+
+- `asChild` は Radix UI / Shadcn/ui の prop で、子要素にスタイルと振る舞いを委譲する
+- `Button` のスタイルが適用された `<a>` タグがレンダリングされる
+
+---
+
 ## レイアウト構成
 
 ### 基本構造

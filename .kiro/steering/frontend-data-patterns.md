@@ -323,3 +323,26 @@ try {
   }
 }
 ```
+
+### 削除時の 409 Conflict（関連データ存在）
+
+削除時に関連データ（子カテゴリ、紐づく商品等）が存在する場合も 409 を返す。
+エラーメッセージをユーザーに分かりやすく表示する:
+
+```typescript
+function handleDelete() {
+  deleteCategory(id, version, {
+    onError: (error) => {
+      if (isApiError(error)) {
+        // サーバーからのメッセージをそのまま表示、または変換
+        setDeleteError(error.detail ?? "削除できませんでした");
+      } else {
+        setDeleteError("削除中にエラーが発生しました");
+      }
+    },
+  });
+}
+```
+
+- 409 エラーの `detail` フィールドには理由が含まれる（例: "このカテゴリには商品が紐づいています"）
+- JSON 全文ではなく、ユーザーが理解できるメッセージに変換して表示する

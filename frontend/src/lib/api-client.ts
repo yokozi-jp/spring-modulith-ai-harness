@@ -43,7 +43,18 @@ export async function apiClient<T>(config: {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `${response.status} ${response.statusText}`);
+    let message = `${response.status} ${response.statusText}`;
+    if (text.length > 0) {
+      try {
+        const problem = JSON.parse(text) as { detail?: string };
+        if (problem.detail !== undefined) {
+          message = problem.detail;
+        }
+      } catch {
+        message = text;
+      }
+    }
+    throw new Error(message);
   }
 
   if (response.status === 204 || response.status === 201) {

@@ -17,7 +17,12 @@ if [[ "${1:-}" == "--fix" ]]; then
 fi
 
 echo "=== vp check ${FIX_FLAG} ==="
-vp check ${FIX_FLAG}
+if [[ -n "$FIX_FLAG" ]]; then
+  vp check --fix
+else
+  vp fmt src --check --ignore-path .oxfmtignore
+  vp check --no-fmt
+fi
 
 echo ""
 echo "=== Hook 配置チェック ==="
