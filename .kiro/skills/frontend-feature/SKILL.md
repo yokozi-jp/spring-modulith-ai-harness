@@ -93,6 +93,29 @@ function <PascalName>Page() {
 }
 ```
 
+## API 不足・修正時の対応
+
+フロントエンド実装中に API が不足、またはリクエスト/レスポンスの修正が必要な場合:
+
+1. **問題を明示する**
+   - API が存在しない場合: 必要なメソッド、パス、リクエスト/レスポンス形式を提示
+   - 修正が必要な場合: 既存 API と必要な変更内容を提示
+   - 例:
+     - 「`GET /api/v1/products/{id}` のレスポンスに `categoryName` が含まれていません」
+     - 「`GET /api/v1/products` に `status` フィルタパラメータがありません」
+
+2. **確認を取る**
+   - 「backend に API を追加/修正しますか？」と確認する
+   - 勝手に backend を変更しない
+
+3. **承認されたら backend を実装**
+   - `backend-dev-workflow.md` に従って API を追加または修正
+   - DTO、QueryService、Controller 等を更新
+   - 必要に応じて Liquibase マイグレーション、jOOQ 再生成も実施
+
+4. **frontend 実装を続行**
+   - 追加/修正した API を使って UI を実装
+
 ## Rules
 
 すべてのコード生成は以下のステアリングに従う:

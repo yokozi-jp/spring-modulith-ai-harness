@@ -4,6 +4,34 @@
 
 ---
 
+## UI コンポーネントの選択
+
+1. **Shadcn/ui に存在するものは Shadcn/ui を使う**（未追加なら先に `vp dlx shadcn@latest add <name>` で追加）
+2. **Shadcn/ui にないものは `src/components/` に自作する**
+3. **生の HTML タグ + Tailwind でのスタイリングは避ける**
+
+```bash
+# 例: Table コンポーネントを追加
+vp dlx shadcn@latest add table
+```
+
+---
+
+## 共通 UI コンポーネントの作成
+
+複数の feature で使う UI パターン（ErrorMessage, EmptyState 等）は、**インラインで重複させず `src/components/` に共通コンポーネントとして作成してから使う。**
+
+```
+src/components/
+├── error-message.tsx    # エラー表示
+├── empty-state.tsx      # 空状態表示
+└── layout/              # レイアウト
+```
+
+初回の feature 作成時に必要な共通コンポーネントがなければ作成する。
+
+---
+
 ## ローディング状態
 
 ### Skeleton を使う（Spinner は使わない）
@@ -178,6 +206,7 @@ export function OrderForm({ onSubmit, isSubmitting }: OrderFormProps) {
 - `<form>` タグを使う（`onSubmit` で送信処理）
 - `event.preventDefault()` は `handleSubmit` 内で呼ぶ
 - ボタンには `type="submit"` を付ける
+- **enum / FK（外部キー）フィールドは `<select>` で選択させる**（手入力させない）
 - 送信中は `disabled` で二重送信防止
 - バリデーションは HTML 属性（`required`, `pattern`, `min` 等）を優先
 - 複雑なバリデーションが必要になったら `zod` を導入する（先に入れない）
