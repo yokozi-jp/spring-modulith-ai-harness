@@ -260,19 +260,26 @@ function handleSubmit() {
 
 **Orval で生成する。手書き API は禁止。**
 
+### 前提条件
+
+Orval 実行前に backend の OpenAPI spec が必要。**OpenAPI spec がない状態で手書き API を作成しない。先に backend を起動する。**
+
+```bash
+# 1. バックエンドコンテナを起動
+make be-up
+
+# 2. OpenAPI spec を生成（be-test の副産物）
+make be-test
+
+# 3. Orval でクライアント生成
+cd frontend && npx orval
+```
+
 ### ワークフロー
 
 1. backend で `make be-test` を実行すると OpenAPI spec が `backend/build/openapi.json` に生成される
 2. `npx orval` を実行すると `src/api/` に TanStack Query Hook + 型が自動生成される
 3. features の Hook から `src/api/` の生成 Hook をラップして使う
-
-```bash
-# backend の OpenAPI spec を生成（be-test の副産物）
-cd backend && make be-test
-
-# Orval でクライアントコード生成
-cd frontend && npx orval
-```
 
 ### 生成されるファイル
 
