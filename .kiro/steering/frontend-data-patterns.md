@@ -365,6 +365,7 @@ AI: 「Orval 生成コードがないので、パターンに従って
 - CSRF トークン送信（Spring Security 連携）
 - `credentials: "include"` で Cookie 送信
 - エラーレスポンスの ProblemDetail パース
+- **Orval 生成コードが期待する `{ data, status, headers }` 形式でレスポンスを返す**
 
 ```typescript
 // orval.config.ts で指定
@@ -383,6 +384,62 @@ export default defineConfig({
   },
 });
 ```
+
+### api-client.ts の正しい実装
+
+Orval 生成コードは `apiClient<T>(url: string, options?: RequestInit): Promise<T>` 形式で呼び出し、
+戻り値として `{ data, status, headers }` 構造を期待する。**この形式を守らないと型エラーや実行時エラーになる。**
+
+```typescript
+// src/lib/api-client.ts — Orval 互換実装
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  const token = match?.[1];
+  return token !== undefined ? decodeURIComponent(token) : null;
+}
+
+export async function apiClient<T>(url: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers);
+
+  const csrfToken = getCsrfToken();
+  if (csrfToken !== null) {
+    headers.set("X-XSRF-TOKEN", csrfToken);
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    let message = `${String(response.status)} ${response.statusText}`;
+    if (text.length > 0) {
+      try {
+        const problem = JSON.parse(text) as { detail?: string };
+        if (problem.detail !== undefined) {
+          message = problem.detail;
+        }
+      } catch {
+        message = text;
+      }
+    }
+    throw new Error(message);
+  }
+
+  const text = await response.text();
+  const data = text.length > 0 ? JSON.parse(text) : undefined;
+
+  // Orval 生成コードが期待する形式で返す
+  return { data, status: response.status, headers: response.headers } as T;
+}
+```
+
+**重要**: 
+- シグネチャ: `apiClient<T>(url: string, options?: RequestInit): Promise<T>`
+- 戻り値: `{ data, status, headers }` 構造（Orval の `httpClient: "fetch"` が期待する形式）
+- この実装を変更する場合は Orval 生成コードとの互換性を確認すること
 
 ---
 
