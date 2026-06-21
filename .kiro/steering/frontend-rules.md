@@ -15,6 +15,26 @@
 
 ---
 
+## バックエンド連携
+
+- バックエンドは `http://localhost:18080` で稼働（8080 は Keycloak）
+- `/api/v1/*` は Vite プロキシ経由でアクセス
+
+### Vite プロキシ設定（vite.config.ts）
+
+```typescript
+server: {
+  proxy: {
+    "/api": {
+      target: "http://localhost:18080",
+      changeOrigin: true,
+    },
+  },
+}
+```
+
+---
+
 ## コマンド
 
 ```bash

@@ -21,6 +21,14 @@ export default defineConfig({
       "@": new URL("./src", import.meta.url).pathname,
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:18080",
+        changeOrigin: true,
+      },
+    },
+  },
   fmt: { ignorePath: ".oxfmtignore" },
   lint: { options: { typeAware: true, typeCheck: true } },
   test: {

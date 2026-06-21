@@ -288,3 +288,38 @@ return { data, status: response.status, headers: response.headers } as T;
 
 - 201: 作成成功。`Location` ヘッダーから作成リソースの URI を取得可能
 - 204: 削除成功。レスポンスボディなし
+
+---
+
+## 楽観ロック（version）対応
+
+更新・削除 API は `version` を必須とする。
+
+### 削除・更新は詳細画面から行う
+
+- 詳細取得時に `version` を取得済みなので、そのまま使う
+- **一覧画面に削除ボタンを置かない**（version がないため）
+
+```typescript
+// 詳細画面から削除
+const { category } = useCategory(id);  // version 取得済み
+await deleteCategory(id, category.version);
+
+// 詳細画面から更新
+await updateCategory(id, { ...data, version: category.version });
+```
+
+### 409 Conflict の処理
+
+他ユーザーが先に更新した場合、サーバーは 409 を返す:
+
+```typescript
+try {
+  await updateCategory(id, data);
+} catch (error) {
+  if (isApiError(error) && error.status === 409) {
+    setError("データが更新されました。再読み込みしてください");
+    await refetch();
+  }
+}
+```
