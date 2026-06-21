@@ -441,6 +441,16 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
 - 戻り値: `{ data, status, headers }` 構造（Orval の `httpClient: "fetch"` が期待する形式）
 - この実装を変更する場合は Orval 生成コードとの互換性を確認すること
 
+### `src/api/` の lint warning について
+
+`verify.sh` 実行時に `src/api/` から `no-misused-spread` や `no-base-to-string` の warning が出ることがある。
+**これらは Orval 生成コードの問題であり、無視してよい。**
+
+判断基準:
+- **エラー 0 件** で `verify.sh` が成功 → OK
+- **warning のみ**（全て `src/api/` から）→ OK
+- `src/features/` や `src/components/` からエラー → 修正必須
+
 ---
 
 ## 楽観ロック（version）対応
