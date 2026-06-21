@@ -9,101 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root";
-import { Route as CategoriesRouteImport } from "./routes/categories";
 import { Route as IndexRouteImport } from "./routes/index";
-import { Route as CategoriesNewRouteImport } from "./routes/categories_.new";
-import { Route as CategoriesIdRouteImport } from "./routes/categories_.$id";
-import { Route as CategoriesIdEditRouteImport } from "./routes/categories_.$id_.edit";
 
-const CategoriesRoute = CategoriesRouteImport.update({
-  id: "/categories",
-  path: "/categories",
-  getParentRoute: () => rootRouteImport,
-} as any);
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any);
-const CategoriesNewRoute = CategoriesNewRouteImport.update({
-  id: "/categories_/new",
-  path: "/categories/new",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const CategoriesIdRoute = CategoriesIdRouteImport.update({
-  id: "/categories_/$id",
-  path: "/categories/$id",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const CategoriesIdEditRoute = CategoriesIdEditRouteImport.update({
-  id: "/categories_/$id_/edit",
-  path: "/categories/$id/edit",
-  getParentRoute: () => rootRouteImport,
-} as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
-  "/categories": typeof CategoriesRoute;
-  "/categories/$id": typeof CategoriesIdRoute;
-  "/categories/new": typeof CategoriesNewRoute;
-  "/categories/$id/edit": typeof CategoriesIdEditRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
-  "/categories": typeof CategoriesRoute;
-  "/categories/$id": typeof CategoriesIdRoute;
-  "/categories/new": typeof CategoriesNewRoute;
-  "/categories/$id/edit": typeof CategoriesIdEditRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
-  "/categories": typeof CategoriesRoute;
-  "/categories_/$id": typeof CategoriesIdRoute;
-  "/categories_/new": typeof CategoriesNewRoute;
-  "/categories_/$id_/edit": typeof CategoriesIdEditRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths:
-    | "/"
-    | "/categories"
-    | "/categories/$id"
-    | "/categories/new"
-    | "/categories/$id/edit";
+  fullPaths: "/";
   fileRoutesByTo: FileRoutesByTo;
-  to:
-    | "/"
-    | "/categories"
-    | "/categories/$id"
-    | "/categories/new"
-    | "/categories/$id/edit";
-  id:
-    | "__root__"
-    | "/"
-    | "/categories"
-    | "/categories_/$id"
-    | "/categories_/new"
-    | "/categories_/$id_/edit";
+  to: "/";
+  id: "__root__" | "/";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
-  CategoriesRoute: typeof CategoriesRoute;
-  CategoriesIdRoute: typeof CategoriesIdRoute;
-  CategoriesNewRoute: typeof CategoriesNewRoute;
-  CategoriesIdEditRoute: typeof CategoriesIdEditRoute;
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    "/categories": {
-      id: "/categories";
-      path: "/categories";
-      fullPath: "/categories";
-      preLoaderRoute: typeof CategoriesRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
     "/": {
       id: "/";
       path: "/";
@@ -111,36 +48,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/categories_/new": {
-      id: "/categories_/new";
-      path: "/categories/new";
-      fullPath: "/categories/new";
-      preLoaderRoute: typeof CategoriesNewRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/categories_/$id": {
-      id: "/categories_/$id";
-      path: "/categories/$id";
-      fullPath: "/categories/$id";
-      preLoaderRoute: typeof CategoriesIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/categories_/$id_/edit": {
-      id: "/categories_/$id_/edit";
-      path: "/categories/$id/edit";
-      fullPath: "/categories/$id/edit";
-      preLoaderRoute: typeof CategoriesIdEditRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CategoriesRoute: CategoriesRoute,
-  CategoriesIdRoute: CategoriesIdRoute,
-  CategoriesNewRoute: CategoriesNewRoute,
-  CategoriesIdEditRoute: CategoriesIdEditRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
