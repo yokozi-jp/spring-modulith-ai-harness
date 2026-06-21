@@ -3,11 +3,12 @@ import { defineConfig } from "orval";
 export default defineConfig({
   api: {
     input: {
-      target: "http://localhost:18080/v3/api-docs",
+      target: "./openapi.json",
     },
     output: {
       target: "./src/api",
       client: "react-query",
+      httpClient: "fetch",
       mode: "tags-split",
       clean: true,
       override: {
@@ -15,10 +16,9 @@ export default defineConfig({
           path: "./src/lib/api-client.ts",
           name: "apiClient",
         },
-        query: {
-          useQuery: true,
-          useMutation: true,
-        },
+        // query オプションを削除してデフォルト動作に任せる:
+        // - GET → useQuery
+        // - POST/PUT/PATCH/DELETE → useMutation
       },
     },
   },

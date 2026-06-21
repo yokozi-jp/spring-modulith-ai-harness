@@ -51,7 +51,7 @@ while IFS= read -r file; do
   if [[ "$basename" == use-* ]]; then
     continue
   fi
-  if [[ "$file" == *"routeTree.gen"* ]]; then
+  if [[ "$file" == *"routeTree.gen"* || "$file" == src/api/* ]]; then
     continue
   fi
   if grep -qE "^export function use[A-Z]" "$file" 2>/dev/null; then

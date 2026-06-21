@@ -117,6 +117,8 @@
       "rules": {
         "no-restricted-imports": "off",
         "typescript/no-explicit-any": "off",
+        "typescript/no-misused-spread": "off",
+        "typescript/no-base-to-string": "off",
         "import/no-default-export": "off"
       }
     }
