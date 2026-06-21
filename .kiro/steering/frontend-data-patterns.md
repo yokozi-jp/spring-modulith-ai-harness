@@ -312,7 +312,18 @@ export function useCategoryList() {
 
 - `src/lib/*-api.ts` に API 関数を手書きしない
 - `src/features/*/hooks/` で fetch を直接呼ばない
+- `src/features/*/hooks/` で apiClient を直接呼ばない（Orval 生成 Hook を使う）
 - `src/api/` を手動編集しない（再生成で上書きされる）
+
+### API が存在しない・生成できない場合
+
+backend に必要な API がない、または OpenAPI spec が生成されていない場合:
+
+1. **frontend の実装を中断する**
+2. ユーザーに「backend を先に起動/実装して API を用意してください」と伝える
+3. backend が準備できたら `npx orval` で生成してから続行する
+
+**回避策として手書き API や apiClient 直接呼び出しをしない。**
 
 ### api-client.ts の役割
 
