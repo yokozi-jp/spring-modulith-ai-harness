@@ -1,6 +1,7 @@
 package com.example.demo.architecture.custom;
 
 import com.example.demo.architecture.custom.policy.AnnotationPolicy;
+import com.example.demo.architecture.custom.policy.BeanRegistrationPolicy;
 import com.example.demo.architecture.custom.policy.CqrsPolicy;
 import com.example.demo.architecture.custom.policy.DddPolicy;
 import com.example.demo.architecture.custom.policy.JooqPolicy;
@@ -54,4 +55,9 @@ class CustomArchRulesTest {
 
   /** REST API: POST/DELETE の戻り値型規約。 */
   @ArchTest /* default */ static final ArchTests REST_API = ArchTests.in(RestApiPolicy.class);
+
+  /** Bean 登録: jMolecules DDD アノテーションと Spring ステレオタイプの併用。 */
+  @ArchTest
+  /* default */ static final ArchTests BEAN_REGISTRATION =
+      ArchTests.in(BeanRegistrationPolicy.class);
 }

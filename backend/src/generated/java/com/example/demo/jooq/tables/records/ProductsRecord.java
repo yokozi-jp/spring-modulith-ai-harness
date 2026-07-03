@@ -227,6 +227,6 @@ public class ProductsRecord extends UpdatableRecordImpl<ProductsRecord> {
         setUpdatedBy(updatedBy);
         setVersion(version);
         setDeletedAt(deletedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -182,6 +182,6 @@ public class CategoryClosuresRecord extends UpdatableRecordImpl<CategoryClosures
         setUpdatedBy(updatedBy);
         setVersion(version);
         setDeletedAt(deletedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

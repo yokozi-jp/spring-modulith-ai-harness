@@ -243,6 +243,6 @@ public class PricingsRecord extends UpdatableRecordImpl<PricingsRecord> {
         setUpdatedBy(updatedBy);
         setVersion(version);
         setDeletedAt(deletedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

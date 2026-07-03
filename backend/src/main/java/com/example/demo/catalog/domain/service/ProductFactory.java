@@ -7,10 +7,12 @@ import com.example.demo.catalog.domain.repository.ProductRepository;
 import com.example.demo.category.CategoryApi;
 import lombok.RequiredArgsConstructor;
 import org.jmolecules.ddd.annotation.Factory;
+import org.springframework.stereotype.Component;
 
 /** Product ファクトリ。 */
 @RequiredArgsConstructor
 @Factory
+@Component
 public class ProductFactory {
 
   /** リポジトリ。 */

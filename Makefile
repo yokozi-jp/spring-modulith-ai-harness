@@ -52,6 +52,7 @@ be-fmt:
 # jOOQ コード生成
 be-jooq:
 	docker compose exec backend ./gradlew generateJooq
+	@sudo chown -R $$(id -u):$$(id -g) backend/src/generated/ 2>/dev/null || true
 
 # Liquibase マイグレーション適用
 be-migrate:
