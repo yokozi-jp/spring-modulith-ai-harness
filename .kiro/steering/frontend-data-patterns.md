@@ -195,6 +195,38 @@ export function isApiError(error: unknown): error is ApiError {
 }
 ```
 
+### Orval 生成コードの error 型について
+
+Orval 生成 Hook の `error` は `TError` ジェネリクス（多くの場合 `ResponseType` や `unknown`）であり、JavaScript の `Error` 型ではない。
+`ErrorMessage` コンポーネントに渡す際は以下のパターンで変換する:
+
+```tsx
+// ❌ 型エラーになる（Orval の error は Error 型ではない）
+<ErrorMessage error={error} />
+
+// ✅ Error に変換して渡す
+<ErrorMessage
+  error={error instanceof Error ? error : error !== null ? new Error(String(error)) : null}
+/>
+```
+
+この変換が頻繁に必要な場合、ヘルパー関数を `src/lib/utils.ts` に追加する:
+
+```tsx
+export function toError(error: unknown): Error | null {
+  if (error === null || error === undefined) {
+    return null;
+  }
+  if (error instanceof Error) {
+    return error;
+  }
+  return new Error(String(error));
+}
+
+// 使い方
+<ErrorMessage error={toError(error)} />
+```
+
 ### Hook でのエラー処理
 
 ```tsx
@@ -205,7 +237,7 @@ export function useOrderList() {
   return {
     orders: query.data ?? [],
     isLoading: query.isLoading,
-    error: query.error,  // Error | null
+    error: query.error,  // unknown 型（Orval 生成時）
   };
 }
 ```

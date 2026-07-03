@@ -253,3 +253,37 @@ const config: Config = { timeout: undefined };
 // ✅
 const config: Config = {};
 ```
+
+#### Orval 生成型での対処
+
+Orval 生成の Request 型（例: `CreateCategoryRequest`, `UpdateCategoryRequest`）は optional プロパティが `prop?: T` で定義されており、`undefined` を明示的に代入すると `exactOptionalPropertyTypes` エラーになる。
+
+```typescript
+// ❌ Orval 生成型にそのまま代入するとエラー
+createCategory({
+  data: {
+    name: data.name,
+    sortOrder: data.sortOrder,
+    parentCategoryId: data.parentId,  // string | undefined → エラー
+  },
+});
+
+// ✅ undefined のときはプロパティ自体を省略
+createCategory({
+  data: {
+    name: data.name,
+    sortOrder: data.sortOrder,
+    ...(data.parentId !== undefined && { parentCategoryId: data.parentId }),
+  },
+});
+
+// ✅ または条件分岐でオブジェクトを構築
+const requestData: CreateCategoryRequest = {
+  name: data.name,
+  sortOrder: data.sortOrder,
+};
+if (data.parentId !== undefined) {
+  requestData.parentCategoryId = data.parentId;
+}
+createCategory({ data: requestData });
+```
