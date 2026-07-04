@@ -220,6 +220,41 @@ export const ORDER_STATUS = {
 export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
 ```
 
+### ステータスラベル・カラー定義
+
+backend の enum に対応する表示用定数（ラベル、カラー等）は feature 内の `types/` に配置する:
+
+```tsx
+// src/features/product/types/product-status.ts
+export const PRODUCT_STATUS = {
+  DRAFT: "DRAFT",
+  PUBLISHED: "PUBLISHED",
+  UNPUBLISHED: "UNPUBLISHED",
+  ARCHIVED: "ARCHIVED",
+} as const;
+
+export type ProductStatus = (typeof PRODUCT_STATUS)[keyof typeof PRODUCT_STATUS];
+
+export const STATUS_LABELS: Record<ProductStatus, string> = {
+  DRAFT: "下書き",
+  PUBLISHED: "公開",
+  UNPUBLISHED: "非公開",
+  ARCHIVED: "アーカイブ",
+};
+
+export const STATUS_COLORS: Record<ProductStatus, string> = {
+  DRAFT: "bg-muted text-muted-foreground",
+  PUBLISHED: "bg-emerald-100 text-emerald-700",
+  UNPUBLISHED: "bg-amber-100 text-amber-700",
+  ARCHIVED: "bg-zinc-100 text-zinc-500",
+};
+```
+
+コンポーネント内にベタ書きせず、`types/` に切り出すことで:
+- 型安全性が向上（`Record<ProductStatus, string>` で網羅性を保証）
+- 複数コンポーネントで再利用可能
+- backend の enum 変更時に一箇所で対応可能
+
 ### アプリ共通の定数は `src/lib/constants.ts` に配置
 
 ---
