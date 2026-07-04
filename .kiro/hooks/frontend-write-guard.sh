@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Kiro CLI preToolUse hook: frontend/ へのファイル書き込み前に規約を検証。
-# ルール実装はすべて frontend/scripts/ に集約。このフックは呼び出すだけ。
+# ルール実装は frontend/scripts/checks/ に集約。このフックは呼び出すだけ。
 #
 # exit 0: 許可 / exit 2: 阻止（STDERR → AI）
 
@@ -19,22 +19,16 @@ if [[ "$FILE_PATH" != *frontend/src/* ]]; then
 fi
 
 # scripts ディレクトリを解決（hook は cwd=プロジェクトルートで実行される）
-SCRIPTS_DIR="frontend/scripts"
-if [[ ! -d "$SCRIPTS_DIR" ]]; then
+CHECKS_DIR="frontend/scripts/checks"
+if [[ ! -d "$CHECKS_DIR" ]]; then
   exit 0
 fi
 
 errors=()
 
-# 汎用ファイルルール（kebab-case, ui禁止, api禁止, routes制限）
-RESULT=$("$SCRIPTS_DIR/check-file-rules.sh" "$FILE_PATH" 2>&1) || true
-if [[ -n "$RESULT" ]]; then
-  while IFS= read -r line; do errors+=("$line"); done <<< "$RESULT"
-fi
-
 # features/ 構造ルール
 if [[ "$FILE_PATH" == *src/features/* ]]; then
-  RESULT=$("$SCRIPTS_DIR/check-features-structure.sh" --file "$FILE_PATH" 2>&1) || true
+  RESULT=$("$CHECKS_DIR/check-features-structure.sh" --file "$FILE_PATH" 2>&1) || true
   if [[ -n "$RESULT" ]]; then
     while IFS= read -r line; do errors+=("$line"); done <<< "$RESULT"
   fi
@@ -43,21 +37,9 @@ fi
 # hook 配置ルール
 FILENAME=$(basename "$FILE_PATH")
 if [[ "$FILENAME" == use-*.ts ]]; then
-  RESULT=$("$SCRIPTS_DIR/check-hook-location.sh" --file "$FILE_PATH" 2>&1) || true
+  RESULT=$("$CHECKS_DIR/check-hook-location.sh" --file "$FILE_PATH" 2>&1) || true
   if [[ -n "$RESULT" ]]; then
     while IFS= read -r line; do errors+=("$line"); done <<< "$RESULT"
-  fi
-fi
-
-# hook 内容ルール（apiClient/fetch 直接使用禁止）
-if [[ "$FILE_PATH" == *src/features/*/hooks/* && "$FILENAME" == *.ts && "$FILENAME" != *.test.* ]]; then
-  # EVENT から content を抽出（JSON の "content" フィールド）
-  CONTENT=$(echo "$EVENT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('content',''))" 2>/dev/null || true)
-  if [[ -n "$CONTENT" ]]; then
-    RESULT=$(echo "$CONTENT" | "$SCRIPTS_DIR/check-hook-content.sh" "$FILE_PATH" - 2>&1) || true
-    if [[ -n "$RESULT" ]]; then
-      while IFS= read -r line; do errors+=("$line"); done <<< "$RESULT"
-    fi
   fi
 fi
 

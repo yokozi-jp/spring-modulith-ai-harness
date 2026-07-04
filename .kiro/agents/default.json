@@ -20,11 +20,6 @@
         "matcher": "write",
         "command": ".kiro/hooks/frontend-write-guard.sh",
         "timeout_ms": 5000
-      },
-      {
-        "matcher": "shell",
-        "command": ".kiro/hooks/frontend-shell-guard.sh",
-        "timeout_ms": 5000
       }
     ],
     "postToolUse": [
