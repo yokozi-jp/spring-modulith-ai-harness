@@ -57,6 +57,7 @@ export default defineConfig({
       // カスタムチェック（verify.sh と同じ）
       "./scripts/checks/check-hook-location.sh",
       "./scripts/checks/check-features-structure.sh",
+      "./scripts/checks/check-test-exists.sh",
       "./scripts/checks/check-ui-readonly.sh",
       "./scripts/checks/api-readonly.sh",
     ],
