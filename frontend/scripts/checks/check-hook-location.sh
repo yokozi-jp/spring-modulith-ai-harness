@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 # --- 単一ファイル検証モード ---
 if [[ "${1:-}" == "--file" ]]; then
