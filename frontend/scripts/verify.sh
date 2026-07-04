@@ -37,4 +37,8 @@ echo "=== components/ui/ 編集チェック ==="
 ./scripts/check-ui-readonly.sh
 
 echo ""
+echo "=== apiClient 直接使用チェック ==="
+./scripts/check-no-direct-api-client.sh
+
+echo ""
 echo "✅ All checks passed."
