@@ -8,24 +8,28 @@
 
 ### 基本パターン
 
+Orval 生成 Hook をラップして使う:
+
 ```tsx
 // src/features/order/hooks/use-order-list.ts
-import { useQuery } from "@tanstack/react-query";
-import { getOrders } from "@/api/order";
+import { useList } from "@/api/order/order";  // Orval 生成 Hook
+import type { OrderSummaryResponse } from "@/api/openAPIDefinition.schemas";
 
 export function useOrderList() {
-  const query = useQuery({
-    queryKey: ["orders"],
-    queryFn: getOrders,
+  const query = useList({
+    param: {},
+    pageable: { page: 0, size: 20, sort: ["createdAt,desc"] },
   });
 
   return {
-    orders: query.data ?? [],
+    orders: (query.data?.data?.content ?? []) as OrderSummaryResponse[],
     isLoading: query.isLoading,
     error: query.error,
   };
 }
 ```
+
+**重要**: `useQuery` を直接使わず、Orval 生成の Hook（`useList`, `useFindById` 等）をラップする。
 
 ### queryKey の命名規則
 
@@ -323,28 +327,35 @@ cd frontend && npx orval
 
 ```
 src/api/
-├── category.ts          # Category API の Hook + 型
-├── product.ts           # Product API の Hook + 型
-├── pricing.ts           # Pricing API の Hook + 型
+├── <tag>/
+│   └── <tag>.ts             # API の Hook + 関数（タグごとにディレクトリ分割）
 └── openAPIDefinition.schemas.ts  # 共通型
 ```
+
+`mode: "tags-split"` 設定により、OpenAPI の tag ごとにディレクトリが作成される。
 
 ### features Hook での使い方
 
 ```tsx
-// src/features/category/hooks/use-category-list.ts
-import { useGetCategories } from "@/api/category";
+// src/features/<resource>/hooks/use-<resource>-list.ts
+import { useList } from "@/api/<resource>/<resource>";  // Orval 生成 Hook
 
-export function useCategoryList() {
-  const query = useGetCategories();
+export function use<Resource>List() {
+  const query = useList({
+    param: {},
+    pageable: { page: 0, size: 20, sort: ["createdAt,desc"] },
+  });
 
   return {
-    categories: query.data?.content ?? [],
+    <resources>: query.data?.data?.content ?? [],
     isLoading: query.isLoading,
     error: query.error,
   };
 }
 ```
+
+Orval 生成の Hook 名は OpenAPI の operationId に基づく（例: `useList`, `useList2`, `useFindById`, `useCreate`）。
+番号が付く場合は同名の操作が複数タグにある場合。
 
 ### 禁止
 
