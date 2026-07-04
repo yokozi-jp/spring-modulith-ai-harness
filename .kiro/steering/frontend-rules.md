@@ -194,6 +194,7 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 - `project-rules/no-direct-api-client`: features/*/hooks/ 内で apiClient を直接 import することを禁止
 - `project-rules/hook-in-dedicated-file`: Hook 関数（`export function use...`）は use-*.ts ファイルでのみ定義可能
 - `project-rules/no-arrow-function-component`: コンポーネントはアロー関数ではなく関数宣言で定義
+- `project-rules/no-arrow-function-hook`: Hook はアロー関数ではなく関数宣言で定義
 - `project-rules/no-props-object-param`: Props は分割代入で受け取る（`props: XProps` 禁止）
 
 ### shell スクリプト（`scripts/checks/`）

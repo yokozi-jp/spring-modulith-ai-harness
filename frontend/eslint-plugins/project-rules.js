@@ -146,6 +146,76 @@ export default {
     },
 
     /**
+     * Hook はアロー関数ではなく関数宣言で定義する
+     *
+     * export const useX = () => {} ではなく export function useX() {} を使う。
+     * 理由: コンポーネントと統一、一貫性。
+     */
+    "no-arrow-function-hook": {
+      meta: {
+        type: "problem",
+        docs: {
+          description: "Hook はアロー関数ではなく関数宣言で定義する",
+          recommended: true,
+        },
+        messages: {
+          useFunction:
+            "Hook はアロー関数ではなく関数宣言で定義してください。export const {{ name }} = () => {} → export function {{ name }}() {}",
+        },
+      },
+      create(context) {
+        const filename = context.filename || context.getFilename();
+
+        // .ts ファイルのみ対象（.tsx は no-arrow-function-component でカバー）
+        if (!filename.endsWith(".ts") || filename.endsWith(".d.ts")) {
+          return {};
+        }
+
+        // テストファイルは除外
+        if (filename.includes(".test.")) {
+          return {};
+        }
+
+        // src 外は対象外
+        if (!filename.includes("/src/")) {
+          return {};
+        }
+
+        return {
+          ExportNamedDeclaration(node) {
+            if (
+              node.declaration &&
+              node.declaration.type === "VariableDeclaration"
+            ) {
+              for (const declarator of node.declaration.declarations) {
+                if (
+                  declarator.init &&
+                  declarator.init.type === "ArrowFunctionExpression" &&
+                  declarator.id &&
+                  declarator.id.type === "Identifier"
+                ) {
+                  const name = declarator.id.name;
+                  // use で始まる Hook のみ対象
+                  if (
+                    name.startsWith("use") &&
+                    name.length > 3 &&
+                    name[3] === name[3].toUpperCase()
+                  ) {
+                    context.report({
+                      node: declarator,
+                      messageId: "useFunction",
+                      data: { name },
+                    });
+                  }
+                }
+              }
+            }
+          },
+        };
+      },
+    },
+
+    /**
      * Props は分割代入で受け取る
      *
      * function X(props: XProps) ではなく function X({ a, b }: XProps) を使う。

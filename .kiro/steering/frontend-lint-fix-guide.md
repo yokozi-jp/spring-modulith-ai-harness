@@ -97,6 +97,28 @@ export function OrderList() {
 
 ---
 
+### project-rules/no-arrow-function-hook
+
+**エラー**: Hook はアロー関数ではなく関数宣言で定義してください。
+
+**修正**: `export const useX = () =>` を `export function useX()` に変更する。
+
+```typescript
+// ❌
+export const useOrderList = () => {
+  return { orders: [] };
+};
+
+// ✅
+export function useOrderList() {
+  return { orders: [] };
+}
+```
+
+**理由**: コンポーネントと統一、一貫性。
+
+---
+
 ### project-rules/no-props-object-param
 
 **エラー**: Props は分割代入で受け取ってください。
