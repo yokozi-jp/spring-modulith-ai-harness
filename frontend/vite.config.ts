@@ -36,6 +36,8 @@ export default defineConfig({
     rules: {
       "project-rules/no-direct-api-client": "error",
       "project-rules/hook-in-dedicated-file": "error",
+      "project-rules/no-arrow-function-component": "error",
+      "project-rules/no-props-object-param": "error",
     },
   },
   test: {

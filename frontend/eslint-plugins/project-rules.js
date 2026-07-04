@@ -80,6 +80,152 @@ export default {
     },
 
     /**
+     * コンポーネントはアロー関数ではなく関数宣言で定義する
+     *
+     * export const X = () => {} ではなく export function X() {} を使う。
+     * 理由: React 公式推奨、DevTools での表示名が明確、一貫性。
+     */
+    "no-arrow-function-component": {
+      meta: {
+        type: "problem",
+        docs: {
+          description: "コンポーネントはアロー関数ではなく関数宣言で定義する",
+          recommended: true,
+        },
+        messages: {
+          useFunction:
+            "コンポーネントはアロー関数ではなく関数宣言で定義してください。export const {{ name }} = () => {} → export function {{ name }}() {}",
+        },
+      },
+      create(context) {
+        const filename = context.filename || context.getFilename();
+
+        // .tsx ファイルのみ対象
+        if (!filename.endsWith(".tsx")) {
+          return {};
+        }
+
+        // テストファイルは除外
+        if (filename.includes(".test.")) {
+          return {};
+        }
+
+        // src 外は対象外
+        if (!filename.includes("/src/")) {
+          return {};
+        }
+
+        return {
+          ExportNamedDeclaration(node) {
+            if (
+              node.declaration &&
+              node.declaration.type === "VariableDeclaration"
+            ) {
+              for (const declarator of node.declaration.declarations) {
+                if (
+                  declarator.init &&
+                  declarator.init.type === "ArrowFunctionExpression" &&
+                  declarator.id &&
+                  declarator.id.type === "Identifier"
+                ) {
+                  const name = declarator.id.name;
+                  // PascalCase（コンポーネント名）のみ対象
+                  if (name[0] === name[0].toUpperCase() && name[0] !== name[0].toLowerCase()) {
+                    context.report({
+                      node: declarator,
+                      messageId: "useFunction",
+                      data: { name },
+                    });
+                  }
+                }
+              }
+            }
+          },
+        };
+      },
+    },
+
+    /**
+     * Props は分割代入で受け取る
+     *
+     * function X(props: XProps) ではなく function X({ a, b }: XProps) を使う。
+     * 理由: props.xxx は冗長、使用している Props が明確になる。
+     */
+    "no-props-object-param": {
+      meta: {
+        type: "problem",
+        docs: {
+          description: "Props は分割代入で受け取る",
+          recommended: true,
+        },
+        messages: {
+          useDestructuring:
+            "Props は分割代入で受け取ってください。(props: {{ type }}) → ({ ... }: {{ type }})",
+        },
+      },
+      create(context) {
+        const filename = context.filename || context.getFilename();
+
+        // .tsx ファイルのみ対象
+        if (!filename.endsWith(".tsx")) {
+          return {};
+        }
+
+        // テストファイルは除外
+        if (filename.includes(".test.")) {
+          return {};
+        }
+
+        // src 外は対象外
+        if (!filename.includes("/src/")) {
+          return {};
+        }
+
+        function checkFunctionParams(node, functionName) {
+          // PascalCase の関数（コンポーネント）のみ対象
+          if (!functionName || functionName[0] !== functionName[0].toUpperCase()) {
+            return;
+          }
+
+          const params = node.params;
+          if (params.length !== 1) {
+            return;
+          }
+
+          const param = params[0];
+          // Identifier + TypeAnnotation で *Props で終わる型の場合
+          if (
+            param.type === "Identifier" &&
+            param.typeAnnotation &&
+            param.typeAnnotation.typeAnnotation
+          ) {
+            const typeNode = param.typeAnnotation.typeAnnotation;
+            let typeName = "";
+            if (typeNode.type === "TSTypeReference" && typeNode.typeName) {
+              typeName = typeNode.typeName.name || "";
+            }
+            if (typeName.endsWith("Props")) {
+              context.report({
+                node: param,
+                messageId: "useDestructuring",
+                data: { type: typeName },
+              });
+            }
+          }
+        }
+
+        return {
+          FunctionDeclaration(node) {
+            checkFunctionParams(node, node.id?.name);
+          },
+          FunctionExpression(node) {
+            checkFunctionParams(node, node.id?.name);
+          },
+        };
+      },
+    },
+
+    /**
      * Hook 関数は use-*.ts ファイルでのみ定義可能
      *
      * Hook を .tsx コンポーネントファイル内で定義することを禁止。

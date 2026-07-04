@@ -75,6 +75,50 @@ function OrderList({ orders }: OrderListProps) { ... }
 
 ---
 
+### project-rules/no-arrow-function-component
+
+**エラー**: コンポーネントはアロー関数ではなく関数宣言で定義してください。
+
+**修正**: `export const X = () =>` を `export function X()` に変更する。
+
+```typescript
+// ❌
+export const OrderList = () => {
+  return <div />;
+};
+
+// ✅
+export function OrderList() {
+  return <div />;
+}
+```
+
+**理由**: React 公式推奨、DevTools での表示名が明確、一貫性。
+
+---
+
+### project-rules/no-props-object-param
+
+**エラー**: Props は分割代入で受け取ってください。
+
+**修正**: `(props: XProps)` を `({ a, b }: XProps)` に変更する。
+
+```typescript
+// ❌
+export function OrderCard(props: OrderCardProps) {
+  return <div>{props.name}</div>;
+}
+
+// ✅
+export function OrderCard({ name }: OrderCardProps) {
+  return <div>{name}</div>;
+}
+```
+
+**理由**: `props.xxx` は冗長、使用している Props が明確になる。
+
+---
+
 ### react/no-array-index-key
 
 **エラー**: 配列の index を key に使用している。
