@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# pre-commit フック
-# frontend の lint-staged を実行する
-
-cd frontend && npx lint-staged

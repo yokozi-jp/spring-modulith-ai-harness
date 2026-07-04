@@ -41,6 +41,15 @@ export default defineConfig({
     },
   },
   staged: {
-    "src/**/*.{ts,tsx}": ["vp lint --fix", "vp fmt"],
+    "src/**/*.{ts,tsx}": [
+      "vp lint --fix",
+      "vp fmt",
+      // カスタムチェック（verify.sh と同じ）
+      "./scripts/checks/check-hook-location.sh",
+      "./scripts/checks/check-features-structure.sh",
+      "./scripts/checks/check-ui-readonly.sh",
+      "./scripts/checks/api-readonly.sh",
+      "./scripts/checks/check-no-direct-api-client.sh",
+    ],
   },
 });
