@@ -20,8 +20,7 @@ export default {
       meta: {
         type: "problem",
         docs: {
-          description:
-            "features hooks 内で apiClient を直接 import することを禁止",
+          description: "features hooks 内で apiClient を直接 import することを禁止",
           recommended: true,
         },
         messages: {
@@ -37,10 +36,7 @@ export default {
         const filename = context.filename || context.getFilename();
 
         // features hooks 内のファイルのみ対象
-        if (
-          !filename.includes("src/features") ||
-          !filename.includes("/hooks/")
-        ) {
+        if (!filename.includes("src/features") || !filename.includes("/hooks/")) {
           return {};
         }
 
@@ -117,10 +113,7 @@ export default {
 
         return {
           ExportNamedDeclaration(node) {
-            if (
-              node.declaration &&
-              node.declaration.type === "VariableDeclaration"
-            ) {
+            if (node.declaration && node.declaration.type === "VariableDeclaration") {
               for (const declarator of node.declaration.declarations) {
                 if (
                   declarator.init &&
@@ -181,12 +174,14 @@ export default {
           return {};
         }
 
+        // Orval 生成コード（src/api/）は除外
+        if (filename.includes("/src/api/")) {
+          return {};
+        }
+
         return {
           ExportNamedDeclaration(node) {
-            if (
-              node.declaration &&
-              node.declaration.type === "VariableDeclaration"
-            ) {
+            if (node.declaration && node.declaration.type === "VariableDeclaration") {
               for (const declarator of node.declaration.declarations) {
                 if (
                   declarator.init &&
@@ -332,6 +327,11 @@ export default {
           return {};
         }
 
+        // Orval 生成コード（src/api/）は除外
+        if (filename.includes("/src/api/")) {
+          return {};
+        }
+
         return {
           ExportNamedDeclaration(node) {
             if (
@@ -340,8 +340,7 @@ export default {
               node.declaration.id &&
               node.declaration.id.name.startsWith("use") &&
               node.declaration.id.name.length > 3 &&
-              node.declaration.id.name[3] ===
-                node.declaration.id.name[3].toUpperCase()
+              node.declaration.id.name[3] === node.declaration.id.name[3].toUpperCase()
             ) {
               context.report({ node, messageId: "wrongFile" });
             }

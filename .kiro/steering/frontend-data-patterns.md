@@ -6,30 +6,82 @@
 
 ## データフェッチング（useQuery）
 
-### 基本パターン
+### 基本パターン — 一覧取得
 
-Orval 生成 Hook をラップして使う:
+Orval 生成 Hook をラップして使う。**apiClient を直接呼ばない。**
 
 ```tsx
-// src/features/order/hooks/use-order-list.ts
-import { useList } from "@/api/order/order";  // Orval 生成 Hook
-import type { OrderSummaryResponse } from "@/api/openAPIDefinition.schemas";
+// src/features/category/hooks/use-category-list.ts
+import { useList2 } from "@/api/category/category";  // Orval 生成 Hook
+import type { CategorySummaryResponse } from "@/api/openAPIDefinition.schemas";
 
-export function useOrderList() {
-  const query = useList({
-    param: {},
-    pageable: { page: 0, size: 20, sort: ["createdAt,desc"] },
+export function useCategoryList(page = 0, size = 20) {
+  const query = useList2({
+    param: {},  // フィルタパラメータ（空でも必須）
+    pageable: { page, size, sort: ["sortOrder,asc"] },
   });
 
   return {
-    orders: (query.data?.data?.content ?? []) as OrderSummaryResponse[],
+    categories: (query.data?.data?.content ?? []) as CategorySummaryResponse[],
+    totalPages: query.data?.data?.totalPages ?? 0,
+    totalElements: query.data?.data?.totalElements ?? 0,
     isLoading: query.isLoading,
     error: query.error,
   };
 }
 ```
 
-**重要**: `useQuery` を直接使わず、Orval 生成の Hook（`useList`, `useFindById` 等）をラップする。
+### 基本パターン — 単体取得
+
+```tsx
+// src/features/category/hooks/use-category.ts
+import { useFindById2 } from "@/api/category/category";  // Orval 生成 Hook
+import type { CategoryDetailResponse } from "@/api/openAPIDefinition.schemas";
+
+export function useCategory(id: string) {
+  const query = useFindById2(id, {
+    query: { enabled: id.length > 0 },  // id が空なら実行しない
+  });
+
+  return {
+    category: (query.data?.data ?? null) as CategoryDetailResponse | null,
+    isLoading: query.isLoading,
+    error: query.error,
+  };
+}
+```
+
+### ⛔ 禁止パターン — apiClient 直接使用
+
+```tsx
+// ❌ これは禁止（oxlint でエラーになる）
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+
+export function useCategoryList() {
+  const query = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => apiClient<T>("/api/v1/categories"),  // ❌ apiClient 直接
+  });
+  // ...
+}
+```
+
+**重要**: `useQuery` + `apiClient` の組み合わせは禁止。必ず Orval 生成 Hook を使う。
+
+### Orval 生成 Hook の命名規則
+
+OpenAPI の operationId に基づいて Hook 名が決まる。同名の操作が複数タグにある場合は番号が付く:
+
+| 操作 | 1つ目のタグ | 2つ目のタグ | 3つ目のタグ |
+|------|-------------|-------------|-------------|
+| 一覧取得 | `useList` | `useList1` | `useList2` |
+| 単体取得 | `useFindById` | `useFindById1` | `useFindById2` |
+| 作成 | `useCreate` | `useCreate1` | `useCreate2` |
+| 更新 | `useUpdate` | `useUpdate1` | `useUpdate2` |
+| 削除 | `useDelete` | `useDelete1` | `useDelete2` |
+
+`src/api/<tag>/<tag>.ts` を見て、どの Hook を使うか確認すること。
 
 ### queryKey の命名規則
 
@@ -57,14 +109,12 @@ queryKey: ["orders", orderId, "items"]
 
 ```tsx
 export function useOrder(id: string) {
-  const query = useQuery({
-    queryKey: ["orders", id],
-    queryFn: () => getOrder(id),
-    enabled: id.length > 0,
+  const query = useFindById(id, {
+    query: { enabled: id.length > 0 },
   });
 
   return {
-    order: query.data ?? null,
+    order: query.data?.data ?? null,
     isLoading: query.isLoading,
     error: query.error,
   };
@@ -84,27 +134,34 @@ export function useOrder(id: string) {
 ### 基本パターン
 
 ```tsx
-// src/features/order/hooks/use-create-order.ts
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createOrder } from "@/api/order";
+// src/features/category/hooks/use-create-category.ts
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { useCreate2 } from "@/api/category/category";  // Orval 生成 Hook
 
-export function useCreateOrder() {
+export function useCreateCategory() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-  const mutation = useMutation({
-    mutationFn: createOrder,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["orders"] });
+  const mutation = useCreate2({
+    mutation: {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["categories"] });
+        void navigate({ to: "/categories" });
+      },
     },
   });
 
   return {
-    createOrder: mutation.mutate,
+    createCategory: mutation.mutate,
     isCreating: mutation.isPending,
     error: mutation.error,
   };
 }
 ```
+
+Orval 生成の mutation Hook（`useCreate2`, `useUpdate2`, `useDelete2` 等）をそのまま使う。
+`useMutation` を直接使わない。
 
 ### 命名規則
 
