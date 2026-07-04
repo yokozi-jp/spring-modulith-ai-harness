@@ -30,7 +30,14 @@ export default defineConfig({
     },
   },
   fmt: { ignorePath: ".oxfmtignore" },
-  lint: { options: { typeAware: true, typeCheck: true } },
+  lint: {
+    options: { typeAware: true, typeCheck: true },
+    jsPlugins: ["./eslint-plugins/project-rules.js"],
+    rules: {
+      "project-rules/no-direct-api-client": "error",
+      "project-rules/hook-in-dedicated-file": "error",
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",
@@ -49,7 +56,6 @@ export default defineConfig({
       "./scripts/checks/check-features-structure.sh",
       "./scripts/checks/check-ui-readonly.sh",
       "./scripts/checks/api-readonly.sh",
-      "./scripts/checks/check-no-direct-api-client.sh",
     ],
   },
 });

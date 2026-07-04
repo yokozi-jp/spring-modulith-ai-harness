@@ -368,7 +368,7 @@ Orval 生成の Hook 名は OpenAPI の operationId に基づく（例: `useList
 
 **「Orval がないから apiClient を直接使う」は禁止**。Orval がなければ frontend 実装を中断する。
 
-**CI による強制**: `verify.sh` の `check-no-direct-api-client.sh` が `src/features/*/hooks/` 内で `apiClient` を直接 import しているファイルを検出し、ビルドを失敗させる。この CI チェックは回避できない。
+**CI による強制**: `vp lint` の oxlint カスタムルール `project-rules/no-direct-api-client` が `src/features/*/hooks/` 内で `apiClient` を直接 import しているファイルを検出し、ビルドを失敗させる。この CI チェックは回避できない。
 
 ### API が存在しない・生成できない場合
 

@@ -178,6 +178,31 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 
 ---
 
+## チェックの線引き（oxlint vs shell）
+
+コードパターンと配置ルールで担当を分離する:
+
+| チェック対象 | oxlint | shell |
+|-------------|--------|-------|
+| コードの書き方（any禁止、console禁止等） | ✅ | ❌ |
+| import/export パターン（apiClient 直接禁止、Hook 定義場所） | ✅ | ❌ |
+| ファイル・ディレクトリ配置（use-*.ts の配置場所） | ❌ | ✅ |
+| Git 状態（src/api/ や components/ui/ の変更検出） | ❌ | ✅ |
+
+### oxlint カスタムルール（`eslint-plugins/project-rules.js`）
+
+- `project-rules/no-direct-api-client`: features/*/hooks/ 内で apiClient を直接 import することを禁止
+- `project-rules/hook-in-dedicated-file`: Hook 関数（`export function use...`）は use-*.ts ファイルでのみ定義可能
+
+### shell スクリプト（`scripts/checks/`）
+
+- `check-hook-location.sh`: use-*.ts ファイルが正しいディレクトリ（hooks/）にあるか
+- `check-features-structure.sh`: features/ ディレクトリ構造の検証
+- `check-ui-readonly.sh`: components/ui/ の変更を検出
+- `api-readonly.sh`: src/api/ の変更を検出
+
+---
+
 ## 改修時のルール
 
 既存機能を変更する場合:

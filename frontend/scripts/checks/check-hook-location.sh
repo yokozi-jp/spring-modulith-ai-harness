@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Hook の定義場所を検証するスクリプト
-# - use-*.ts ファイル以外で export function use... を定義していたらエラー
-# - use-*.ts ファイルは hooks/ 内にあること
+# Hook ファイルの配置場所を検証するスクリプト
+#
+# use-*.ts ファイルは hooks/ ディレクトリ内にあること。
+# Hook 定義の検出（use-*.ts 以外での定義禁止）は oxlint カスタムルールで行う。
 #
 # 使い方:
-#   ./scripts/check-hook-location.sh              # 全体スキャン
-#   ./scripts/check-hook-location.sh --file PATH  # 単一ファイル検証（フック用）
+#   ./scripts/checks/check-hook-location.sh              # 全体スキャン
+#   ./scripts/checks/check-hook-location.sh --file PATH  # 単一ファイル検証（staged 用）
 
 set -euo pipefail
 
@@ -23,20 +24,12 @@ if [[ "${1:-}" == "--file" ]]; then
 
   REL_PATH="${FILE_PATH##*src/}"
 
-  errors=()
-
   # use-*.ts ファイルが正しいディレクトリにあるか
   if [[ "$FILENAME" == use-*.ts ]]; then
     if [[ "$REL_PATH" != hooks/* && "$REL_PATH" != features/*/hooks/* ]]; then
-      errors+=("Hookファイルは src/hooks/ または src/features/<feature>/hooks/ 内に配置してください。")
+      echo "Hookファイルは src/hooks/ または src/features/<feature>/hooks/ 内に配置してください。"
+      exit 1
     fi
-  fi
-
-  if [[ ${#errors[@]} -gt 0 ]]; then
-    for err in "${errors[@]}"; do
-      echo "$err"
-    done
-    exit 1
   fi
   exit 0
 fi
@@ -44,20 +37,6 @@ fi
 # --- 全体スキャンモード ---
 
 errors=()
-
-# use-*.ts 以外のファイルで export function use... を定義しているか検出
-while IFS= read -r file; do
-  basename=$(basename "$file")
-  if [[ "$basename" == use-* ]]; then
-    continue
-  fi
-  if [[ "$file" == *"routeTree.gen"* || "$file" == src/api/* ]]; then
-    continue
-  fi
-  if grep -qE "^export function use[A-Z]" "$file" 2>/dev/null; then
-    errors+=("$file: Hookの定義は use-*.ts ファイルで行ってください。")
-  fi
-done < <(find src -name "*.ts" -o -name "*.tsx" | grep -v node_modules)
 
 # use-*.ts が正しいディレクトリにあるか検証
 while IFS= read -r file; do

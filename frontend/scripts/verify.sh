@@ -44,8 +44,4 @@ echo "=== src/api/ 編集チェック ==="
 ./scripts/checks/api-readonly.sh
 
 echo ""
-echo "=== apiClient 直接使用チェック ==="
-./scripts/checks/check-no-direct-api-client.sh
-
-echo ""
 echo "✅ All checks passed."
