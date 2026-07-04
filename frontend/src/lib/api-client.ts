@@ -35,7 +35,14 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
   }
 
   const text = await response.text();
-  const data = text.length > 0 ? JSON.parse(text) : undefined;
+  let data: unknown;
+  if (text.length > 0) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Invalid JSON response: ${text.slice(0, 100)}`);
+    }
+  }
 
   // Orval 生成コードが期待する形式で返す
   return { data, status: response.status, headers: response.headers } as T;
