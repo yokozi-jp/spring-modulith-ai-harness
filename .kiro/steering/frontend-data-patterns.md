@@ -108,13 +108,13 @@ queryKey: ["orders", orderId, "items"]
 ### パラメータ付きクエリ
 
 ```tsx
-export function useOrder(id: string) {
+export function use<Resource>(id: string) {
   const query = useFindById(id, {
     query: { enabled: id.length > 0 },
   });
 
   return {
-    order: query.data?.data ?? null,
+    <resource>: query.data?.data ?? null,
     isLoading: query.isLoading,
     error: query.error,
   };
