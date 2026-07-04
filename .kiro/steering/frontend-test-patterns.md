@@ -4,6 +4,27 @@
 
 ---
 
+## テスト必須ルール
+
+以下のファイルには **必ず対応するテストファイルを作成する**:
+
+| 対象 | テストファイル |
+|------|---------------|
+| `src/features/*/hooks/*.ts` | `*.test.ts` |
+| `src/hooks/*.ts` | `*.test.ts` |
+| `src/lib/*.ts` | `*.test.ts` |
+
+**verify.sh でチェックされる**。テストファイルがないと CI が失敗する。
+
+除外対象:
+- `*.test.ts`（テストファイル自体）
+- `*.d.ts`（型定義ファイル）
+- `index.ts`（barrel export）
+- `api-client.ts`（Orval 設定）
+- `query-client.ts`（QueryClient 設定）
+
+---
+
 ## 基本ルール
 
 - import は `vite-plus/test` から行う

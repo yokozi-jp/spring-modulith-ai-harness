@@ -44,4 +44,8 @@ echo "=== src/api/ 編集チェック ==="
 ./scripts/checks/api-readonly.sh
 
 echo ""
+echo "=== テストファイル存在チェック ==="
+./scripts/checks/check-test-exists.sh
+
+echo ""
 echo "✅ All checks passed."
