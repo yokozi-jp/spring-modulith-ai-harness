@@ -11,18 +11,18 @@
 Orval 生成 Hook をラップして使う。**apiClient を直接呼ばない。**
 
 ```tsx
-// src/features/category/hooks/use-category-list.ts
-import { useList2 } from "@/api/category/category";  // Orval 生成 Hook
-import type { CategorySummaryResponse } from "@/api/openAPIDefinition.schemas";
+// src/features/<resource>/hooks/use-<resource>-list.ts
+import { useList } from "@/api/<resource>/<resource>";  // Orval 生成 Hook
+import type { <Resource>SummaryResponse } from "@/api/openAPIDefinition.schemas";
 
-export function useCategoryList(page = 0, size = 20) {
-  const query = useList2({
+export function use<Resource>List(page = 0, size = 20) {
+  const query = useList({
     param: {},  // フィルタパラメータ（空でも必須）
-    pageable: { page, size, sort: ["sortOrder,asc"] },
+    pageable: { page, size, sort: ["createdAt,desc"] },
   });
 
   return {
-    categories: (query.data?.data?.content ?? []) as CategorySummaryResponse[],
+    <resources>: (query.data?.data?.content ?? []) as <Resource>SummaryResponse[],
     totalPages: query.data?.data?.totalPages ?? 0,
     totalElements: query.data?.data?.totalElements ?? 0,
     isLoading: query.isLoading,
@@ -34,17 +34,17 @@ export function useCategoryList(page = 0, size = 20) {
 ### 基本パターン — 単体取得
 
 ```tsx
-// src/features/category/hooks/use-category.ts
-import { useFindById2 } from "@/api/category/category";  // Orval 生成 Hook
-import type { CategoryDetailResponse } from "@/api/openAPIDefinition.schemas";
+// src/features/<resource>/hooks/use-<resource>.ts
+import { useFindById } from "@/api/<resource>/<resource>";  // Orval 生成 Hook
+import type { <Resource>DetailResponse } from "@/api/openAPIDefinition.schemas";
 
-export function useCategory(id: string) {
-  const query = useFindById2(id, {
+export function use<Resource>(id: string) {
+  const query = useFindById(id, {
     query: { enabled: id.length > 0 },  // id が空なら実行しない
   });
 
   return {
-    category: (query.data?.data ?? null) as CategoryDetailResponse | null,
+    <resource>: (query.data?.data ?? null) as <Resource>DetailResponse | null,
     isLoading: query.isLoading,
     error: query.error,
   };
@@ -58,10 +58,10 @@ export function useCategory(id: string) {
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 
-export function useCategoryList() {
+export function use<Resource>List() {
   const query = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => apiClient<T>("/api/v1/categories"),  // ❌ apiClient 直接
+    queryKey: ["<resources>"],
+    queryFn: () => apiClient<T>("/api/v1/<resources>"),  // ❌ apiClient 直接
   });
   // ...
 }
@@ -160,8 +160,11 @@ export function useCreateCategory() {
 }
 ```
 
-Orval 生成の mutation Hook（`useCreate2`, `useUpdate2`, `useDelete2` 等）をそのまま使う。
+Orval 生成の mutation Hook（`useCreate`, `useUpdate`, `useDelete` 等）をそのまま使う。
 `useMutation` を直接使わない。
+
+**注意**: 上記例の `useCreate2` は category が 3 番目のタグのため番号付き。
+`src/api/<tag>/<tag>.ts` を確認して正しい Hook 名を使うこと。
 
 ### 命名規則
 
