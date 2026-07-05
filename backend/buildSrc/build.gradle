@@ -36,7 +36,7 @@ configurations.all {
 dependencies {
     // PostgreSQL に JDBC 接続するためのドライバ。
     // Liquibase と jOOQ codegen の両方がこの JDBC ドライバを使う。
-    implementation 'org.postgresql:postgresql:42.7.11'
+    implementation 'org.postgresql:postgresql:42.7.12'
 
     // GenerateJooqTask 内で Liquibase migration を実行するために必要。
     implementation 'org.liquibase:liquibase-core:5.0.3'
