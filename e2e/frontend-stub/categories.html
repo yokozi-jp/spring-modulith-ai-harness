@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カテゴリ一覧</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+    th { background: #f5f5f5; }
+    .actions { margin-bottom: 1rem; }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .empty-state { color: #666; font-style: italic; margin-top: 1rem; }
+    .error { color: #cc0000; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>カテゴリ一覧</h1>
+  <div class="actions">
+    <a href="/categories-new.html">新規作成</a>
+    <span> | </span>
+    <a href="/">トップに戻る</a>
+  </div>
+
+  <div id="error" class="error" hidden></div>
+  <div id="empty-state" class="empty-state" hidden>カテゴリがありません。</div>
+
+  <table id="category-table" hidden>
+    <thead>
+      <tr>
+        <th>名前</th>
+        <th>並び順</th>
+      </tr>
+    </thead>
+    <tbody id="category-body"></tbody>
+  </table>
+
+  <script>
+    async function loadCategories() {
+      const errorEl = document.getElementById("error");
+      const emptyEl = document.getElementById("empty-state");
+      const tableEl = document.getElementById("category-table");
+      const bodyEl = document.getElementById("category-body");
+
+      try {
+        const response = await fetch("/api/v1/categories?page=0&size=50", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const categories = data.content || [];
+
+        if (categories.length === 0) {
+          emptyEl.hidden = false;
+          tableEl.hidden = true;
+          return;
+        }
+
+        emptyEl.hidden = true;
+        tableEl.hidden = false;
+        bodyEl.innerHTML = "";
+
+        for (const cat of categories) {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${escapeHtml(cat.name)}</td><td>${cat.sortOrder}</td>`;
+          bodyEl.appendChild(row);
+        }
+      } catch (err) {
+        errorEl.textContent = `読み込みエラー: ${err.message}`;
+        errorEl.hidden = false;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    loadCategories();
+  </script>
+</body>
+</html>

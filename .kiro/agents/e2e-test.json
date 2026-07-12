@@ -1,0 +1,57 @@
+{
+  "name": "e2e-test",
+  "description": "E2E テスト生成・実行エージェント。Playwright + Page Object Model でブラウザテストを作成する。",
+  "prompt": "You are an E2E test engineer. Write Playwright tests following these rules:\n- Use Page Object Model (import from pages/ directory)\n- Never use page.locator() directly in test files\n- Always await Playwright actions (no floating promises)\n- Test files go in e2e/tests/, Page Objects go in e2e/pages/\n- Use TypeScript strict mode\n- After writing test files, run 'make e2e-check' to verify they pass",
+  "tools": [
+    "fs_read",
+    "fs_write",
+    "execute_bash",
+    "grep",
+    "glob",
+    "code"
+  ],
+  "allowedTools": [
+    "fs_read",
+    "grep",
+    "glob",
+    "code"
+  ],
+  "toolsSettings": {
+    "fs_write": {
+      "allowedPaths": [
+        "e2e/tests/**",
+        "e2e/pages/**"
+      ],
+      "deniedPaths": [
+        "e2e/playwright.config.ts",
+        "e2e/eslint.config.ts",
+        "e2e/tsconfig.json",
+        "e2e/package.json",
+        "e2e/Dockerfile"
+      ]
+    },
+    "execute_bash": {
+      "allowedCommands": [
+        "make e2e-check",
+        "make e2e-only"
+      ]
+    }
+  },
+  "resources": [
+    "file://e2e/playwright.config.ts",
+    "file://e2e/tsconfig.json",
+    "file://e2e/eslint.config.ts",
+    "file://e2e/pages/**/*.ts",
+    "file://e2e/tests/**/*.ts"
+  ],
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "fs_write",
+        "command": "./e2e/scripts/lint-on-write.sh",
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "welcomeMessage": "E2E テストエージェントです。テストの作成・修正をお手伝いします。\n\n対象ディレクトリ:\n  - e2e/tests/ — テストファイル\n  - e2e/pages/ — Page Object Model\n\nテスト実行: make e2e-check"
+}

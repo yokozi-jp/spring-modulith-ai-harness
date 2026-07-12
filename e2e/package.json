@@ -1,0 +1,19 @@
+{
+  "name": "e2e",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:api": "playwright test --project=api",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.52.0",
+    "pg": "8.16.0",
+    "@types/pg": "8.15.4",
+    "@eslint/js": "9.28.0",
+    "eslint": "9.28.0",
+    "typescript-eslint": "8.33.1",
+    "typescript": "5.8.3"
+  }
+}
