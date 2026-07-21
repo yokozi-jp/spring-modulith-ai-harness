@@ -1,6 +1,65 @@
 import { defineConfig } from "vite-plus";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
+import tailwindcss from "@tailwindcss/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
-  fmt: {},
-  lint: { options: { typeAware: true, typeCheck: true } },
+  plugins: [
+    tanstackRouter({
+      target: "react",
+      autoCodeSplitting: true,
+      semicolons: true,
+      quoteStyle: "double",
+    }),
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: {
+      "@": new URL("./src", import.meta.url).pathname,
+    },
+  },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:18080",
+        changeOrigin: true,
+      },
+    },
+  },
+  fmt: { ignorePath: ".oxfmtignore" },
+  lint: {
+    options: { typeAware: true, typeCheck: true },
+    jsPlugins: ["./eslint-plugins/project-rules.js"],
+    rules: {
+      "project-rules/no-direct-api-client": "error",
+      "project-rules/hook-in-dedicated-file": "error",
+      "project-rules/no-arrow-function-component": "error",
+      "project-rules/no-arrow-function-hook": "error",
+      "project-rules/no-props-object-param": "error",
+    },
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    include: ["src/**/*.test.{ts,tsx}"],
+    coverage: {
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/api/**", "src/routeTree.gen.ts", "src/routes/**"],
+    },
+  },
+  staged: {
+    "src/**/*.{ts,tsx}": [
+      "vp lint --fix",
+      "vp fmt",
+      // カスタムチェック（verify.sh と同じ）
+      "./scripts/checks/check-hook-location.sh",
+      "./scripts/checks/check-features-structure.sh",
+      "./scripts/checks/check-test-exists.sh",
+      "./scripts/checks/check-ui-readonly.sh",
+      "./scripts/checks/api-readonly.sh",
+    ],
+  },
 });

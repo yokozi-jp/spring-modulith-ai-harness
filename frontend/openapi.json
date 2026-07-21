@@ -1,0 +1,647 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "OpenAPI definition", "version": "v0" },
+  "servers": [{ "url": "http://localhost:18080", "description": "Generated server url" }],
+  "tags": [
+    { "name": "Category", "description": "カテゴリ管理 API" },
+    { "name": "Pricing", "description": "価格管理 API" },
+    { "name": "Product", "description": "商品カタログ API" }
+  ],
+  "paths": {
+    "/api/v1/products/{id}": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "商品詳細を取得する",
+        "operationId": "findById",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ProductDetailResponse" } }
+            }
+          },
+          "404": {
+            "description": "見つからない",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ProductDetailResponse" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Product"],
+        "summary": "商品を更新する",
+        "operationId": "update",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProductRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "更新成功" } }
+      },
+      "delete": {
+        "tags": ["Product"],
+        "summary": "商品を削除する",
+        "operationId": "delete",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/VersionRequest" } }
+          },
+          "required": true
+        },
+        "responses": { "204": { "description": "削除成功" } }
+      }
+    },
+    "/api/v1/pricings/{id}": {
+      "get": {
+        "tags": ["Pricing"],
+        "summary": "価格詳細を取得する",
+        "operationId": "findById_1",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/PricingDetailResponse" } }
+            }
+          },
+          "404": {
+            "description": "見つからない",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/PricingDetailResponse" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Pricing"],
+        "summary": "価格を更新する",
+        "operationId": "update_1",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdatePricingRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "更新成功" } }
+      },
+      "delete": {
+        "tags": ["Pricing"],
+        "summary": "価格を削除する",
+        "operationId": "delete_1",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/DeleteRequest" } }
+          },
+          "required": true
+        },
+        "responses": { "204": { "description": "削除成功" } }
+      }
+    },
+    "/api/v1/categories/{id}": {
+      "get": {
+        "tags": ["Category"],
+        "summary": "カテゴリ詳細を取得する",
+        "operationId": "findById_2",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/CategoryDetailResponse" } }
+            }
+          },
+          "404": {
+            "description": "見つからない",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/CategoryDetailResponse" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Category"],
+        "summary": "カテゴリを更新する",
+        "operationId": "update_2",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateCategoryRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "更新成功" } }
+      },
+      "delete": {
+        "tags": ["Category"],
+        "summary": "カテゴリを削除する",
+        "operationId": "delete_2",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/DeleteRequest" } }
+          },
+          "required": true
+        },
+        "responses": { "204": { "description": "削除成功" } }
+      }
+    },
+    "/api/v1/products": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "商品一覧を取得する",
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "param",
+            "in": "query",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/ProductListParam" }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Pageable" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/PageProductSummaryResponse" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Product"],
+        "summary": "商品を作成する",
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProductRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": { "201": { "description": "作成成功" } }
+      }
+    },
+    "/api/v1/pricings": {
+      "get": {
+        "tags": ["Pricing"],
+        "summary": "価格一覧を取得する",
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "name": "param",
+            "in": "query",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PricingListParam" }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Pageable" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/PagePricingSummaryResponse" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Pricing"],
+        "summary": "価格を作成する",
+        "operationId": "create_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePricingRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": { "201": { "description": "作成成功" } }
+      }
+    },
+    "/api/v1/categories": {
+      "get": {
+        "tags": ["Category"],
+        "summary": "ルートカテゴリ一覧を取得する",
+        "operationId": "list_2",
+        "parameters": [
+          {
+            "name": "param",
+            "in": "query",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CategoryListParam" }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Pageable" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/PageCategorySummaryResponse" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Category"],
+        "summary": "カテゴリを作成する",
+        "operationId": "create_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCategoryRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": { "201": { "description": "作成成功" } }
+      }
+    },
+    "/api/v1/products/{id}/unpublish": {
+      "patch": {
+        "tags": ["Product"],
+        "summary": "商品を非公開にする",
+        "operationId": "unpublish",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/VersionRequest" } }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "非公開成功" } }
+      }
+    },
+    "/api/v1/products/{id}/publish": {
+      "patch": {
+        "tags": ["Product"],
+        "summary": "商品を公開する",
+        "operationId": "publish",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/VersionRequest" } }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "公開成功" } }
+      }
+    },
+    "/api/v1/products/{id}/archive": {
+      "patch": {
+        "tags": ["Product"],
+        "summary": "商品をアーカイブする",
+        "operationId": "archive",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/VersionRequest" } }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "アーカイブ成功" } }
+      }
+    },
+    "/api/v1/categories/{id}/move": {
+      "patch": {
+        "tags": ["Category"],
+        "summary": "カテゴリを移動する",
+        "operationId": "move",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/MoveCategoryRequest" } }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "移動成功" } }
+      }
+    },
+    "/api/v1/categories/{id}/children": {
+      "get": {
+        "tags": ["Category"],
+        "summary": "直接の子カテゴリ一覧を取得する",
+        "operationId": "findChildren",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/CategorySummaryResponse" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UpdateProductRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "categoryId": { "type": "string", "minLength": 1 },
+          "version": { "type": "integer", "format": "int32" }
+        },
+        "required": ["categoryId", "description", "name"]
+      },
+      "UpdatePricingRequest": {
+        "type": "object",
+        "properties": {
+          "amount": { "type": "number" },
+          "validFrom": { "type": "string", "format": "date-time" },
+          "validTo": { "type": "string", "format": "date-time" },
+          "version": { "type": "integer", "format": "int32" }
+        },
+        "required": ["amount", "validFrom"]
+      },
+      "UpdateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 50, "minLength": 0 },
+          "sortOrder": { "type": "integer", "format": "int32" },
+          "version": { "type": "integer", "format": "int32" }
+        },
+        "required": ["name"]
+      },
+      "CreateProductRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "categoryId": { "type": "string", "minLength": 1 },
+          "sku": { "type": "string", "minLength": 1 }
+        },
+        "required": ["categoryId", "description", "name", "sku"]
+      },
+      "CreatePricingRequest": {
+        "type": "object",
+        "properties": {
+          "productId": { "type": "string", "minLength": 1 },
+          "level": { "type": "string", "minLength": 1 },
+          "areaCode": { "type": "string", "minLength": 1 },
+          "amount": { "type": "number" },
+          "validFrom": { "type": "string", "format": "date-time" },
+          "validTo": { "type": "string", "format": "date-time" }
+        },
+        "required": ["amount", "areaCode", "level", "productId", "validFrom"]
+      },
+      "CreateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 50, "minLength": 0 },
+          "sortOrder": { "type": "integer", "format": "int32" },
+          "parentCategoryId": { "type": "string" }
+        },
+        "required": ["name"]
+      },
+      "VersionRequest": {
+        "type": "object",
+        "properties": { "version": { "type": "integer", "format": "int32" } }
+      },
+      "MoveCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "newParentCategoryId": { "type": "string" },
+          "version": { "type": "integer", "format": "int32" }
+        }
+      },
+      "ProductListParam": {
+        "type": "object",
+        "properties": { "categoryId": { "type": "string" }, "status": { "type": "string" } }
+      },
+      "Pageable": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer", "format": "int32", "minimum": 0 },
+          "size": { "type": "integer", "format": "int32", "minimum": 1 },
+          "sort": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "PageProductSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer", "format": "int32" },
+          "size": { "type": "integer", "format": "int32" },
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProductSummaryResponse" }
+          },
+          "number": { "type": "integer", "format": "int32" },
+          "pageable": { "$ref": "#/components/schemas/PageableObject" },
+          "sort": { "$ref": "#/components/schemas/SortObject" },
+          "numberOfElements": { "type": "integer", "format": "int32" },
+          "first": { "type": "boolean" },
+          "last": { "type": "boolean" },
+          "empty": { "type": "boolean" }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer", "format": "int64" },
+          "paged": { "type": "boolean" },
+          "pageNumber": { "type": "integer", "format": "int32" },
+          "pageSize": { "type": "integer", "format": "int32" },
+          "sort": { "$ref": "#/components/schemas/SortObject" },
+          "unpaged": { "type": "boolean" }
+        }
+      },
+      "ProductSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "status": { "type": "string" },
+          "categoryId": { "type": "string" }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "empty": { "type": "boolean" },
+          "sorted": { "type": "boolean" },
+          "unsorted": { "type": "boolean" }
+        }
+      },
+      "ProductDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "categoryId": { "type": "string" },
+          "sku": { "type": "string" },
+          "status": { "type": "string" },
+          "version": { "type": "integer", "format": "int32" }
+        }
+      },
+      "PricingListParam": {
+        "type": "object",
+        "properties": {
+          "productId": { "type": "string" },
+          "level": { "type": "string" },
+          "areaCode": { "type": "string" },
+          "asOf": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PagePricingSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer", "format": "int32" },
+          "size": { "type": "integer", "format": "int32" },
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PricingSummaryResponse" }
+          },
+          "number": { "type": "integer", "format": "int32" },
+          "pageable": { "$ref": "#/components/schemas/PageableObject" },
+          "sort": { "$ref": "#/components/schemas/SortObject" },
+          "numberOfElements": { "type": "integer", "format": "int32" },
+          "first": { "type": "boolean" },
+          "last": { "type": "boolean" },
+          "empty": { "type": "boolean" }
+        }
+      },
+      "PricingSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "productId": { "type": "string" },
+          "level": { "type": "string" },
+          "areaCode": { "type": "string" },
+          "amount": { "type": "number" }
+        }
+      },
+      "PricingDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "productId": { "type": "string" },
+          "level": { "type": "string" },
+          "areaCode": { "type": "string" },
+          "amount": { "type": "number" },
+          "validFrom": { "type": "string", "format": "date-time" },
+          "validTo": { "type": "string", "format": "date-time" },
+          "version": { "type": "integer", "format": "int32" }
+        }
+      },
+      "CategoryListParam": {},
+      "CategorySummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "sortOrder": { "type": "integer", "format": "int32" }
+        }
+      },
+      "PageCategorySummaryResponse": {
+        "type": "object",
+        "properties": {
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer", "format": "int32" },
+          "size": { "type": "integer", "format": "int32" },
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CategorySummaryResponse" }
+          },
+          "number": { "type": "integer", "format": "int32" },
+          "pageable": { "$ref": "#/components/schemas/PageableObject" },
+          "sort": { "$ref": "#/components/schemas/SortObject" },
+          "numberOfElements": { "type": "integer", "format": "int32" },
+          "first": { "type": "boolean" },
+          "last": { "type": "boolean" },
+          "empty": { "type": "boolean" }
+        }
+      },
+      "AncestorResponse": {
+        "type": "object",
+        "properties": { "id": { "type": "string" }, "name": { "type": "string" } }
+      },
+      "CategoryDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "sortOrder": { "type": "integer", "format": "int32" },
+          "parentCategoryId": { "type": "string" },
+          "version": { "type": "integer", "format": "int32" },
+          "ancestors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AncestorResponse" }
+          }
+        }
+      },
+      "DeleteRequest": {
+        "type": "object",
+        "properties": { "version": { "type": "integer", "format": "int32" } }
+      }
+    }
+  }
+}
