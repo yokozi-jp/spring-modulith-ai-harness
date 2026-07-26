@@ -179,7 +179,7 @@ dependencies {
 
     // Error Prone + NullAway
     errorprone 'com.google.errorprone:error_prone_core:2.50.0'
-    errorprone 'com.uber.nullaway:nullaway:0.13.7'
+    errorprone 'com.uber.nullaway:nullaway:0.13.8'
 
     // テスト: Spring Boot テストスターター
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
