@@ -13,6 +13,7 @@ FROM amazoncorretto:25 AS builder
 WORKDIR /app
 RUN yum install -y findutils && yum clean all
 
+COPY buildSrc/ buildSrc/
 COPY gradle/ gradle/
 COPY gradlew settings.gradle build.gradle ./
 RUN ./gradlew dependencies --no-daemon || true

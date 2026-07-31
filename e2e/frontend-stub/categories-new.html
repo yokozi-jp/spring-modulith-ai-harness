@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カテゴリ作成</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    form { margin-top: 1rem; }
+    label { display: block; margin-top: 1rem; font-weight: bold; }
+    input { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; }
+    button { margin-top: 1.5rem; padding: 0.5rem 1.5rem; background: #0066cc; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #0052a3; }
+    .error { color: #cc0000; margin-top: 1rem; }
+    .success { color: #008800; margin-top: 1rem; }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>カテゴリ作成</h1>
+  <div>
+    <a href="/categories.html">一覧に戻る</a>
+  </div>
+
+  <form id="create-form">
+    <label for="name">カテゴリ名 <span aria-label="必須">*</span></label>
+    <input type="text" id="name" name="name" required maxlength="50" placeholder="カテゴリ名を入力">
+
+    <label for="sortOrder">並び順</label>
+    <input type="number" id="sortOrder" name="sortOrder" value="0">
+
+    <button type="submit">作成</button>
+  </form>
+
+  <div id="error" class="error" hidden></div>
+  <div id="success" class="success" hidden></div>
+
+  <script>
+    const form = document.getElementById("create-form");
+    const errorEl = document.getElementById("error");
+    const successEl = document.getElementById("success");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEl.hidden = true;
+      successEl.hidden = true;
+
+      const name = document.getElementById("name").value.trim();
+      const sortOrder = parseInt(document.getElementById("sortOrder").value, 10) || 0;
+
+      try {
+        const response = await fetch("/api/v1/categories", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, sortOrder, parentCategoryId: null }),
+        });
+
+        if (response.status === 201) {
+          successEl.textContent = "カテゴリを作成しました。";
+          successEl.hidden = false;
+          form.reset();
+          // 一覧ページに遷移
+          setTimeout(() => {
+            window.location.href = "/categories.html";
+          }, 500);
+          return;
+        }
+
+        const text = await response.text();
+        let message = `${response.status} ${response.statusText}`;
+        if (text) {
+          try {
+            const problem = JSON.parse(text);
+            if (problem.detail) message = problem.detail;
+          } catch {
+            message = text;
+          }
+        }
+        throw new Error(message);
+      } catch (err) {
+        errorEl.textContent = `作成エラー: ${err.message}`;
+        errorEl.hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>

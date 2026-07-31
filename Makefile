@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 export PATH := /usr/bin:$(PATH)
 
-.PHONY: dev dev-up dev-down build be-up be-test be-test-only be-down be-quick be-lint be-fmt be-jooq be-migrate be-rollback be-rollback-sql clean
+.PHONY: dev dev-up dev-down build be-up be-test be-test-only be-down be-quick be-lint be-fmt be-jooq be-migrate be-rollback be-rollback-sql e2e-up e2e-check e2e-only e2e-lint e2e-down e2e-clean clean
 
 # イメージ再ビルド
 build:
@@ -66,9 +66,38 @@ be-rollback-sql:
 be-rollback:
 	docker compose exec backend ./gradlew rollbackCount -PliquibaseCount=$(or $(COUNT),1)
 
+# --- E2E ---
+
+COMPOSE_E2E := docker compose -f compose.yaml -f compose.e2e.yaml
+
+# E2E 環境起動
+e2e-up:
+	$(COMPOSE_E2E) up -d --build --wait backend frontend-e2e
+
+# E2E テスト実行
+e2e-check: e2e-up
+	$(COMPOSE_E2E) run --rm e2e-runner
+
+# 特定テストのみ実行（例: make e2e-only T='tests/scenarios/category*'）
+e2e-only: e2e-up
+	$(COMPOSE_E2E) run --rm e2e-runner npx playwright test $(T)
+
+# lint のみ（開発者向け）
+e2e-lint: e2e-up
+	$(COMPOSE_E2E) run --rm e2e-runner npx eslint .
+
+# E2E 環境停止
+e2e-down:
+	$(COMPOSE_E2E) down
+
+# E2E 環境完全リセット（ボリューム含む）
+e2e-clean:
+	$(COMPOSE_E2E) down -v
+
 # --- 共通 ---
 
 # 全コンテナ・ボリューム・ネットワークを削除
 clean:
 	docker compose down -v --remove-orphans
 	docker compose -f compose-test.yaml down -v --remove-orphans
+	$(COMPOSE_E2E) down -v --remove-orphans 2>/dev/null || true
