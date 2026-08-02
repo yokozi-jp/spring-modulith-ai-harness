@@ -175,7 +175,7 @@ dependencies {
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.10.3'
 
     // JSpecify: null 安全性アノテーション（NullAway と連携）
-    implementation 'org.jspecify:jspecify:1.0.0'
+    implementation 'org.jspecify:jspecify:1.0.1'
 
     // Error Prone + NullAway
     errorprone 'com.google.errorprone:error_prone_core:2.50.0'
