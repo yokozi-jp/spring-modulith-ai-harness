@@ -71,3 +71,21 @@ out/
 # === Environment ===
 .env
 .env.test
+
+# === AI-DLC ===
+# The aidlc/ workspace tree is version-controlled (record, audit shards, memory,
+# codekb, knowledge). Excluded below: per-user cursors and machine-local runtime.
+aidlc/active-space
+aidlc/spaces/*/intents/active-intent
+aidlc/.aidlc-clone-id
+aidlc/.aidlc-sessions/
+aidlc/.aidlc-readonly-latch
+aidlc/.aidlc-turn-counter
+aidlc/spaces/*/intents/*/runtime-graph.json
+# Recovery, hooks-health and sensors scratch. The second glob covers the
+# pre-first-intent case, where the record root falls back to the intents dir.
+aidlc/spaces/*/intents/*/.aidlc-*
+aidlc/spaces/*/intents/.aidlc-*
+
+# === ClaudeCode ===
+.claude/settings.local.json
