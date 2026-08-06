@@ -28,8 +28,8 @@
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "us.anthropic.claude-sonnet-5[1m]",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
   },
-  "model": "opus[1m]",
-  "effortLevel": "xhigh",
+  "model": "us.anthropic.claude-sonnet-5[1m]",
+  "effortLevel": "high",
   "hooks": {
     "PreToolUse": [
       {
