@@ -1,17 +1,18 @@
-# `eslint-plugins/` ディレクトリと `project-rules.js`: 実体は oxlint の JS プラグイン
+# `oxlint-plugins/` ディレクトリ: 実体は oxlint の JS プラグイン
 
-`frontend/eslint-plugins/project-rules.js` はディレクトリ名・ファイル形式が ESLint プラグインと同じ見た目をしているが、
-**実行されるのは ESLint ではなく oxlint**。oxlint v1.x の JS plugin 機構（`jsPlugins` 設定）で読み込まれる、
-プロジェクト固有のカスタムルール集である。
+`frontend/oxlint-plugins/project-rules.js` は、oxlint v1.x の JS plugin 機構（`jsPlugins` 設定）で
+読み込まれる、プロジェクト固有のカスタムルール集である。
 
-## 誤解しやすい点
+このディレクトリは元々 `eslint-plugins/` という名前だったが、本プロジェクトが ESLint を導入していない
+にもかかわらず「ESLint の設定が別に存在する」という誤解を招いたため `oxlint-plugins/` にリネームした。
 
-- 本プロジェクトは ESLint を導入していない。Lint は oxlint（Rust 実装、`vp lint` 経由）が全て担う
-- しかし `project-rules.js` は ESLint のプラグイン API（`meta`, `create(context)`, `context.report()` 等）と
+## 命名の背景
+
+- `project-rules.js` は ESLint のプラグイン API（`meta`, `create(context)`, `context.report()` 等）と
   ほぼ同じ形式で書かれている
 - これは oxlint が ESLint 互換の JS plugin API をサポートしているためであり、ESLint 本体への依存ではない
-- ディレクトリ名が `eslint-plugins/` になっているのは、この API 互換性に由来する命名であり、
-  「ESLint の設定ファイルが別に存在する」ことを意味しない
+- JSDoc の型注釈 `@type {import('eslint').ESLint.Plugin}` も、型定義パッケージとして `eslint` の型を
+  参照しているだけで、実行時に ESLint は一切関与しない
 
 ## なぜ ESLint を使わないのか
 
@@ -40,5 +41,4 @@ oxlint の組み込みルールでは表現できない、本プロジェクト�
 - 新しいプロジェクト固有制約が必要になった場合、まず oxlint の組み込みルールで代替できないか確認する
   （`https://oxc.rs/docs/guide/usage/linter/rules/` を参照）
 - 代替できない場合のみ `project-rules.js` にルールを追加する
-- `eslint-plugins/` という名称は誤解を招くが、oxlint の JS plugin API が ESLint 互換であるため
-  変更していない。将来的に oxlint が独自の命名規則を提示した場合は追従を検討する
+- ディレクトリ名を変更する場合は `vite.config.ts` の `jsPlugins` パスと `ignorePatterns` を同時に更新する

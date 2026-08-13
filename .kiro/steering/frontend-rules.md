@@ -91,7 +91,7 @@ vp test run
 
 ## カスタム oxlint ルール vs 組み込みルール
 
-`eslint-plugins/project-rules.js` にカスタムルールを追加する前に、**oxlint の組み込みルールで同じ検証ができないか確認する**。
+`oxlint-plugins/project-rules.js` にカスタムルールを追加する前に、**oxlint の組み込みルールで同じ検証ができないか確認する**。
 
 ### 判断基準
 
@@ -296,7 +296,7 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 | ファイル・ディレクトリ配置（use-*.ts の配置場所） | ❌ | ✅ |
 | Git 状態（src/api/ や components/ui/ の変更検出） | ❌ | ✅ |
 
-### oxlint カスタムルール（`eslint-plugins/project-rules.js`）
+### oxlint カスタムルール（`oxlint-plugins/project-rules.js`）
 
 - `project-rules/no-direct-api-client`: features/*/hooks/ 内で apiClient を直接 import することを禁止
 - `project-rules/hook-in-dedicated-file`: Hook 関数（`export function use...`）は use-*.ts ファイルでのみ定義可能

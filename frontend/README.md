@@ -120,4 +120,4 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 - 詳細は `.kiro/steering/frontend-rules.md` を参照
 - Lint 方針は `docs/adr/0007-frontend-lint-all-error-policy.md` を参照
 - API クライアント生成方針は `docs/adr/0008-openapi-orval-codegen.md` を参照
-- `eslint-plugins/` ディレクトリの実体（oxlint の JS plugin）は `docs/adr/0009-eslint-plugins-directory-is-oxlint-js-plugin.md` を参照
+- `oxlint-plugins/` ディレクトリの実体（oxlint の JS plugin）は `docs/adr/0009-oxlint-plugins-directory-naming.md` を参照

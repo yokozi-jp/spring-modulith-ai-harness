@@ -5,7 +5,7 @@
  * ファイル配置や Git 状態に依存するチェックは shell スクリプトで行う。
  *
  * 注意: コンポーネントの関数宣言強制は oxlint 組み込みの
- * react/function-component-definition ルールを使用する（.oxlintrc.json 参照）。
+ * react/function-component-definition ルールを使用する（vite.config.ts の lint.rules 参照）。
  * Hook には同等の組み込みルールが存在しないため、no-arrow-function-hook で対応する。
  */
 

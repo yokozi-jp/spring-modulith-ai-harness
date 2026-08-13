@@ -35,7 +35,7 @@ export default defineConfig({
     ignorePatterns: [
       "src/api/**",
       "src/routeTree.gen.ts",
-      "eslint-plugins/**",
+      "oxlint-plugins/**",
       "src/components/ui/**",
     ],
     categories: {
@@ -56,7 +56,7 @@ export default defineConfig({
       es2024: true,
     },
     plugins: ["typescript", "react", "unicorn", "import", "jsx-a11y", "oxc"],
-    jsPlugins: ["./eslint-plugins/project-rules.js"],
+    jsPlugins: ["./oxlint-plugins/project-rules.js"],
     rules: {
       "typescript/no-explicit-any": "error",
       "typescript/no-non-null-assertion": "error",
