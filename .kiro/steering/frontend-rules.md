@@ -119,6 +119,14 @@ vp --version
 
 ### Google TypeScript Style Guide からの追加採用ルール
 
+`eslint-config-airbnb` や Google の ESLint 設定パッケージをそのまま import して一括導入することはしない。理由:
+
+- **ESLint 前提のパッケージは oxlint にそのまま適用できない**。oxlint は ESLint 互換の Rust 実装だが、ルール名・オプション形式が独自であり、`eslint-config-airbnb` 等の設定オブジェクトを読み込む仕組みがない
+- **本プロジェクトの oxlint 設定は主要カテゴリを全て `error` にしており、Airbnb/Google が個別に選定したルール群の大部分を既に包含している**（`no-var`, `eqeqeq`, `prefer-const` 等は oxlint の `style`/`correctness` カテゴリで標準カバー）
+- **プロジェクト固有のカスタムルール（Orval Hook 強制等）と、パッケージが強制するルールが衝突する可能性がある**。一括導入すると意図しないルールが有効になり、レビューコストが上がる
+
+そのため、個別のルールを比較検討し、oxlint 側の対応ルールとして必要なものだけを移植する運用にしている（下記参照）。
+
 oxlint はカテゴリ（`style`/`pedantic`/`restriction` 等）を一括 `error` にしても、ルール定義側で `default: false` のルールは自動有効化されない。Google TypeScript Style Guide との照合で、以下のルールを個別に有効化した（既存コードに違反なし、確認済み）:
 
 | ルール | 内容 | 採用理由 |
