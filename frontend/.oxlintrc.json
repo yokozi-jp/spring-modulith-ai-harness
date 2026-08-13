@@ -15,6 +15,10 @@
     "typescript/no-explicit-any": "error",
     "typescript/no-non-null-assertion": "error",
     "typescript/consistent-type-imports": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/consistent-type-definitions": ["error", "interface"],
+    "typescript/array-type": ["error", { "default": "array" }],
+    "typescript/no-empty-object-type": "error",
 
     "react/no-array-index-key": "error",
     "react/jsx-no-target-blank": "error",

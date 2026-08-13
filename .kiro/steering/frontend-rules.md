@@ -117,6 +117,19 @@ vp --version
 - `no-arrow-function-component`（自作） → `react/function-component-definition`（oxlint 組み込み、v1.75.0 以降）
   - Airbnb React style guide も同じ方針（`prefer normal functions over arrow functions` for named components）であることを確認済み。業界標準からの逸脱ではない
 
+### Google TypeScript Style Guide からの追加採用ルール
+
+oxlint はカテゴリ（`style`/`pedantic`/`restriction` 等）を一括 `error` にしても、ルール定義側で `default: false` のルールは自動有効化されない。Google TypeScript Style Guide との照合で、以下のルールを個別に有効化した（既存コードに違反なし、確認済み）:
+
+| ルール | 内容 | 採用理由 |
+|---|---|---|
+| `typescript/ban-ts-comment` | `@ts-ignore` / `@ts-expect-error` を制限 | 型エラーの誤魔化しを防ぐ。NullAway/PMD の厳格方針と一致 |
+| `typescript/consistent-type-definitions` | オブジェクト型は `interface` に統一（`type` エイリアス禁止） | 「書き方を1通りにする」という steering の一貫方針に合致 |
+| `typescript/array-type` | `T[]` 記法に統一（`Array<T>` 禁止） | 同上 |
+| `typescript/no-empty-object-type` | `{}` 型の使用を制限 | `unknown` / `Record<string, T>` 等の明示的な型を促す |
+
+新しいルールを追加する際は、既存コードへの影響を `vp lint` で確認してから導入すること（`--dry-run` 的に一時追加 → 確認 → 問題なければ確定、の手順）。
+
 ---
 
 ## Git pre-commit フック
