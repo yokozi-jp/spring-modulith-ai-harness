@@ -51,7 +51,83 @@ vp build        # 本番ビルド
 
 ---
 
-## ディレクトリ構成
+## Vite+ / oxlint のアップグレード
+
+`vite-plus` は oxlint/oxfmt/vitest 等をバージョン固定で内蔵している。個別のツールだけを更新することはできず、`vite-plus` 自体をアップグレードする。
+
+### 手順
+
+```bash
+# 1. グローバル vp を最新化（プロジェクトの vp バージョンはグローバル vp 以下にしかならない）
+vp upgrade
+
+# 2. プロジェクトの vite-plus を最新化
+cd frontend
+vp migrate
+
+# 3. 依存関係を再インストール（migrate が失敗した場合）
+vp install
+
+# 4. バージョン確認
+vp --version
+
+# 5. 新しいツールバージョンで差分が出ないか確認
+vp check
+vp fmt      # フォーマッタの挙動が変わっている場合はここで一括修正
+vp test run
+```
+
+### 注意事項
+
+- **0.1.x → 0.2.x のようなメジャー版アップグレードは破壊的変更を含む**。事前にリリースノート（GitHub Releases）を確認する
+  - Node.js バージョン要件の変更（例: `0.2.0` で Node 20 サポート終了）
+  - `vitest` の内蔵ラッパー廃止（upstream 直接依存に変更）
+  - 環境変数名のリネーム（`VITE_*` → `VP_*` 等）
+- oxfmt / oxlint のバージョンが上がると、**それまで通っていたコードが新たにエラー・warning になることがある**。アップグレード後は必ず `vp check` → `vp fmt` → 再度 `vp check` の順で確認する
+- `.oxlintrc.json` と `vite.config.ts` の `lint.rules` の両方にルールを定義できるが、**二重管理を避けるため片方に統一する**。本プロジェクトはカスタムルール（`project-rules/*`）を `vite.config.ts` に、標準ルール・カテゴリ設定を `.oxlintrc.json` に集約している
+
+---
+
+## カスタム oxlint ルール vs 組み込みルール
+
+`eslint-plugins/project-rules.js` にカスタムルールを追加する前に、**oxlint の組み込みルールで同じ検証ができないか確認する**。
+
+### 判断基準
+
+| 状況 | 対応 |
+|------|------|
+| oxlint / ESLint プラグインに同等のルールが存在する | 組み込みルールを使う（保守コスト削減、Rust ネイティブで高速） |
+| プロジェクト固有のアーキテクチャ制約（Orval Hook 強制等） | カスタムルールを書く |
+| ファイル名パターンとの照合が必要（`use-*.ts` 限定等） | カスタムルールを書く（汎用ルールでは表現できない） |
+
+### 確認方法
+
+```bash
+# oxlint の公式ドキュメントで該当ルールを検索
+# https://oxc.rs/docs/guide/usage/linter/rules/
+
+# 現在の oxlint バージョンを確認（組み込みルールがバージョン依存で追加される場合がある）
+vp --version
+```
+
+新しいルールがある特定バージョン以降でしか使えない場合は、`vp upgrade` / `vp migrate` でアップグレードしてから移行する（上記「Vite+ / oxlint のアップグレード」参照）。
+
+### 実施済みの移行例
+
+- `no-arrow-function-component`（自作） → `react/function-component-definition`（oxlint 組み込み、v1.75.0 以降）
+  - Airbnb React style guide も同じ方針（`prefer normal functions over arrow functions` for named components）であることを確認済み。業界標準からの逸脱ではない
+
+---
+
+## Git pre-commit フック
+
+Git hooks は Vite+ の `.vite-hooks` 機構を使う（`core.hooksPath = frontend/.vite-hooks`）。`frontend/.vite-hooks/pre-commit` が `vp staged` を実行し、`vite.config.ts` の `staged` 設定に従って lint/fmt/カスタムチェックをステージ済みファイルに対して実行する。
+
+- **`husky` は使わない**。過去に導入を検討した名残で `package.json` に `"prepare": "husky"` が残っていたことがあったが、`.vite-hooks` 移行後は不要なため削除済み。`husky` のような別の hooks 管理ツールを追加しない
+- `vp hooks status` で現在の hooks 設定を確認できる
+- `vite.config.ts` の `staged` フィールドで実行内容を定義する（`vp lint --fix`, `vp fmt`, カスタムチェックスクリプト等）
+
+---
 
 ```
 frontend/src/
@@ -193,9 +269,10 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 
 - `project-rules/no-direct-api-client`: features/*/hooks/ 内で apiClient を直接 import することを禁止
 - `project-rules/hook-in-dedicated-file`: Hook 関数（`export function use...`）は use-*.ts ファイルでのみ定義可能
-- `project-rules/no-arrow-function-component`: コンポーネントはアロー関数ではなく関数宣言で定義
 - `project-rules/no-arrow-function-hook`: Hook はアロー関数ではなく関数宣言で定義
 - `project-rules/no-props-object-param`: Props は分割代入で受け取る（`props: XProps` 禁止）
+
+コンポーネントの関数宣言強制は oxlint 組み込みの `react/function-component-definition`（v1.75.0 以降）を使用する。自作ルールから移行済み（「カスタム oxlint ルール vs 組み込みルール」参照）。
 
 ### shell スクリプト（`scripts/checks/`）
 
