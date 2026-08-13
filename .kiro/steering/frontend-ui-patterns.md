@@ -53,6 +53,16 @@ Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/ski
   - ステータス表示 → `Badge`（styled span は禁止）
 - **ダイアログ内のボタンは Shadcn/ui の `Button` を使う**。生の `<button>` タグは使わない（UI コンポーネントの選択の原則1と一致）
 
+### カスタマイズ時のアクセシビリティ保持
+
+Shadcn/ui コンポーネントは Radix UI プリミティブ上に構築されており、キーボード操作・スクリーンリーダー対応・フォーカス管理が標準で組み込まれている。`src/components/` にラッパーコンポーネントを作成する等でカスタマイズする際は、これらを損なわないこと:
+
+- `aria-*` 属性を保持する（独自の `className` で上書きしない）
+- キーボードイベントハンドラを保持する（独自の `onClick` 等で置き換えない）
+- フォーカスインジケータを保持する（`focus-visible` のスタイルを消さない）
+
+出典: google-labs-code/stitch-skills の shadcn-ui skill（<https://github.com/google-labs-code/stitch-skills>）の Accessibility セクション
+
 ---
 
 ## 共通 UI コンポーネントの作成
