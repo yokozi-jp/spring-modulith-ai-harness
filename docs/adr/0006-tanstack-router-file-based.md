@@ -23,3 +23,9 @@
 - `frontend/src/routes/` 配下のファイル構造がそのままルーティングになる
 - TanStack Router の CLI（`@tanstack/router-plugin`）が Vite プラグインとしてルート定義を自動生成する
 - ルートファイルの命名規則（`$param` でパスパラメータ、`_layout` でレイアウト等）はフレームワークの規約に従う
+
+## 補足: ルーティングモード（ハッシュ vs ヒストリー）
+
+TanStack Router はデフォルトでヒストリーモード（HTML5 History API、`https://example.com/about` 形式）を使用する。本プロジェクトはこれを明示的に変更していない。
+
+ハッシュモード（`https://example.com/#/about` 形式）は、静的ファイルサーバーで `index.html` へのフォールバック設定が不要という利点があるが、SEOに非最適で現代のWebアプリケーション開発では非推奨とされる（フューチャー株式会社 Webフロントエンド設計ガイドライン参照）。本プロジェクトは backend（Spring Boot）が SPA を配信する構成であり `index.html` フォールバックの設定は既存の Vite/Spring 構成で対応可能なため、ハッシュモードを採用する理由がない。
