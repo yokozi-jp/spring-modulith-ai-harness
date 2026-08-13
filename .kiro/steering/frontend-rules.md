@@ -137,6 +137,17 @@ oxlint はカテゴリ（`style`/`pedantic`/`restriction` 等）を一括 `error
 
 新しいルールを追加する際は、既存コードへの影響を `vp lint` で確認してから導入すること（`--dry-run` 的に一時追加 → 確認 → 問題なければ確定、の手順）。
 
+### Airbnb JavaScript Style Guide からの追加採用ルール
+
+Airbnb 側も同様の照合を行い、以下2つの見落としを発見・採用した（既存コードに違反なし、確認済み）:
+
+| ルール | 内容 | 採用理由 |
+|---|---|---|
+| `radix` | `parseInt()` に基数（第2引数）を明示 | 省略時は先頭が `0x`/`0X` かどうかで解釈が変わり、バグの元になる。Airbnb・Google 両方が明示的に要求 |
+| `no-new-wrappers` | `new String()` / `new Boolean()` / `new Number()` を禁止 | `new Boolean(false)` が truthy になる等、直感に反する挙動を防ぐ |
+
+Airbnb のフォーマット系ルール（`quotes`, `semi`, `comma-dangle`, `space-before-blocks` 等）は oxlint（lint）の対象外であり、oxfmt（フォーマッター）側で担当するため対応不要。`camelcase`, `no-mixed-operators` 等は oxlint に対応ルールが存在せず見送り。
+
 ---
 
 ## Git pre-commit フック

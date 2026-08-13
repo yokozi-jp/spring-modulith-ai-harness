@@ -19,6 +19,8 @@
     "typescript/consistent-type-definitions": ["error", "interface"],
     "typescript/array-type": ["error", { "default": "array" }],
     "typescript/no-empty-object-type": "error",
+    "radix": "error",
+    "no-new-wrappers": "error",
 
     "react/no-array-index-key": "error",
     "react/jsx-no-target-blank": "error",
