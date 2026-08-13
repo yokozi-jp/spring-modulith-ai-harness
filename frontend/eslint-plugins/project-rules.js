@@ -193,12 +193,12 @@ export default {
             return;
           }
 
-          const params = node.params;
+          const { params } = node;
           if (params.length !== 1) {
             return;
           }
 
-          const param = params[0];
+          const [param] = params;
           // Identifier + TypeAnnotation で *Props で終わる型の場合
           if (
             param.type === "Identifier" &&

@@ -19,8 +19,10 @@ declare module "@tanstack/react-router" {
   }
 }
 
-const rootElement = document.getElementById("root");
-if (rootElement == null) throw new Error("Root element not found");
+const rootElement = document.querySelector("#root");
+if (rootElement === null) {
+  throw new Error("Root element not found");
+}
 
 createRoot(rootElement).render(
   <StrictMode>

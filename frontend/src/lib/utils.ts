@@ -1,4 +1,5 @@
-import { type ClassValue, clsx } from "clsx";
+import { clsx } from "clsx";
+import type { ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]): string {
@@ -12,5 +13,12 @@ export function toError(error: unknown): Error | null {
   if (error instanceof Error) {
     return error;
   }
-  return new Error(String(error));
+  if (typeof error === "string" || typeof error === "number" || typeof error === "boolean") {
+    return new Error(String(error));
+  }
+  try {
+    return new Error(JSON.stringify(error));
+  } catch {
+    return new Error("Unknown error");
+  }
 }
