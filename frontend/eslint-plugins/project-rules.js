@@ -3,6 +3,10 @@
  *
  * これらのルールは AST レベルでコードパターンを検証する。
  * ファイル配置や Git 状態に依存するチェックは shell スクリプトで行う。
+ *
+ * 注意: コンポーネントの関数宣言強制は oxlint 組み込みの
+ * react/function-component-definition ルールを使用する（.oxlintrc.json 参照）。
+ * Hook には同等の組み込みルールが存在しないため、no-arrow-function-hook で対応する。
  */
 
 /** @type {import('eslint').ESLint.Plugin} */
@@ -69,69 +73,6 @@ export default {
               node.argument.callee.name === "fetch"
             ) {
               context.report({ node, messageId: "forbiddenFetch" });
-            }
-          },
-        };
-      },
-    },
-
-    /**
-     * コンポーネントはアロー関数ではなく関数宣言で定義する
-     *
-     * export const X = () => {} ではなく export function X() {} を使う。
-     * 理由: React 公式推奨、DevTools での表示名が明確、一貫性。
-     */
-    "no-arrow-function-component": {
-      meta: {
-        type: "problem",
-        docs: {
-          description: "コンポーネントはアロー関数ではなく関数宣言で定義する",
-          recommended: true,
-        },
-        messages: {
-          useFunction:
-            "コンポーネントはアロー関数ではなく関数宣言で定義してください。export const {{ name }} = () => {} → export function {{ name }}() {}",
-        },
-      },
-      create(context) {
-        const filename = context.filename || context.getFilename();
-
-        // .tsx ファイルのみ対象
-        if (!filename.endsWith(".tsx")) {
-          return {};
-        }
-
-        // テストファイルは除外
-        if (filename.includes(".test.")) {
-          return {};
-        }
-
-        // src 外は対象外
-        if (!filename.includes("/src/")) {
-          return {};
-        }
-
-        return {
-          ExportNamedDeclaration(node) {
-            if (node.declaration && node.declaration.type === "VariableDeclaration") {
-              for (const declarator of node.declaration.declarations) {
-                if (
-                  declarator.init &&
-                  declarator.init.type === "ArrowFunctionExpression" &&
-                  declarator.id &&
-                  declarator.id.type === "Identifier"
-                ) {
-                  const name = declarator.id.name;
-                  // PascalCase（コンポーネント名）のみ対象
-                  if (name[0] === name[0].toUpperCase() && name[0] !== name[0].toLowerCase()) {
-                    context.report({
-                      node: declarator,
-                      messageId: "useFunction",
-                      data: { name },
-                    });
-                  }
-                }
-              }
             }
           },
         };

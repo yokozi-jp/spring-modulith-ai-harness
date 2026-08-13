@@ -33,7 +33,7 @@
     "orval": "^8.9.1",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.3",
-    "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.20",
+    "vite": "catalog:",
     "vite-plus": "catalog:"
   },
   "packageManager": "pnpm@10.33.0"
