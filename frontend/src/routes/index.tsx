@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">ダッシュボード</h1>
         <p className="text-muted-foreground">Spring Modulith AI Harness の管理画面です。</p>

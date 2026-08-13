@@ -17,15 +17,54 @@ vp dlx shadcn@latest add table
 
 ---
 
+## Shadcn/ui コンポーネント使用時の必須ルール
+
+Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/skills/shadcn/SKILL.md>）から、本プロジェクトの慣習を補強・具体化するルールを採用した。
+
+### スタイリング
+
+- **`className` はレイアウトのみに使う**。コンポーネントの色・タイポグラフィを上書きしない
+- **`space-x-*` / `space-y-*` は使わない**。`flex` + `gap-*` を使う（縦積みは `flex flex-col gap-*`）
+- **幅と高さが同じ場合は `size-*` を使う**（`size-10` であり `w-10 h-10` ではない）
+- **`truncate` の省略形を使う**（`overflow-hidden text-ellipsis whitespace-nowrap` ではない）
+- **セマンティックカラーを使う**（`bg-primary`, `text-muted-foreground` 等）。`bg-blue-500` のような直接値は使わない
+- **条件付きクラスは `cn()` を使う**。手動のテンプレートリテラル三項演算子は書かない
+- **オーバーレイ系コンポーネント（Dialog, Sheet, Popover 等）に手動で `z-index` を指定しない**（コンポーネントが自身のスタッキングを管理する）
+
+```tsx
+// ❌
+<div className="space-y-4">...</div>
+<div className="w-10 h-10">...</div>
+
+// ✅
+<div className="flex flex-col gap-4">...</div>
+<div className="size-10">...</div>
+```
+
+### コンポーネント構成
+
+- **Dialog / Sheet / Drawer には必ず `Title` を付ける**（`DialogTitle`, `SheetTitle`, `DrawerTitle`）。アクセシビリティ要件のため必須。視覚的に隠す場合は `className="sr-only"` を使う
+- **Card は完全な構成で使う**（`CardHeader`/`CardTitle`/`CardDescription`/`CardContent`/`CardFooter`）。`CardContent` に全て詰め込まない
+- **既存の Shadcn/ui コンポーネントを使う**。カスタムマークアップを書く前に対応するコンポーネントが存在しないか確認する
+  - コールアウト表示 → `Alert`（自作の styled div は禁止）
+  - 空状態 → `EmptyState`（本プロジェクト独自コンポーネント、下記「空状態」セクション参照）
+  - 区切り線 → `Separator`（生の `<hr>` は禁止）
+  - ローディングプレースホルダー → `Skeleton`（`animate-pulse` の自作 div は禁止）
+  - ステータス表示 → `Badge`（styled span は禁止）
+- **ダイアログ内のボタンは Shadcn/ui の `Button` を使う**。生の `<button>` タグは使わない（UI コンポーネントの選択の原則1と一致）
+
+---
+
 ## 共通 UI コンポーネントの作成
 
 **原則: 同じ構造の UI パターンを 2 箇所以上に書く前に、`src/components/` に共通コンポーネントを作成する。**
 
 判断基準:
+
 - JSX 構造が同じ（props の値だけ違う）→ 共通化する
 - 構造が異なる → feature 固有で OK
 
-```
+```text
 src/components/
 ├── error-message.tsx    # エラー表示
 ├── empty-state.tsx      # 空状態表示
@@ -47,7 +86,7 @@ src/components/
 // ✅ Skeleton（灰色ブロックで「もうすぐ表示される」感を出す）
 function OrderListSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={`skeleton-${String(i)}`} className="h-16 animate-pulse rounded-md bg-muted" />
       ))}
@@ -69,6 +108,8 @@ Skeleton はコンポーネントと同じディレクトリに `<name>-skeleton
 
 ```tsx
 // src/components/error-message.tsx
+import { Button } from "@/components/ui/button";
+
 interface ErrorMessageProps {
   readonly error: Error | null;
   readonly onRetry?: () => void;
@@ -83,9 +124,9 @@ export function ErrorMessage({ error, onRetry }: ErrorMessageProps) {
     <div role="alert" className="rounded-md border border-destructive/50 p-4">
       <p className="text-sm text-destructive">{error.message}</p>
       {onRetry !== undefined && (
-        <button type="button" onClick={onRetry} className="mt-2 text-sm underline">
+        <Button variant="link" size="sm" onClick={onRetry} className="mt-2 h-auto p-0">
           再試行
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -111,6 +152,8 @@ export function OrderList({ orders, isLoading, error, refetch }: OrderListProps)
 
 ```tsx
 // src/components/empty-state.tsx
+import { Button } from "@/components/ui/button";
+
 interface EmptyStateProps {
   readonly message: string;
   readonly action?: {
@@ -124,9 +167,9 @@ export function EmptyState({ message, action }: EmptyStateProps) {
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <p className="text-muted-foreground">{message}</p>
       {action !== undefined && (
-        <button type="button" onClick={action.onClick} className="mt-4 text-sm underline">
+        <Button variant="link" onClick={action.onClick} className="mt-4">
           {action.label}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -152,7 +195,7 @@ export function OrderList({ orders, isLoading, error, refetch }: OrderListProps)
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="flex flex-col gap-2">
       {orders.map((order) => (
         <li key={order.id}>
           <OrderCard order={order} />
@@ -172,6 +215,10 @@ export function OrderList({ orders, isLoading, error, refetch }: OrderListProps)
 ### HTML ネイティブ + Shadcn/ui を使う（フォームライブラリは使わない）
 
 ```tsx
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 interface OrderFormProps {
   readonly onSubmit: (data: CreateOrderInput) => void;
   readonly isSubmitting: boolean;
@@ -186,23 +233,20 @@ export function OrderForm({ onSubmit, isSubmitting }: OrderFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="name" className="text-sm font-medium">
-          名前
-        </label>
-        <input
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="name">名前</Label>
+        <Input
           id="name"
           type="text"
           value={name}
           onChange={(e) => { setName(e.target.value); }}
           required
-          className="mt-1 w-full rounded-md border px-3 py-2"
         />
       </div>
-      <button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "送信中..." : "作成"}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -213,7 +257,7 @@ export function OrderForm({ onSubmit, isSubmitting }: OrderFormProps) {
 - `<form>` タグを使う（`onSubmit` で送信処理）
 - `event.preventDefault()` は `handleSubmit` 内で呼ぶ
 - ボタンには `type="submit"` を付ける
-- **enum / FK（外部キー）フィールドは `<select>` で選択させる**（手入力させない）
+- **enum / FK（外部キー）フィールドは Shadcn/ui の `Select` で選択させる**（手入力させない、生の `<select>` は使わない）
 - 送信中は `disabled` で二重送信防止
 - バリデーションは HTML 属性（`required`, `pattern`, `min` 等）を優先
 - 複雑なバリデーションが必要になったら `zod` を導入する（先に入れない）
@@ -225,6 +269,7 @@ export function OrderForm({ onSubmit, isSubmitting }: OrderFormProps) {
 ### Shadcn/ui の Dialog を使う
 
 ```tsx
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ConfirmDialogProps {
@@ -244,8 +289,8 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }: Co
         </DialogHeader>
         <p className="text-sm text-muted-foreground">{message}</p>
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose}>キャンセル</button>
-          <button type="button" onClick={onConfirm}>確認</button>
+          <Button type="button" variant="outline" onClick={onClose}>キャンセル</Button>
+          <Button type="button" variant="destructive" onClick={onConfirm}>確認</Button>
         </div>
       </DialogContent>
     </Dialog>
