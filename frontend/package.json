@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vp dev",
     "build": "tsc && vp build",
-    "preview": "vp preview",
-    "prepare": "husky"
+    "preview": "vp preview"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.9",
