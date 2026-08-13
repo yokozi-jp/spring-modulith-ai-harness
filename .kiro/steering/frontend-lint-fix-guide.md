@@ -192,6 +192,8 @@ export default function UserList() { ... }
 export function UserList() { ... }
 ```
 
+**理由**: named export は import 時に名前が固定され、リネーム・リファクタリング耐性が高い。barrel export（`index.ts` からの re-export）禁止方針とも整合する。Google TypeScript Style Guide も同方針（"Do not use default exports"）。Airbnb JS Style Guide は単一 export 時に default export を推奨しており意見が分かれる論点だが、本プロジェクトは Google 側の判断を採用している。
+
 ---
 
 ### import/no-cycle
