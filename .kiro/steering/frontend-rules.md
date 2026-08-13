@@ -123,7 +123,6 @@ vp --version
 
 Git hooks は Vite+ の `.vite-hooks` 機構を使う（`core.hooksPath = frontend/.vite-hooks`）。`frontend/.vite-hooks/pre-commit` が `vp staged` を実行し、`vite.config.ts` の `staged` 設定に従って lint/fmt/カスタムチェックをステージ済みファイルに対して実行する。
 
-- **`husky` は使わない**。過去に導入を検討した名残で `package.json` に `"prepare": "husky"` が残っていたことがあったが、`.vite-hooks` 移行後は不要なため削除済み。`husky` のような別の hooks 管理ツールを追加しない
 - `vp hooks status` で現在の hooks 設定を確認できる
 - `vite.config.ts` の `staged` フィールドで実行内容を定義する（`vp lint --fix`, `vp fmt`, カスタムチェックスクリプト等）
 
