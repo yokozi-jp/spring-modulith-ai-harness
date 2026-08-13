@@ -85,7 +85,7 @@ vp test run
   - 環境変数名のリネーム（`VITE_*` → `VP_*` 等）
 - oxfmt / oxlint のバージョンが上がると、**それまで通っていたコードが新たにエラー・warning になることがある**。アップグレード後は必ず `vp check` → `vp fmt` → 再度 `vp check` の順で確認する
 - `.oxlintrc.json` と `vite.config.ts` の `lint` セクションを同一ディレクトリに併存させない。**両方存在する場合、`vp lint` は `vite.config.ts` の `lint` のみを読み込み、`.oxlintrc.json` は無視される**（oxlint は1ディレクトリにつき1つの設定ファイルのみ使用する仕様のため）。本プロジェクトは全ての oxlint 設定（`categories`, `plugins`, `rules`, `overrides`, `settings`, `env`, `ignorePatterns`）を `vite.config.ts` の `lint` セクションに一元化しており、`.oxlintrc.json` は存在しない
-- カテゴリを一括 `error` にする際は、そのカテゴリに属する全ルールを実際に `vp lint` で発火させて確認すること。**`restriction`/`style` カテゴリには相互に矛盾するルールが混在する**（例: `import/no-named-export` と `import/prefer-default-export` が同じ `style` カテゴリに存在し、両方を `error` にすると常に片方が違反になる）。カテゴリ一括指定は `correctness` のみ `error` とし、他カテゴリは `warn` に留めて、必要なルールだけを `rules` で個別に `error` 指定する運用にしている
+- カテゴリを一括 `error` にする際は、そのカテゴリに属する全ルールを実際に `vp lint` で発火させて確認すること。**`restriction`/`style` カテゴリには相互に矛盾するルールが混在している**（例: `import/no-named-export` と `import/prefer-default-export` が同じ `style` カテゴリに存在し、両方を `error` にすると常に片方が違反になる）。本プロジェクトは全カテゴリを `error` にしたうえで、矛盾するルールや本プロジェクトの規約と衝突するルール（TanStack Router のファイルベースルーティング規約、Shadcn/ui の標準パターン等）を個別に `off` にする方式を採用している。`warn` に落として様子を見るのではなく、矛盾の原因を特定して該当ルールのみ無効化すること
 
 ---
 
