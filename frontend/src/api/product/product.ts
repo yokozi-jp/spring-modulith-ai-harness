@@ -22,7 +22,7 @@ import type {
 
 import type {
   CreateProductRequest,
-  ListParams,
+  ListProductParams,
   PageProductSummaryResponse,
   ProductDetailResponse,
   UpdateProductRequest,
@@ -48,85 +48,88 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type findByIdResponse200 = {
+export type findProductByIdResponse200 = {
   data: ProductDetailResponse;
   status: 200;
 };
 
-export type findByIdResponse404 = {
+export type findProductByIdResponse404 = {
   data: ProductDetailResponse;
   status: 404;
 };
 
-export type findByIdResponseSuccess = findByIdResponse200 & {
+export type findProductByIdResponseSuccess = findProductByIdResponse200 & {
   headers: Headers;
 };
-export type findByIdResponseError = findByIdResponse404 & {
+export type findProductByIdResponseError = findProductByIdResponse404 & {
   headers: Headers;
 };
 
-export type findByIdResponse = findByIdResponseSuccess | findByIdResponseError;
+export type findProductByIdResponse = findProductByIdResponseSuccess | findProductByIdResponseError;
 
-export const getFindByIdUrl = (id: string) => {
+export const getFindProductByIdUrl = (id: string) => {
   return `/api/v1/products/${id}`;
 };
 
 /**
  * @summary 商品詳細を取得する
  */
-export const findById = async (id: string, options?: RequestInit): Promise<findByIdResponse> => {
-  return apiClient<findByIdResponse>(getFindByIdUrl(id), {
+export const findProductById = async (
+  id: string,
+  options?: RequestInit,
+): Promise<findProductByIdResponse> => {
+  return apiClient<findProductByIdResponse>(getFindProductByIdUrl(id), {
     ...options,
     method: "GET",
   });
 };
 
-export const getFindByIdQueryKey = (id: string) => {
+export const getFindProductByIdQueryKey = (id: string) => {
   return [`/api/v1/products/${id}`] as const;
 };
 
-export const getFindByIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof findById>>,
+export const getFindProductByIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof findProductById>>,
   TError = ProductDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findProductById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getFindByIdQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getFindProductByIdQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof findById>>> = ({ signal }) =>
-    findById(id, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof findProductById>>> = ({ signal }) =>
+    findProductById(id, { signal, ...requestOptions });
 
   return {
     queryKey,
     queryFn,
     enabled: id !== null && id !== undefined,
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData> & {
+  } as UseQueryOptions<Awaited<ReturnType<typeof findProductById>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>;
   };
 };
 
-export type FindByIdQueryResult = NonNullable<Awaited<ReturnType<typeof findById>>>;
-export type FindByIdQueryError = ProductDetailResponse;
+export type FindProductByIdQueryResult = NonNullable<Awaited<ReturnType<typeof findProductById>>>;
+export type FindProductByIdQueryError = ProductDetailResponse;
 
-export function useFindById<
-  TData = Awaited<ReturnType<typeof findById>>,
+export function useFindProductById<
+  TData = Awaited<ReturnType<typeof findProductById>>,
   TError = ProductDetailResponse,
 >(
   id: string,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>> &
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof findProductById>>, TError, TData>> &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findById>>,
+          Awaited<ReturnType<typeof findProductById>>,
           TError,
-          Awaited<ReturnType<typeof findById>>
+          Awaited<ReturnType<typeof findProductById>>
         >,
         "initialData"
       >;
@@ -134,18 +137,18 @@ export function useFindById<
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindById<
-  TData = Awaited<ReturnType<typeof findById>>,
+export function useFindProductById<
+  TData = Awaited<ReturnType<typeof findProductById>>,
   TError = ProductDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>> &
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findProductById>>, TError, TData>> &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findById>>,
+          Awaited<ReturnType<typeof findProductById>>,
           TError,
-          Awaited<ReturnType<typeof findById>>
+          Awaited<ReturnType<typeof findProductById>>
         >,
         "initialData"
       >;
@@ -153,13 +156,13 @@ export function useFindById<
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindById<
-  TData = Awaited<ReturnType<typeof findById>>,
+export function useFindProductById<
+  TData = Awaited<ReturnType<typeof findProductById>>,
   TError = ProductDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findProductById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
@@ -168,18 +171,18 @@ export function useFindById<
  * @summary 商品詳細を取得する
  */
 
-export function useFindById<
-  TData = Awaited<ReturnType<typeof findById>>,
+export function useFindProductById<
+  TData = Awaited<ReturnType<typeof findProductById>>,
   TError = ProductDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findProductById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getFindByIdQueryOptions(id, options);
+  const queryOptions = getFindProductByIdQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;
@@ -188,30 +191,30 @@ export function useFindById<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export type updateResponse200 = {
+export type updateProductResponse200 = {
   data: void;
   status: 200;
 };
 
-export type updateResponseSuccess = updateResponse200 & {
+export type updateProductResponseSuccess = updateProductResponse200 & {
   headers: Headers;
 };
 
-export type updateResponse = updateResponseSuccess;
+export type updateProductResponse = updateProductResponseSuccess;
 
-export const getUpdateUrl = (id: string) => {
+export const getUpdateProductUrl = (id: string) => {
   return `/api/v1/products/${id}`;
 };
 
 /**
  * @summary 商品を更新する
  */
-export const update = async (
+export const updateProduct = async (
   id: string,
   updateProductRequest: UpdateProductRequest,
   options?: RequestInit,
-): Promise<updateResponse> => {
-  return apiClient<updateResponse>(getUpdateUrl(id), {
+): Promise<updateProductResponse> => {
+  return apiClient<updateProductResponse>(getUpdateProductUrl(id), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -219,21 +222,21 @@ export const update = async (
   });
 };
 
-export const getUpdateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getUpdateProductMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof update>>,
+    Awaited<ReturnType<typeof updateProduct>>,
     TError,
     { id: string; data: UpdateProductRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof update>>,
+  Awaited<ReturnType<typeof updateProduct>>,
   TError,
   { id: string; data: UpdateProductRequest },
   TContext
 > => {
-  const mutationKey = ["update"];
+  const mutationKey = ["updateProduct"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -241,28 +244,28 @@ export const getUpdateMutationOptions = <TError = unknown, TContext = unknown>(o
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof update>>,
+    Awaited<ReturnType<typeof updateProduct>>,
     { id: string; data: UpdateProductRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return update(id, data, requestOptions);
+    return updateProduct(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type UpdateMutationResult = NonNullable<Awaited<ReturnType<typeof update>>>;
-export type UpdateMutationBody = UpdateProductRequest;
-export type UpdateMutationError = unknown;
+export type UpdateProductMutationResult = NonNullable<Awaited<ReturnType<typeof updateProduct>>>;
+export type UpdateProductMutationBody = UpdateProductRequest;
+export type UpdateProductMutationError = unknown;
 
 /**
  * @summary 商品を更新する
  */
-export const useUpdate = <TError = unknown, TContext = unknown>(
+export const useUpdateProduct = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof update>>,
+      Awaited<ReturnType<typeof updateProduct>>,
       TError,
       { id: string; data: UpdateProductRequest },
       TContext
@@ -271,37 +274,37 @@ export const useUpdate = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof update>>,
+  Awaited<ReturnType<typeof updateProduct>>,
   TError,
   { id: string; data: UpdateProductRequest },
   TContext
 > => {
-  return useMutation(getUpdateMutationOptions(options), queryClient);
+  return useMutation(getUpdateProductMutationOptions(options), queryClient);
 };
-export type _deleteResponse204 = {
+export type deleteProductResponse204 = {
   data: void;
   status: 204;
 };
 
-export type _deleteResponseSuccess = _deleteResponse204 & {
+export type deleteProductResponseSuccess = deleteProductResponse204 & {
   headers: Headers;
 };
 
-export type _deleteResponse = _deleteResponseSuccess;
+export type deleteProductResponse = deleteProductResponseSuccess;
 
-export const getDeleteUrl = (id: string) => {
+export const getDeleteProductUrl = (id: string) => {
   return `/api/v1/products/${id}`;
 };
 
 /**
  * @summary 商品を削除する
  */
-export const _delete = async (
+export const deleteProduct = async (
   id: string,
   versionRequest: VersionRequest,
   options?: RequestInit,
-): Promise<_deleteResponse> => {
-  return apiClient<_deleteResponse>(getDeleteUrl(id), {
+): Promise<deleteProductResponse> => {
+  return apiClient<deleteProductResponse>(getDeleteProductUrl(id), {
     ...options,
     method: "DELETE",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -309,21 +312,21 @@ export const _delete = async (
   });
 };
 
-export const getDeleteMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getDeleteProductMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof _delete>>,
+    Awaited<ReturnType<typeof deleteProduct>>,
     TError,
     { id: string; data: VersionRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof _delete>>,
+  Awaited<ReturnType<typeof deleteProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  const mutationKey = ["_delete"];
+  const mutationKey = ["deleteProduct"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -331,28 +334,28 @@ export const getDeleteMutationOptions = <TError = unknown, TContext = unknown>(o
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof _delete>>,
+    Awaited<ReturnType<typeof deleteProduct>>,
     { id: string; data: VersionRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return _delete(id, data, requestOptions);
+    return deleteProduct(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type _DeleteMutationResult = NonNullable<Awaited<ReturnType<typeof _delete>>>;
-export type _DeleteMutationBody = VersionRequest;
-export type _DeleteMutationError = unknown;
+export type DeleteProductMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProduct>>>;
+export type DeleteProductMutationBody = VersionRequest;
+export type DeleteProductMutationError = unknown;
 
 /**
  * @summary 商品を削除する
  */
-export const useDelete = <TError = unknown, TContext = unknown>(
+export const useDeleteProduct = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof _delete>>,
+      Awaited<ReturnType<typeof deleteProduct>>,
       TError,
       { id: string; data: VersionRequest },
       TContext
@@ -361,25 +364,25 @@ export const useDelete = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof _delete>>,
+  Awaited<ReturnType<typeof deleteProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  return useMutation(getDeleteMutationOptions(options), queryClient);
+  return useMutation(getDeleteProductMutationOptions(options), queryClient);
 };
-export type listResponse200 = {
+export type listProductResponse200 = {
   data: PageProductSummaryResponse;
   status: 200;
 };
 
-export type listResponseSuccess = listResponse200 & {
+export type listProductResponseSuccess = listProductResponse200 & {
   headers: Headers;
 };
 
-export type listResponse = listResponseSuccess;
+export type listProductResponse = listProductResponseSuccess;
 
-export const getListUrl = (params: ListParams) => {
+export const getListProductUrl = (params: ListProductParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -398,50 +401,56 @@ export const getListUrl = (params: ListParams) => {
 /**
  * @summary 商品一覧を取得する
  */
-export const list = async (params: ListParams, options?: RequestInit): Promise<listResponse> => {
-  return apiClient<listResponse>(getListUrl(params), {
+export const listProduct = async (
+  params: ListProductParams,
+  options?: RequestInit,
+): Promise<listProductResponse> => {
+  return apiClient<listProductResponse>(getListProductUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getListQueryKey = (params?: ListParams) => {
+export const getListProductQueryKey = (params?: ListProductParams) => {
   return [`/api/v1/products`, ...(params ? [params] : [])] as const;
 };
 
-export const getListQueryOptions = <TData = Awaited<ReturnType<typeof list>>, TError = unknown>(
-  params: ListParams,
+export const getListProductQueryOptions = <
+  TData = Awaited<ReturnType<typeof listProduct>>,
+  TError = unknown,
+>(
+  params: ListProductParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listProduct>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getListQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getListProductQueryKey(params);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof list>>> = ({ signal }) =>
-    list(params, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listProduct>>> = ({ signal }) =>
+    listProduct(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof list>>,
+    Awaited<ReturnType<typeof listProduct>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ListQueryResult = NonNullable<Awaited<ReturnType<typeof list>>>;
-export type ListQueryError = unknown;
+export type ListProductQueryResult = NonNullable<Awaited<ReturnType<typeof listProduct>>>;
+export type ListProductQueryError = unknown;
 
-export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unknown>(
-  params: ListParams,
+export function useListProduct<TData = Awaited<ReturnType<typeof listProduct>>, TError = unknown>(
+  params: ListProductParams,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof list>>, TError, TData>> &
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listProduct>>, TError, TData>> &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof list>>,
+          Awaited<ReturnType<typeof listProduct>>,
           TError,
-          Awaited<ReturnType<typeof list>>
+          Awaited<ReturnType<typeof listProduct>>
         >,
         "initialData"
       >;
@@ -449,15 +458,15 @@ export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unkno
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unknown>(
-  params: ListParams,
+export function useListProduct<TData = Awaited<ReturnType<typeof listProduct>>, TError = unknown>(
+  params: ListProductParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list>>, TError, TData>> &
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listProduct>>, TError, TData>> &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof list>>,
+          Awaited<ReturnType<typeof listProduct>>,
           TError,
-          Awaited<ReturnType<typeof list>>
+          Awaited<ReturnType<typeof listProduct>>
         >,
         "initialData"
       >;
@@ -465,10 +474,10 @@ export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unkno
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unknown>(
-  params: ListParams,
+export function useListProduct<TData = Awaited<ReturnType<typeof listProduct>>, TError = unknown>(
+  params: ListProductParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listProduct>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
@@ -477,15 +486,15 @@ export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unkno
  * @summary 商品一覧を取得する
  */
 
-export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unknown>(
-  params: ListParams,
+export function useListProduct<TData = Awaited<ReturnType<typeof listProduct>>, TError = unknown>(
+  params: ListProductParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listProduct>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListQueryOptions(params, options);
+  const queryOptions = getListProductQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;
@@ -494,29 +503,29 @@ export function useList<TData = Awaited<ReturnType<typeof list>>, TError = unkno
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export type createResponse201 = {
+export type createProductResponse201 = {
   data: void;
   status: 201;
 };
 
-export type createResponseSuccess = createResponse201 & {
+export type createProductResponseSuccess = createProductResponse201 & {
   headers: Headers;
 };
 
-export type createResponse = createResponseSuccess;
+export type createProductResponse = createProductResponseSuccess;
 
-export const getCreateUrl = () => {
+export const getCreateProductUrl = () => {
   return `/api/v1/products`;
 };
 
 /**
  * @summary 商品を作成する
  */
-export const create = async (
+export const createProduct = async (
   createProductRequest: CreateProductRequest,
   options?: RequestInit,
-): Promise<createResponse> => {
-  return apiClient<createResponse>(getCreateUrl(), {
+): Promise<createProductResponse> => {
+  return apiClient<createProductResponse>(getCreateProductUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -524,21 +533,21 @@ export const create = async (
   });
 };
 
-export const getCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getCreateProductMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof create>>,
+    Awaited<ReturnType<typeof createProduct>>,
     TError,
     { data: CreateProductRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof create>>,
+  Awaited<ReturnType<typeof createProduct>>,
   TError,
   { data: CreateProductRequest },
   TContext
 > => {
-  const mutationKey = ["create"];
+  const mutationKey = ["createProduct"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -546,28 +555,28 @@ export const getCreateMutationOptions = <TError = unknown, TContext = unknown>(o
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof create>>,
+    Awaited<ReturnType<typeof createProduct>>,
     { data: CreateProductRequest }
   > = (props) => {
     const { data } = props ?? {};
 
-    return create(data, requestOptions);
+    return createProduct(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type CreateMutationResult = NonNullable<Awaited<ReturnType<typeof create>>>;
-export type CreateMutationBody = CreateProductRequest;
-export type CreateMutationError = unknown;
+export type CreateProductMutationResult = NonNullable<Awaited<ReturnType<typeof createProduct>>>;
+export type CreateProductMutationBody = CreateProductRequest;
+export type CreateProductMutationError = unknown;
 
 /**
  * @summary 商品を作成する
  */
-export const useCreate = <TError = unknown, TContext = unknown>(
+export const useCreateProduct = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof create>>,
+      Awaited<ReturnType<typeof createProduct>>,
       TError,
       { data: CreateProductRequest },
       TContext
@@ -576,37 +585,37 @@ export const useCreate = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof create>>,
+  Awaited<ReturnType<typeof createProduct>>,
   TError,
   { data: CreateProductRequest },
   TContext
 > => {
-  return useMutation(getCreateMutationOptions(options), queryClient);
+  return useMutation(getCreateProductMutationOptions(options), queryClient);
 };
-export type unpublishResponse200 = {
+export type unpublishProductResponse200 = {
   data: void;
   status: 200;
 };
 
-export type unpublishResponseSuccess = unpublishResponse200 & {
+export type unpublishProductResponseSuccess = unpublishProductResponse200 & {
   headers: Headers;
 };
 
-export type unpublishResponse = unpublishResponseSuccess;
+export type unpublishProductResponse = unpublishProductResponseSuccess;
 
-export const getUnpublishUrl = (id: string) => {
+export const getUnpublishProductUrl = (id: string) => {
   return `/api/v1/products/${id}/unpublish`;
 };
 
 /**
  * @summary 商品を非公開にする
  */
-export const unpublish = async (
+export const unpublishProduct = async (
   id: string,
   versionRequest: VersionRequest,
   options?: RequestInit,
-): Promise<unpublishResponse> => {
-  return apiClient<unpublishResponse>(getUnpublishUrl(id), {
+): Promise<unpublishProductResponse> => {
+  return apiClient<unpublishProductResponse>(getUnpublishProductUrl(id), {
     ...options,
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -614,21 +623,21 @@ export const unpublish = async (
   });
 };
 
-export const getUnpublishMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getUnpublishProductMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof unpublish>>,
+    Awaited<ReturnType<typeof unpublishProduct>>,
     TError,
     { id: string; data: VersionRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof unpublish>>,
+  Awaited<ReturnType<typeof unpublishProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  const mutationKey = ["unpublish"];
+  const mutationKey = ["unpublishProduct"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -636,28 +645,30 @@ export const getUnpublishMutationOptions = <TError = unknown, TContext = unknown
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof unpublish>>,
+    Awaited<ReturnType<typeof unpublishProduct>>,
     { id: string; data: VersionRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return unpublish(id, data, requestOptions);
+    return unpublishProduct(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type UnpublishMutationResult = NonNullable<Awaited<ReturnType<typeof unpublish>>>;
-export type UnpublishMutationBody = VersionRequest;
-export type UnpublishMutationError = unknown;
+export type UnpublishProductMutationResult = NonNullable<
+  Awaited<ReturnType<typeof unpublishProduct>>
+>;
+export type UnpublishProductMutationBody = VersionRequest;
+export type UnpublishProductMutationError = unknown;
 
 /**
  * @summary 商品を非公開にする
  */
-export const useUnpublish = <TError = unknown, TContext = unknown>(
+export const useUnpublishProduct = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof unpublish>>,
+      Awaited<ReturnType<typeof unpublishProduct>>,
       TError,
       { id: string; data: VersionRequest },
       TContext
@@ -666,37 +677,37 @@ export const useUnpublish = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof unpublish>>,
+  Awaited<ReturnType<typeof unpublishProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  return useMutation(getUnpublishMutationOptions(options), queryClient);
+  return useMutation(getUnpublishProductMutationOptions(options), queryClient);
 };
-export type publishResponse200 = {
+export type publishProductResponse200 = {
   data: void;
   status: 200;
 };
 
-export type publishResponseSuccess = publishResponse200 & {
+export type publishProductResponseSuccess = publishProductResponse200 & {
   headers: Headers;
 };
 
-export type publishResponse = publishResponseSuccess;
+export type publishProductResponse = publishProductResponseSuccess;
 
-export const getPublishUrl = (id: string) => {
+export const getPublishProductUrl = (id: string) => {
   return `/api/v1/products/${id}/publish`;
 };
 
 /**
  * @summary 商品を公開する
  */
-export const publish = async (
+export const publishProduct = async (
   id: string,
   versionRequest: VersionRequest,
   options?: RequestInit,
-): Promise<publishResponse> => {
-  return apiClient<publishResponse>(getPublishUrl(id), {
+): Promise<publishProductResponse> => {
+  return apiClient<publishProductResponse>(getPublishProductUrl(id), {
     ...options,
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -704,21 +715,21 @@ export const publish = async (
   });
 };
 
-export const getPublishMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getPublishProductMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof publish>>,
+    Awaited<ReturnType<typeof publishProduct>>,
     TError,
     { id: string; data: VersionRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof publish>>,
+  Awaited<ReturnType<typeof publishProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  const mutationKey = ["publish"];
+  const mutationKey = ["publishProduct"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -726,28 +737,28 @@ export const getPublishMutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof publish>>,
+    Awaited<ReturnType<typeof publishProduct>>,
     { id: string; data: VersionRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return publish(id, data, requestOptions);
+    return publishProduct(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type PublishMutationResult = NonNullable<Awaited<ReturnType<typeof publish>>>;
-export type PublishMutationBody = VersionRequest;
-export type PublishMutationError = unknown;
+export type PublishProductMutationResult = NonNullable<Awaited<ReturnType<typeof publishProduct>>>;
+export type PublishProductMutationBody = VersionRequest;
+export type PublishProductMutationError = unknown;
 
 /**
  * @summary 商品を公開する
  */
-export const usePublish = <TError = unknown, TContext = unknown>(
+export const usePublishProduct = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof publish>>,
+      Awaited<ReturnType<typeof publishProduct>>,
       TError,
       { id: string; data: VersionRequest },
       TContext
@@ -756,37 +767,37 @@ export const usePublish = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof publish>>,
+  Awaited<ReturnType<typeof publishProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  return useMutation(getPublishMutationOptions(options), queryClient);
+  return useMutation(getPublishProductMutationOptions(options), queryClient);
 };
-export type archiveResponse200 = {
+export type archiveProductResponse200 = {
   data: void;
   status: 200;
 };
 
-export type archiveResponseSuccess = archiveResponse200 & {
+export type archiveProductResponseSuccess = archiveProductResponse200 & {
   headers: Headers;
 };
 
-export type archiveResponse = archiveResponseSuccess;
+export type archiveProductResponse = archiveProductResponseSuccess;
 
-export const getArchiveUrl = (id: string) => {
+export const getArchiveProductUrl = (id: string) => {
   return `/api/v1/products/${id}/archive`;
 };
 
 /**
  * @summary 商品をアーカイブする
  */
-export const archive = async (
+export const archiveProduct = async (
   id: string,
   versionRequest: VersionRequest,
   options?: RequestInit,
-): Promise<archiveResponse> => {
-  return apiClient<archiveResponse>(getArchiveUrl(id), {
+): Promise<archiveProductResponse> => {
+  return apiClient<archiveProductResponse>(getArchiveProductUrl(id), {
     ...options,
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -794,21 +805,21 @@ export const archive = async (
   });
 };
 
-export const getArchiveMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getArchiveProductMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof archive>>,
+    Awaited<ReturnType<typeof archiveProduct>>,
     TError,
     { id: string; data: VersionRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof archive>>,
+  Awaited<ReturnType<typeof archiveProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  const mutationKey = ["archive"];
+  const mutationKey = ["archiveProduct"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -816,28 +827,28 @@ export const getArchiveMutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof archive>>,
+    Awaited<ReturnType<typeof archiveProduct>>,
     { id: string; data: VersionRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return archive(id, data, requestOptions);
+    return archiveProduct(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type ArchiveMutationResult = NonNullable<Awaited<ReturnType<typeof archive>>>;
-export type ArchiveMutationBody = VersionRequest;
-export type ArchiveMutationError = unknown;
+export type ArchiveProductMutationResult = NonNullable<Awaited<ReturnType<typeof archiveProduct>>>;
+export type ArchiveProductMutationBody = VersionRequest;
+export type ArchiveProductMutationError = unknown;
 
 /**
  * @summary 商品をアーカイブする
  */
-export const useArchive = <TError = unknown, TContext = unknown>(
+export const useArchiveProduct = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof archive>>,
+      Awaited<ReturnType<typeof archiveProduct>>,
       TError,
       { id: string; data: VersionRequest },
       TContext
@@ -846,10 +857,10 @@ export const useArchive = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof archive>>,
+  Awaited<ReturnType<typeof archiveProduct>>,
   TError,
   { id: string; data: VersionRequest },
   TContext
 > => {
-  return useMutation(getArchiveMutationOptions(options), queryClient);
+  return useMutation(getArchiveProductMutationOptions(options), queryClient);
 };

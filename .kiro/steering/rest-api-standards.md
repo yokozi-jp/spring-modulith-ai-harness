@@ -204,18 +204,50 @@ public record CreateOrderRequest(
 | アノテーション | 配置 | 必須/任意 |
 |---------------|------|----------|
 | `@Tag` | クラスレベル | 必須 |
-| `@Operation(summary = "...")` | メソッドレベル | 必須 |
+| `@Operation(summary = "...", operationId = "...")` | メソッドレベル | 必須 |
 | `@ApiResponse` | メソッドレベル | 必須（成功 + 主要エラー） |
 | `@Parameter` | パラメータレベル | 任意 |
 | `@Schema` | DTO フィールドレベル | 任意 |
 
+### operationId の命名規則（必須）
+
+`operationId` は Controller の Java メソッド名からではなく、必ず `@Operation` で明示的に指定する。
+
+**理由**: SpringDoc はデフォルトで Java メソッド名（`findById`, `create`, `update`, `delete` 等）をそのまま `operationId` にする。CRUD メソッド名は全モジュールの Controller で共通化しているため、複数モジュールが存在すると `operationId` が重複し、SpringDoc が自動的に `findById_1`, `findById_2` のような連番を付与する。Orval はこの `operationId` をそのまま Hook 名に変換するため、フロントエンド側で `useFindById`, `useFindById1`, `useFindById2` のような意味の分からない Hook 名が生成されてしまう。`@Operation(operationId = ...)` で明示することでこの重複・連番付与を根本的に回避する。
+
+**命名パターン**: `<動詞><Resource名>`（PascalCase の Resource 名、先頭のみ camelCase）
+
+| 操作 | パターン | 例（Product） |
+|------|---------|---------------|
+| 作成 | `create<Resource>` | `createProduct` |
+| 一覧取得 | `list<Resource>`（複数形にしない） | `listProduct` |
+| 単体取得 | `find<Resource>ById` | `findProductById` |
+| 更新 | `update<Resource>` | `updateProduct` |
+| 削除 | `delete<Resource>` | `deleteProduct` |
+| ドメインアクション | `<動詞><Resource>`（PATCH エンドポイント） | `publishProduct`, `moveCategory` |
+| ネストリソース取得 | `find<ParentResource><ChildResource>`（複数形にしない） | `findCategoryChildren` |
+
+```java
+@Operation(summary = "商品を作成する", operationId = "createProduct")
+@ApiResponse(responseCode = "201", description = "作成成功")
+@PostMapping
+public ResponseEntity<Void> create(...) { ... }
+
+@Operation(summary = "商品詳細を取得する", operationId = "findProductById")
+@ApiResponse(responseCode = "200", description = "取得成功")
+@GetMapping("/{id}")
+public ProductDetailResponse findById(@PathVariable final String id) { ... }
+```
+
+Controller の Java メソッド名自体（`findById`, `update` 等）は変更しない。`operationId` のみ Resource 名を含めて一意化する。
+
 ### scaffold 生成時の TODO
 
-scaffold の `api` layer で生成されるコードには、機械的に決められない箇所に `TODO:` コメントが付与される。開発者は実装時にこれらを解消すること。
+scaffold の `api` layer で生成されるコードには、機械的に決められない箇所に `TODO:` コメントが付与される。開発者は実装時にこれらを解消すること。`operationId` は Resource 名（`{{NAME}}`）から機械的に決定できるため scaffold が自動生成し、TODO は付与されない。
 
 ```java
 @Tag(name = "Order", description = "TODO: Order API の説明を記述する")
-@Operation(summary = "TODO: Order 作成の説明を記述する")
+@Operation(summary = "TODO: Order 作成の説明を記述する", operationId = "createOrder")
 ```
 
 ---

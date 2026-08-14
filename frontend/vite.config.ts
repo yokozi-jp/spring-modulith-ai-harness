@@ -370,10 +370,22 @@ export default defineConfig({
     },
   },
   staged: {
-    "src/**/*.{ts,tsx}": [
+    // src/api/ と src/components/ui/ は生成物のため lint 対象外
+    // (vite.config.ts の lint.ignorePatterns と同じ除外)。
+    // 拡張 glob (!(...)) でディレクトリ自体を除外し、
+    // 生成物のみがステージされた場合に 0 件ヒットで
+    // タスクが失敗扱いになることを防ぐ。
+    "src/!(api|components)/**/*.{ts,tsx}": [
       "vp lint --fix",
       "vp fmt",
       // カスタムチェック（verify.sh と同じ）
+      "./scripts/checks/check-hook-location.sh",
+      "./scripts/checks/check-features-structure.sh",
+      "./scripts/checks/check-test-exists.sh",
+    ],
+    "src/components/!(ui)/**/*.{ts,tsx}": [
+      "vp lint --fix",
+      "vp fmt",
       "./scripts/checks/check-hook-location.sh",
       "./scripts/checks/check-features-structure.sh",
       "./scripts/checks/check-test-exists.sh",

@@ -27,8 +27,9 @@
 
 ## 基本ルール
 
-- import は `vite-plus/test` から行う
-- テストファイルは対象と同じディレクトリに `<name>.test.ts(x)` で配置
+- テストは `vp test` で実行する（Vitest 内蔵）
+- import は `vite-plus/test` から行う（`vitest` を直接インストールしない）
+- テストファイルは `*.test.ts` / `*.test.tsx` で命名し、対象と同じディレクトリに配置する（例: `lib/utils.test.ts`）
 - `describe` でグループ化、`it` で個別ケース
 - テスト名は日本語 OK（何をテストしているか明確にする）
 

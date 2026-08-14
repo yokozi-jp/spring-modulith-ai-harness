@@ -43,7 +43,7 @@ public class {{NAME}}Controller {
   private final {{NAME}}QueryService queryService;
 
   /** {{NAME}} を作成する。 */
-  @Operation(summary = "TODO: {{NAME}} 作成の説明を記述する")
+  @Operation(summary = "TODO: {{NAME}} 作成の説明を記述する", operationId = "create{{NAME}}")
   @ApiResponse(responseCode = "201", description = "作成成功")
   @PostMapping
   public ResponseEntity<Void> create(@RequestBody @Valid final Create{{NAME}}Request request) {
@@ -55,7 +55,7 @@ public class {{NAME}}Controller {
   }
 
   /** {{NAME}} 一覧を取得する。 */
-  @Operation(summary = "TODO: {{NAME}} 一覧取得の説明を記述する")
+  @Operation(summary = "TODO: {{NAME}} 一覧取得の説明を記述する", operationId = "list{{NAME}}")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @GetMapping
   public Page<{{NAME}}SummaryResponse> list(
@@ -64,7 +64,7 @@ public class {{NAME}}Controller {
   }
 
   /** {{NAME}} 詳細を取得する。 */
-  @Operation(summary = "TODO: {{NAME}} 詳細取得の説明を記述する")
+  @Operation(summary = "TODO: {{NAME}} 詳細取得の説明を記述する", operationId = "find{{NAME}}ById")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @ApiResponse(responseCode = "404", description = "見つからない")
   @GetMapping("/{id}")

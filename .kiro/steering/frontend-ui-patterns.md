@@ -15,6 +15,10 @@
 vp dlx shadcn@latest add table
 ```
 
+- `src/components/ui/` に生成される
+- 生成されたファイルは原則編集しない
+- カスタマイズが必要な場合は `components/` 直下または `features/` 内に作成する
+
 ---
 
 ## Shadcn/ui コンポーネント使用時の必須ルール
@@ -23,12 +27,13 @@ Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/ski
 
 ### スタイリング
 
+- **Tailwind CSS のユーティリティクラスのみ使用する**。インラインスタイル（`style={}`）禁止（`react/forbid-dom-props` で検証）、CSS ファイルの追加禁止（`globals.css` のみ）
 - **`className` はレイアウトのみに使う**。コンポーネントの色・タイポグラフィを上書きしない
 - **`space-x-*` / `space-y-*` は使わない**。`flex` + `gap-*` を使う（縦積みは `flex flex-col gap-*`）
 - **幅と高さが同じ場合は `size-*` を使う**（`size-10` であり `w-10 h-10` ではない）。`vp lint`（`better-tailwindcss/enforce-shorthand-classes`）が検出・自動修正する
 - **`truncate` の省略形を使う**（`overflow-hidden text-ellipsis whitespace-nowrap` ではない）。同上、`vp lint --fix` で自動修正される
 - **セマンティックカラーを使う**（`bg-primary`, `text-muted-foreground` 等）。`bg-blue-500` のような直接値は使わない
-- **条件付きクラスは `cn()` を使う**。手動のテンプレートリテラル三項演算子は書かない
+- **条件付きクラスは `cn()` を使う**（`@/lib/utils`）。手動のテンプレートリテラル三項演算子は書かない
 - **オーバーレイ系コンポーネント（Dialog, Sheet, Popover 等）に手動で `z-index` を指定しない**（コンポーネントが自身のスタッキングを管理する）
 
 ```tsx
@@ -48,7 +53,30 @@ Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/ski
 - `better-tailwindcss/no-duplicate-classes` — 同一クラスの重複検出
 - `better-tailwindcss/no-conflicting-classes` — `p-2 p-3` 等の矛盾するクラスの検出
 
-**未対応**: `space-x-*`/`space-y-*` 禁止（`gap-*` 推奨）に対応する機械チェックは存在しない（`enforce-shorthand-classes` は同一プロパティの省略形統合のみを扱い、`space-x` → `gap` のような別プロパティへの意味論的変換は検証しない）。AI/レビュアーが目視で確認すること。
+**機械チェックの対象外**: `space-x-*`/`space-y-*` 禁止（`gap-*` 推奨）は目視確認とする。`enforce-shorthand-classes` は `w-10 h-10` → `size-10` のような同一プロパティの複数指定を単一のショートハンドクラスに統合する構文的な等価変換のみを扱う。`space-x`（子要素への `margin` 付与）と `gap`（Flexbox/Grid のネイティブなギャップ機構）は異なる CSS プロパティによる別のレイアウト手法であり、両者を機械的に等価とみなして自動変換することはできない。AI/レビュアーが目視で確認すること。
+
+### レスポンシブ対応（Tailwind CSS ブレークポイント）
+
+#### メディアクエリファースト、コンテナクエリは必要な箇所のみ
+
+- サイト全体・ページ単位のレイアウト変更（ナビゲーションの切り替え等）→ Tailwind のデフォルトブレークポイント（`sm`/`md`/`lg`/`xl`/`2xl`）を使う
+- 個別コンポーネント単位のサイズ依存レイアウト → コンテナクエリ（`@container`, `@sm`, `@md` 等）を使う。多用すると性能・保守性に影響するため、必要な箇所のみに限定する
+
+#### モバイルファースト
+
+プレフィックスなしのクラスをモバイル用のデフォルトとし、大きい画面ではプレフィックス付きで上書きする。
+
+```tsx
+// ✅ プレフィックスなし = モバイル、sm以上で上書き
+<div className="text-center sm:text-left" />
+
+// ❌ sm をモバイルターゲットに使う（Tailwindの設計と逆）
+<div className="sm:text-center" />
+```
+
+#### ブレークポイントの命名
+
+デフォルトの `sm`/`md`/`lg`/`xl`/`2xl` を基本とし、独自ブレークポイントを追加する場合も命名は簡潔で直感的にする（`mobile`/`tablet`/`desktop` 等）。既存プレフィックスの意味を変える上書き（例: `sm` を極端に大きい値にする）は避ける。
 
 ### コンポーネント構成
 
@@ -61,6 +89,27 @@ Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/ski
   - ローディングプレースホルダー → `Skeleton`（`animate-pulse` の自作 div は禁止）
   - ステータス表示 → `Badge`（styled span は禁止）
 - **ダイアログ内のボタンは Shadcn/ui の `Button` を使う**。生の `<button>` タグは使わない（UI コンポーネントの選択の原則1と一致）
+
+### Link と Button の組み合わせ
+
+`<Link>` 内に `<Button>` をネストしない。HTML 仕様上、`<a>` 内に `<button>` は配置できず、クリックイベントが正しく動作しない。
+
+```tsx
+// ❌ 動かない（HTML 仕様違反）
+<Link to={`/orders/${id}/edit`}>
+  <Button>編集</Button>
+</Link>
+
+// ✅ asChild を使う（Button が Link の子要素としてレンダリング）
+<Button asChild>
+  <Link to={`/orders/${id}/edit`}>編集</Link>
+</Button>
+```
+
+**機械チェック**: `project-rules/no-button-inside-link`（oxlintカスタムルール）が `<Link>` 内への `<Button>` のネストを検出する。
+
+- `asChild` は Radix UI / Shadcn/ui の prop で、子要素にスタイルと振る舞いを委譲する
+- `Button` のスタイルが適用された `<a>` タグがレンダリングされる
 
 ### カスタマイズ時のアクセシビリティ保持
 
@@ -94,6 +143,142 @@ src/components/
 
 初回の feature 作成時に必要な共通コンポーネントがなければ作成する。
 2 つ目の feature で同じパターンが必要になったら、先に共通化してから使う。
+
+---
+
+## レイアウト構成
+
+### 基本構造
+
+```
+┌─────────────────────────────────────┐
+│ Header（ロゴ、ユーザー名、ログアウト）│
+├──────────┬──────────────────────────┤
+│ Sidebar  │ Main Content             │
+│ (メニュー)│ <Outlet />               │
+├──────────┴──────────────────────────┤
+│ Footer（省略可）                     │
+└─────────────────────────────────────┘
+```
+
+### ファイル配置
+
+```
+src/components/layout/
+├── app-layout.tsx       # 全体レイアウト（Header + Sidebar + Main）
+├── header.tsx           # ヘッダー
+├── sidebar.tsx          # サイドバーメニュー
+└── footer.tsx           # フッター（必要な場合のみ）
+```
+
+### __root.tsx のパターン
+
+```tsx
+// src/routes/__root.tsx
+import type { QueryClient } from "@tanstack/react-query";
+import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { AppLayout } from "@/components/layout/app-layout";
+
+interface RouterContext {
+  readonly queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootLayout,
+});
+
+function RootLayout() {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  );
+}
+```
+
+### AppLayout コンポーネント
+
+```tsx
+// src/components/layout/app-layout.tsx
+import type { ReactNode } from "react";
+import { Header } from "@/components/layout/header";
+import { Sidebar } from "@/components/layout/sidebar";
+
+interface AppLayoutProps {
+  readonly children: ReactNode;
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 p-6">{children}</main>
+      </div>
+    </div>
+  );
+}
+```
+
+### Header コンポーネント
+
+```tsx
+// src/components/layout/header.tsx
+export function Header() {
+  return (
+    <header className="flex h-14 items-center justify-between border-b px-6">
+      <div className="font-semibold">アプリ名</div>
+      <div className="flex items-center gap-4">
+        <span className="text-sm text-muted-foreground">ユーザー名</span>
+        <a href="/logout" className="text-sm underline">ログアウト</a>
+      </div>
+    </header>
+  );
+}
+```
+
+### Sidebar コンポーネント
+
+```tsx
+// src/components/layout/sidebar.tsx
+import { Link } from "@tanstack/react-router";
+
+const MENU_ITEMS = [
+  { to: "/", label: "ホーム" },
+  { to: "/products", label: "商品管理" },
+  { to: "/categories", label: "カテゴリ管理" },
+] as const;
+
+export function Sidebar() {
+  return (
+    <aside className="w-56 border-r bg-muted/40 p-4">
+      <nav className="space-y-1">
+        {MENU_ITEMS.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
+            activeProps={{ className: "bg-muted font-medium" }}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+```
+
+### 認証情報の取得（将来）
+
+認証状態（ユーザー名等）が必要になったら:
+
+1. backend に `/api/v1/me` エンドポイントを追加
+2. `useCurrentUser` Hook を作成
+3. Header でユーザー名を表示
+
+**先に作らない**。必要になるまで実装しない。
 
 ---
 
@@ -280,6 +465,20 @@ export function OrderForm({ onSubmit, isSubmitting }: OrderFormProps) {
 - 送信中は `disabled` で二重送信防止
 - バリデーションは HTML 属性（`required`, `pattern`, `min` 等）を優先
 - 複雑なバリデーションが必要になったら `zod` を導入する（先に入れない）
+
+### ボタンを disabled にしてバリデーションエラーを表現しない
+
+**アクセシビリティの観点**: `disabled` 属性が付いたボタンはキーボード操作のタブフォーカスでアクセスできず、スクリーンリーダーユーザーが位置を把握できない問題がある。
+
+```tsx
+// ❌ バリデーションエラー時にボタンを無効化
+<Button disabled={!isValid}>送信</Button>
+
+// ✅ 常に有効化し、クリック時にバリデーション結果を表示
+<Button onClick={handleSubmit}>送信</Button>
+```
+
+**注意**: これは上記「送信中は `disabled` で二重送信防止」とは別の論点。`isSubmitting` による disabled は二重送信防止が目的であり、本項目と矛盾しない。バリデーションエラーの表現は `ErrorMessage` コンポーネント等で行う。
 
 ---
 

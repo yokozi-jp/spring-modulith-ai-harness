@@ -53,7 +53,7 @@ public class ProductController {
   private final ProductQueryService queryService;
 
   /** 商品を作成する。 */
-  @Operation(summary = "商品を作成する")
+  @Operation(summary = "商品を作成する", operationId = "createProduct")
   @ApiResponse(responseCode = "201", description = "作成成功")
   @PostMapping
   public ResponseEntity<Void> create(
@@ -75,7 +75,7 @@ public class ProductController {
   }
 
   /** 商品一覧を取得する。 */
-  @Operation(summary = "商品一覧を取得する")
+  @Operation(summary = "商品一覧を取得する", operationId = "listProduct")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @GetMapping
   public Page<ProductSummaryResponse> list(final ProductListParam param, final Pageable pageable) {
@@ -83,7 +83,7 @@ public class ProductController {
   }
 
   /** 商品詳細を取得する。 */
-  @Operation(summary = "商品詳細を取得する")
+  @Operation(summary = "商品詳細を取得する", operationId = "findProductById")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @ApiResponse(responseCode = "404", description = "見つからない")
   @GetMapping("/{id}")
@@ -95,7 +95,7 @@ public class ProductController {
   }
 
   /** 商品を更新する。 */
-  @Operation(summary = "商品を更新する")
+  @Operation(summary = "商品を更新する", operationId = "updateProduct")
   @ApiResponse(responseCode = "200", description = "更新成功")
   @PutMapping("/{id}")
   public ResponseEntity<Void> update(
@@ -114,7 +114,7 @@ public class ProductController {
   }
 
   /** 商品を公開する。 */
-  @Operation(summary = "商品を公開する")
+  @Operation(summary = "商品を公開する", operationId = "publishProduct")
   @ApiResponse(responseCode = "200", description = "公開成功")
   @PatchMapping("/{id}/publish")
   public ResponseEntity<Void> publish(
@@ -126,7 +126,7 @@ public class ProductController {
   }
 
   /** 商品を非公開にする。 */
-  @Operation(summary = "商品を非公開にする")
+  @Operation(summary = "商品を非公開にする", operationId = "unpublishProduct")
   @ApiResponse(responseCode = "200", description = "非公開成功")
   @PatchMapping("/{id}/unpublish")
   public ResponseEntity<Void> unpublish(
@@ -138,7 +138,7 @@ public class ProductController {
   }
 
   /** 商品をアーカイブする。 */
-  @Operation(summary = "商品をアーカイブする")
+  @Operation(summary = "商品をアーカイブする", operationId = "archiveProduct")
   @ApiResponse(responseCode = "200", description = "アーカイブ成功")
   @PatchMapping("/{id}/archive")
   public ResponseEntity<Void> archive(
@@ -150,7 +150,7 @@ public class ProductController {
   }
 
   /** 商品を削除する。 */
-  @Operation(summary = "商品を削除する")
+  @Operation(summary = "商品を削除する", operationId = "deleteProduct")
   @ApiResponse(responseCode = "204", description = "削除成功")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(

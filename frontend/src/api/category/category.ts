@@ -25,7 +25,7 @@ import type {
   CategorySummaryResponse,
   CreateCategoryRequest,
   DeleteRequest,
-  List2Params,
+  ListCategoryParams,
   MoveCategoryRequest,
   PageCategorySummaryResponse,
   UpdateCategoryRequest,
@@ -50,85 +50,90 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type findById2Response200 = {
+export type findCategoryByIdResponse200 = {
   data: CategoryDetailResponse;
   status: 200;
 };
 
-export type findById2Response404 = {
+export type findCategoryByIdResponse404 = {
   data: CategoryDetailResponse;
   status: 404;
 };
 
-export type findById2ResponseSuccess = findById2Response200 & {
+export type findCategoryByIdResponseSuccess = findCategoryByIdResponse200 & {
   headers: Headers;
 };
-export type findById2ResponseError = findById2Response404 & {
+export type findCategoryByIdResponseError = findCategoryByIdResponse404 & {
   headers: Headers;
 };
 
-export type findById2Response = findById2ResponseSuccess | findById2ResponseError;
+export type findCategoryByIdResponse =
+  | findCategoryByIdResponseSuccess
+  | findCategoryByIdResponseError;
 
-export const getFindById2Url = (id: string) => {
+export const getFindCategoryByIdUrl = (id: string) => {
   return `/api/v1/categories/${id}`;
 };
 
 /**
  * @summary カテゴリ詳細を取得する
  */
-export const findById2 = async (id: string, options?: RequestInit): Promise<findById2Response> => {
-  return apiClient<findById2Response>(getFindById2Url(id), {
+export const findCategoryById = async (
+  id: string,
+  options?: RequestInit,
+): Promise<findCategoryByIdResponse> => {
+  return apiClient<findCategoryByIdResponse>(getFindCategoryByIdUrl(id), {
     ...options,
     method: "GET",
   });
 };
 
-export const getFindById2QueryKey = (id: string) => {
+export const getFindCategoryByIdQueryKey = (id: string) => {
   return [`/api/v1/categories/${id}`] as const;
 };
 
-export const getFindById2QueryOptions = <
-  TData = Awaited<ReturnType<typeof findById2>>,
+export const getFindCategoryByIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof findCategoryById>>,
   TError = CategoryDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById2>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findCategoryById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getFindById2QueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getFindCategoryByIdQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof findById2>>> = ({ signal }) =>
-    findById2(id, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof findCategoryById>>> = ({ signal }) =>
+    findCategoryById(id, { signal, ...requestOptions });
 
   return {
     queryKey,
     queryFn,
     enabled: id !== null && id !== undefined,
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof findById2>>, TError, TData> & {
+  } as UseQueryOptions<Awaited<ReturnType<typeof findCategoryById>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>;
   };
 };
 
-export type FindById2QueryResult = NonNullable<Awaited<ReturnType<typeof findById2>>>;
-export type FindById2QueryError = CategoryDetailResponse;
+export type FindCategoryByIdQueryResult = NonNullable<Awaited<ReturnType<typeof findCategoryById>>>;
+export type FindCategoryByIdQueryError = CategoryDetailResponse;
 
-export function useFindById2<
-  TData = Awaited<ReturnType<typeof findById2>>,
+export function useFindCategoryById<
+  TData = Awaited<ReturnType<typeof findCategoryById>>,
   TError = CategoryDetailResponse,
 >(
   id: string,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById2>>, TError, TData>> &
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof findCategoryById>>, TError, TData>> &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findById2>>,
+          Awaited<ReturnType<typeof findCategoryById>>,
           TError,
-          Awaited<ReturnType<typeof findById2>>
+          Awaited<ReturnType<typeof findCategoryById>>
         >,
         "initialData"
       >;
@@ -136,18 +141,18 @@ export function useFindById2<
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindById2<
-  TData = Awaited<ReturnType<typeof findById2>>,
+export function useFindCategoryById<
+  TData = Awaited<ReturnType<typeof findCategoryById>>,
   TError = CategoryDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById2>>, TError, TData>> &
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findCategoryById>>, TError, TData>> &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findById2>>,
+          Awaited<ReturnType<typeof findCategoryById>>,
           TError,
-          Awaited<ReturnType<typeof findById2>>
+          Awaited<ReturnType<typeof findCategoryById>>
         >,
         "initialData"
       >;
@@ -155,13 +160,13 @@ export function useFindById2<
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindById2<
-  TData = Awaited<ReturnType<typeof findById2>>,
+export function useFindCategoryById<
+  TData = Awaited<ReturnType<typeof findCategoryById>>,
   TError = CategoryDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById2>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findCategoryById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
@@ -170,18 +175,18 @@ export function useFindById2<
  * @summary カテゴリ詳細を取得する
  */
 
-export function useFindById2<
-  TData = Awaited<ReturnType<typeof findById2>>,
+export function useFindCategoryById<
+  TData = Awaited<ReturnType<typeof findCategoryById>>,
   TError = CategoryDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById2>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findCategoryById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getFindById2QueryOptions(id, options);
+  const queryOptions = getFindCategoryByIdQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;
@@ -190,30 +195,30 @@ export function useFindById2<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export type update2Response200 = {
+export type updateCategoryResponse200 = {
   data: void;
   status: 200;
 };
 
-export type update2ResponseSuccess = update2Response200 & {
+export type updateCategoryResponseSuccess = updateCategoryResponse200 & {
   headers: Headers;
 };
 
-export type update2Response = update2ResponseSuccess;
+export type updateCategoryResponse = updateCategoryResponseSuccess;
 
-export const getUpdate2Url = (id: string) => {
+export const getUpdateCategoryUrl = (id: string) => {
   return `/api/v1/categories/${id}`;
 };
 
 /**
  * @summary カテゴリを更新する
  */
-export const update2 = async (
+export const updateCategory = async (
   id: string,
   updateCategoryRequest: UpdateCategoryRequest,
   options?: RequestInit,
-): Promise<update2Response> => {
-  return apiClient<update2Response>(getUpdate2Url(id), {
+): Promise<updateCategoryResponse> => {
+  return apiClient<updateCategoryResponse>(getUpdateCategoryUrl(id), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -221,21 +226,21 @@ export const update2 = async (
   });
 };
 
-export const getUpdate2MutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getUpdateCategoryMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof update2>>,
+    Awaited<ReturnType<typeof updateCategory>>,
     TError,
     { id: string; data: UpdateCategoryRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof update2>>,
+  Awaited<ReturnType<typeof updateCategory>>,
   TError,
   { id: string; data: UpdateCategoryRequest },
   TContext
 > => {
-  const mutationKey = ["update2"];
+  const mutationKey = ["updateCategory"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -243,28 +248,28 @@ export const getUpdate2MutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof update2>>,
+    Awaited<ReturnType<typeof updateCategory>>,
     { id: string; data: UpdateCategoryRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return update2(id, data, requestOptions);
+    return updateCategory(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type Update2MutationResult = NonNullable<Awaited<ReturnType<typeof update2>>>;
-export type Update2MutationBody = UpdateCategoryRequest;
-export type Update2MutationError = unknown;
+export type UpdateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateCategory>>>;
+export type UpdateCategoryMutationBody = UpdateCategoryRequest;
+export type UpdateCategoryMutationError = unknown;
 
 /**
  * @summary カテゴリを更新する
  */
-export const useUpdate2 = <TError = unknown, TContext = unknown>(
+export const useUpdateCategory = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof update2>>,
+      Awaited<ReturnType<typeof updateCategory>>,
       TError,
       { id: string; data: UpdateCategoryRequest },
       TContext
@@ -273,37 +278,37 @@ export const useUpdate2 = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof update2>>,
+  Awaited<ReturnType<typeof updateCategory>>,
   TError,
   { id: string; data: UpdateCategoryRequest },
   TContext
 > => {
-  return useMutation(getUpdate2MutationOptions(options), queryClient);
+  return useMutation(getUpdateCategoryMutationOptions(options), queryClient);
 };
-export type delete2Response204 = {
+export type deleteCategoryResponse204 = {
   data: void;
   status: 204;
 };
 
-export type delete2ResponseSuccess = delete2Response204 & {
+export type deleteCategoryResponseSuccess = deleteCategoryResponse204 & {
   headers: Headers;
 };
 
-export type delete2Response = delete2ResponseSuccess;
+export type deleteCategoryResponse = deleteCategoryResponseSuccess;
 
-export const getDelete2Url = (id: string) => {
+export const getDeleteCategoryUrl = (id: string) => {
   return `/api/v1/categories/${id}`;
 };
 
 /**
  * @summary カテゴリを削除する
  */
-export const delete2 = async (
+export const deleteCategory = async (
   id: string,
   deleteRequest: DeleteRequest,
   options?: RequestInit,
-): Promise<delete2Response> => {
-  return apiClient<delete2Response>(getDelete2Url(id), {
+): Promise<deleteCategoryResponse> => {
+  return apiClient<deleteCategoryResponse>(getDeleteCategoryUrl(id), {
     ...options,
     method: "DELETE",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -311,21 +316,21 @@ export const delete2 = async (
   });
 };
 
-export const getDelete2MutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getDeleteCategoryMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof delete2>>,
+    Awaited<ReturnType<typeof deleteCategory>>,
     TError,
     { id: string; data: DeleteRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof delete2>>,
+  Awaited<ReturnType<typeof deleteCategory>>,
   TError,
   { id: string; data: DeleteRequest },
   TContext
 > => {
-  const mutationKey = ["delete2"];
+  const mutationKey = ["deleteCategory"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -333,28 +338,28 @@ export const getDelete2MutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof delete2>>,
+    Awaited<ReturnType<typeof deleteCategory>>,
     { id: string; data: DeleteRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return delete2(id, data, requestOptions);
+    return deleteCategory(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type Delete2MutationResult = NonNullable<Awaited<ReturnType<typeof delete2>>>;
-export type Delete2MutationBody = DeleteRequest;
-export type Delete2MutationError = unknown;
+export type DeleteCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCategory>>>;
+export type DeleteCategoryMutationBody = DeleteRequest;
+export type DeleteCategoryMutationError = unknown;
 
 /**
  * @summary カテゴリを削除する
  */
-export const useDelete2 = <TError = unknown, TContext = unknown>(
+export const useDeleteCategory = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof delete2>>,
+      Awaited<ReturnType<typeof deleteCategory>>,
       TError,
       { id: string; data: DeleteRequest },
       TContext
@@ -363,25 +368,25 @@ export const useDelete2 = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof delete2>>,
+  Awaited<ReturnType<typeof deleteCategory>>,
   TError,
   { id: string; data: DeleteRequest },
   TContext
 > => {
-  return useMutation(getDelete2MutationOptions(options), queryClient);
+  return useMutation(getDeleteCategoryMutationOptions(options), queryClient);
 };
-export type list2Response200 = {
+export type listCategoryResponse200 = {
   data: PageCategorySummaryResponse;
   status: 200;
 };
 
-export type list2ResponseSuccess = list2Response200 & {
+export type listCategoryResponseSuccess = listCategoryResponse200 & {
   headers: Headers;
 };
 
-export type list2Response = list2ResponseSuccess;
+export type listCategoryResponse = listCategoryResponseSuccess;
 
-export const getList2Url = (params: List2Params) => {
+export const getListCategoryUrl = (params: ListCategoryParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -400,50 +405,56 @@ export const getList2Url = (params: List2Params) => {
 /**
  * @summary ルートカテゴリ一覧を取得する
  */
-export const list2 = async (params: List2Params, options?: RequestInit): Promise<list2Response> => {
-  return apiClient<list2Response>(getList2Url(params), {
+export const listCategory = async (
+  params: ListCategoryParams,
+  options?: RequestInit,
+): Promise<listCategoryResponse> => {
+  return apiClient<listCategoryResponse>(getListCategoryUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getList2QueryKey = (params?: List2Params) => {
+export const getListCategoryQueryKey = (params?: ListCategoryParams) => {
   return [`/api/v1/categories`, ...(params ? [params] : [])] as const;
 };
 
-export const getList2QueryOptions = <TData = Awaited<ReturnType<typeof list2>>, TError = unknown>(
-  params: List2Params,
+export const getListCategoryQueryOptions = <
+  TData = Awaited<ReturnType<typeof listCategory>>,
+  TError = unknown,
+>(
+  params: ListCategoryParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list2>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getList2QueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getListCategoryQueryKey(params);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof list2>>> = ({ signal }) =>
-    list2(params, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listCategory>>> = ({ signal }) =>
+    listCategory(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof list2>>,
+    Awaited<ReturnType<typeof listCategory>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type List2QueryResult = NonNullable<Awaited<ReturnType<typeof list2>>>;
-export type List2QueryError = unknown;
+export type ListCategoryQueryResult = NonNullable<Awaited<ReturnType<typeof listCategory>>>;
+export type ListCategoryQueryError = unknown;
 
-export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unknown>(
-  params: List2Params,
+export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
+  params: ListCategoryParams,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof list2>>, TError, TData>> &
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>> &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof list2>>,
+          Awaited<ReturnType<typeof listCategory>>,
           TError,
-          Awaited<ReturnType<typeof list2>>
+          Awaited<ReturnType<typeof listCategory>>
         >,
         "initialData"
       >;
@@ -451,15 +462,15 @@ export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unk
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unknown>(
-  params: List2Params,
+export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
+  params: ListCategoryParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list2>>, TError, TData>> &
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>> &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof list2>>,
+          Awaited<ReturnType<typeof listCategory>>,
           TError,
-          Awaited<ReturnType<typeof list2>>
+          Awaited<ReturnType<typeof listCategory>>
         >,
         "initialData"
       >;
@@ -467,10 +478,10 @@ export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unk
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unknown>(
-  params: List2Params,
+export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
+  params: ListCategoryParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list2>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
@@ -479,15 +490,15 @@ export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unk
  * @summary ルートカテゴリ一覧を取得する
  */
 
-export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unknown>(
-  params: List2Params,
+export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
+  params: ListCategoryParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list2>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getList2QueryOptions(params, options);
+  const queryOptions = getListCategoryQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;
@@ -496,29 +507,29 @@ export function useList2<TData = Awaited<ReturnType<typeof list2>>, TError = unk
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export type create2Response201 = {
+export type createCategoryResponse201 = {
   data: void;
   status: 201;
 };
 
-export type create2ResponseSuccess = create2Response201 & {
+export type createCategoryResponseSuccess = createCategoryResponse201 & {
   headers: Headers;
 };
 
-export type create2Response = create2ResponseSuccess;
+export type createCategoryResponse = createCategoryResponseSuccess;
 
-export const getCreate2Url = () => {
+export const getCreateCategoryUrl = () => {
   return `/api/v1/categories`;
 };
 
 /**
  * @summary カテゴリを作成する
  */
-export const create2 = async (
+export const createCategory = async (
   createCategoryRequest: CreateCategoryRequest,
   options?: RequestInit,
-): Promise<create2Response> => {
-  return apiClient<create2Response>(getCreate2Url(), {
+): Promise<createCategoryResponse> => {
+  return apiClient<createCategoryResponse>(getCreateCategoryUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -526,21 +537,21 @@ export const create2 = async (
   });
 };
 
-export const getCreate2MutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getCreateCategoryMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof create2>>,
+    Awaited<ReturnType<typeof createCategory>>,
     TError,
     { data: CreateCategoryRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof create2>>,
+  Awaited<ReturnType<typeof createCategory>>,
   TError,
   { data: CreateCategoryRequest },
   TContext
 > => {
-  const mutationKey = ["create2"];
+  const mutationKey = ["createCategory"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -548,28 +559,28 @@ export const getCreate2MutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof create2>>,
+    Awaited<ReturnType<typeof createCategory>>,
     { data: CreateCategoryRequest }
   > = (props) => {
     const { data } = props ?? {};
 
-    return create2(data, requestOptions);
+    return createCategory(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type Create2MutationResult = NonNullable<Awaited<ReturnType<typeof create2>>>;
-export type Create2MutationBody = CreateCategoryRequest;
-export type Create2MutationError = unknown;
+export type CreateCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createCategory>>>;
+export type CreateCategoryMutationBody = CreateCategoryRequest;
+export type CreateCategoryMutationError = unknown;
 
 /**
  * @summary カテゴリを作成する
  */
-export const useCreate2 = <TError = unknown, TContext = unknown>(
+export const useCreateCategory = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof create2>>,
+      Awaited<ReturnType<typeof createCategory>>,
       TError,
       { data: CreateCategoryRequest },
       TContext
@@ -578,37 +589,37 @@ export const useCreate2 = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof create2>>,
+  Awaited<ReturnType<typeof createCategory>>,
   TError,
   { data: CreateCategoryRequest },
   TContext
 > => {
-  return useMutation(getCreate2MutationOptions(options), queryClient);
+  return useMutation(getCreateCategoryMutationOptions(options), queryClient);
 };
-export type moveResponse200 = {
+export type moveCategoryResponse200 = {
   data: void;
   status: 200;
 };
 
-export type moveResponseSuccess = moveResponse200 & {
+export type moveCategoryResponseSuccess = moveCategoryResponse200 & {
   headers: Headers;
 };
 
-export type moveResponse = moveResponseSuccess;
+export type moveCategoryResponse = moveCategoryResponseSuccess;
 
-export const getMoveUrl = (id: string) => {
+export const getMoveCategoryUrl = (id: string) => {
   return `/api/v1/categories/${id}/move`;
 };
 
 /**
  * @summary カテゴリを移動する
  */
-export const move = async (
+export const moveCategory = async (
   id: string,
   moveCategoryRequest: MoveCategoryRequest,
   options?: RequestInit,
-): Promise<moveResponse> => {
-  return apiClient<moveResponse>(getMoveUrl(id), {
+): Promise<moveCategoryResponse> => {
+  return apiClient<moveCategoryResponse>(getMoveCategoryUrl(id), {
     ...options,
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -616,21 +627,21 @@ export const move = async (
   });
 };
 
-export const getMoveMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getMoveCategoryMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof move>>,
+    Awaited<ReturnType<typeof moveCategory>>,
     TError,
     { id: string; data: MoveCategoryRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof move>>,
+  Awaited<ReturnType<typeof moveCategory>>,
   TError,
   { id: string; data: MoveCategoryRequest },
   TContext
 > => {
-  const mutationKey = ["move"];
+  const mutationKey = ["moveCategory"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -638,28 +649,28 @@ export const getMoveMutationOptions = <TError = unknown, TContext = unknown>(opt
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof move>>,
+    Awaited<ReturnType<typeof moveCategory>>,
     { id: string; data: MoveCategoryRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return move(id, data, requestOptions);
+    return moveCategory(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type MoveMutationResult = NonNullable<Awaited<ReturnType<typeof move>>>;
-export type MoveMutationBody = MoveCategoryRequest;
-export type MoveMutationError = unknown;
+export type MoveCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof moveCategory>>>;
+export type MoveCategoryMutationBody = MoveCategoryRequest;
+export type MoveCategoryMutationError = unknown;
 
 /**
  * @summary カテゴリを移動する
  */
-export const useMove = <TError = unknown, TContext = unknown>(
+export const useMoveCategory = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof move>>,
+      Awaited<ReturnType<typeof moveCategory>>,
       TError,
       { id: string; data: MoveCategoryRequest },
       TContext
@@ -668,84 +679,93 @@ export const useMove = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof move>>,
+  Awaited<ReturnType<typeof moveCategory>>,
   TError,
   { id: string; data: MoveCategoryRequest },
   TContext
 > => {
-  return useMutation(getMoveMutationOptions(options), queryClient);
+  return useMutation(getMoveCategoryMutationOptions(options), queryClient);
 };
-export type findChildrenResponse200 = {
+export type findCategoryChildrenResponse200 = {
   data: CategorySummaryResponse[];
   status: 200;
 };
 
-export type findChildrenResponseSuccess = findChildrenResponse200 & {
+export type findCategoryChildrenResponseSuccess = findCategoryChildrenResponse200 & {
   headers: Headers;
 };
 
-export type findChildrenResponse = findChildrenResponseSuccess;
+export type findCategoryChildrenResponse = findCategoryChildrenResponseSuccess;
 
-export const getFindChildrenUrl = (id: string) => {
+export const getFindCategoryChildrenUrl = (id: string) => {
   return `/api/v1/categories/${id}/children`;
 };
 
 /**
  * @summary 直接の子カテゴリ一覧を取得する
  */
-export const findChildren = async (
+export const findCategoryChildren = async (
   id: string,
   options?: RequestInit,
-): Promise<findChildrenResponse> => {
-  return apiClient<findChildrenResponse>(getFindChildrenUrl(id), {
+): Promise<findCategoryChildrenResponse> => {
+  return apiClient<findCategoryChildrenResponse>(getFindCategoryChildrenUrl(id), {
     ...options,
     method: "GET",
   });
 };
 
-export const getFindChildrenQueryKey = (id: string) => {
+export const getFindCategoryChildrenQueryKey = (id: string) => {
   return [`/api/v1/categories/${id}/children`] as const;
 };
 
-export const getFindChildrenQueryOptions = <
-  TData = Awaited<ReturnType<typeof findChildren>>,
+export const getFindCategoryChildrenQueryOptions = <
+  TData = Awaited<ReturnType<typeof findCategoryChildren>>,
   TError = unknown,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findChildren>>, TError, TData>>;
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof findCategoryChildren>>, TError, TData>
+    >;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getFindChildrenQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getFindCategoryChildrenQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof findChildren>>> = ({ signal }) =>
-    findChildren(id, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof findCategoryChildren>>> = ({ signal }) =>
+    findCategoryChildren(id, { signal, ...requestOptions });
 
   return {
     queryKey,
     queryFn,
     enabled: id !== null && id !== undefined,
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof findChildren>>, TError, TData> & {
+  } as UseQueryOptions<Awaited<ReturnType<typeof findCategoryChildren>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>;
   };
 };
 
-export type FindChildrenQueryResult = NonNullable<Awaited<ReturnType<typeof findChildren>>>;
-export type FindChildrenQueryError = unknown;
+export type FindCategoryChildrenQueryResult = NonNullable<
+  Awaited<ReturnType<typeof findCategoryChildren>>
+>;
+export type FindCategoryChildrenQueryError = unknown;
 
-export function useFindChildren<TData = Awaited<ReturnType<typeof findChildren>>, TError = unknown>(
+export function useFindCategoryChildren<
+  TData = Awaited<ReturnType<typeof findCategoryChildren>>,
+  TError = unknown,
+>(
   id: string,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof findChildren>>, TError, TData>> &
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof findCategoryChildren>>, TError, TData>
+    > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findChildren>>,
+          Awaited<ReturnType<typeof findCategoryChildren>>,
           TError,
-          Awaited<ReturnType<typeof findChildren>>
+          Awaited<ReturnType<typeof findCategoryChildren>>
         >,
         "initialData"
       >;
@@ -753,15 +773,20 @@ export function useFindChildren<TData = Awaited<ReturnType<typeof findChildren>>
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindChildren<TData = Awaited<ReturnType<typeof findChildren>>, TError = unknown>(
+export function useFindCategoryChildren<
+  TData = Awaited<ReturnType<typeof findCategoryChildren>>,
+  TError = unknown,
+>(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findChildren>>, TError, TData>> &
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof findCategoryChildren>>, TError, TData>
+    > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findChildren>>,
+          Awaited<ReturnType<typeof findCategoryChildren>>,
           TError,
-          Awaited<ReturnType<typeof findChildren>>
+          Awaited<ReturnType<typeof findCategoryChildren>>
         >,
         "initialData"
       >;
@@ -769,10 +794,15 @@ export function useFindChildren<TData = Awaited<ReturnType<typeof findChildren>>
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindChildren<TData = Awaited<ReturnType<typeof findChildren>>, TError = unknown>(
+export function useFindCategoryChildren<
+  TData = Awaited<ReturnType<typeof findCategoryChildren>>,
+  TError = unknown,
+>(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findChildren>>, TError, TData>>;
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof findCategoryChildren>>, TError, TData>
+    >;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
@@ -781,15 +811,20 @@ export function useFindChildren<TData = Awaited<ReturnType<typeof findChildren>>
  * @summary 直接の子カテゴリ一覧を取得する
  */
 
-export function useFindChildren<TData = Awaited<ReturnType<typeof findChildren>>, TError = unknown>(
+export function useFindCategoryChildren<
+  TData = Awaited<ReturnType<typeof findCategoryChildren>>,
+  TError = unknown,
+>(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findChildren>>, TError, TData>>;
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof findCategoryChildren>>, TError, TData>
+    >;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getFindChildrenQueryOptions(id, options);
+  const queryOptions = getFindCategoryChildrenQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;

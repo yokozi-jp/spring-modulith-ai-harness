@@ -116,9 +116,9 @@ export interface PageProductSummaryResponse {
   number?: number;
   pageable?: PageableObject;
   sort?: SortObject;
-  numberOfElements?: number;
   first?: boolean;
   last?: boolean;
+  numberOfElements?: number;
   empty?: boolean;
 }
 
@@ -155,9 +155,9 @@ export interface PagePricingSummaryResponse {
   number?: number;
   pageable?: PageableObject;
   sort?: SortObject;
-  numberOfElements?: number;
   first?: boolean;
   last?: boolean;
+  numberOfElements?: number;
   empty?: boolean;
 }
 
@@ -188,9 +188,9 @@ export interface PageCategorySummaryResponse {
   number?: number;
   pageable?: PageableObject;
   sort?: SortObject;
-  numberOfElements?: number;
   first?: boolean;
   last?: boolean;
+  numberOfElements?: number;
   empty?: boolean;
 }
 
@@ -212,17 +212,17 @@ export interface DeleteRequest {
   version?: number;
 }
 
-export type ListParams = {
+export type ListProductParams = {
   param: ProductListParam;
   pageable: Pageable;
 };
 
-export type List1Params = {
+export type ListPricingParams = {
   param: PricingListParam;
   pageable: Pageable;
 };
 
-export type List2Params = {
+export type ListCategoryParams = {
   param: CategoryListParam;
   pageable: Pageable;
 };

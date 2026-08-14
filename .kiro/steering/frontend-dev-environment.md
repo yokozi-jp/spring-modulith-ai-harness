@@ -1,6 +1,6 @@
 # Frontend 開発ルール
 
-本プロジェクトのフロントエンドコード変更時に従うルール。
+本プロジェクトのフロントエンド開発環境・ツールチェーン・プロジェクト構造に関するルール。
 すべての作業は `frontend/` ディレクトリを起点とする。
 
 ---
@@ -85,7 +85,7 @@ vp test run
   - `vitest` の内蔵ラッパー廃止（upstream 直接依存に変更）
   - 環境変数名のリネーム（`VITE_*` → `VP_*` 等）
 - oxfmt / oxlint のバージョンが上がると、**それまで通っていたコードが新たにエラー・warning になることがある**。アップグレード後は必ず `vp check` → `vp fmt` → 再度 `vp check` の順で確認する
-- `.oxlintrc.json` と `vite.config.ts` の `lint` セクションを同一ディレクトリに併存させない。**両方存在する場合、`vp lint` は `vite.config.ts` の `lint` のみを読み込み、`.oxlintrc.json` は無視される**（oxlint は1ディレクトリにつき1つの設定ファイルのみ使用する仕様のため）。本プロジェクトは全ての oxlint 設定（`categories`, `plugins`, `rules`, `overrides`, `settings`, `env`, `ignorePatterns`）を `vite.config.ts` の `lint` セクションに一元化しており、`.oxlintrc.json` は存在しない
+- `.oxlintrc.json` を作成しない。oxlint 設定（`categories`, `plugins`, `rules`, `overrides`, `settings`, `env`, `ignorePatterns`）は `vite.config.ts` の `lint` セクションに一元化する（同一ディレクトリに両方存在すると `vite.config.ts` の `lint` のみが読み込まれ `.oxlintrc.json` は無視されるため、併存させても意味がない）
 - カテゴリを一括 `error` にする際は、そのカテゴリに属する全ルールを実際に `vp lint` で発火させて確認すること。**`restriction`/`style` カテゴリには相互に矛盾するルールが混在している**（例: `import/no-named-export` と `import/prefer-default-export` が同じ `style` カテゴリに存在し、両方を `error` にすると常に片方が違反になる）。本プロジェクトは全カテゴリを `error` にしたうえで、矛盾するルールや本プロジェクトの規約と衝突するルール（TanStack Router のファイルベースルーティング規約、Shadcn/ui の標準パターン等）を個別に `off` にする方式を採用している。`warn` に落として様子を見るのではなく、矛盾の原因を特定して該当ルールのみ無効化すること
 
 ---
@@ -116,33 +116,9 @@ vp --version
 
 ---
 
-## Git pre-commit フック
+## ディレクトリ構成
 
-Git hooks は Vite+ の `.vite-hooks` 機構を使う（`core.hooksPath = frontend/.vite-hooks`）。`frontend/.vite-hooks/pre-commit` が `vp staged` を実行し、`vite.config.ts` の `staged` 設定に従って lint/fmt/カスタムチェックをステージ済みファイルに対して実行する。
-
-- `vp hooks status` で現在の hooks 設定を確認できる
-- `vite.config.ts` の `staged` フィールドで実行内容を定義する（`vp lint --fix`, `vp fmt`, カスタムチェックスクリプト等）
-
----
-
-```
-frontend/src/
-├── routes/              # ページ（TanStack Router が自動検出）
-├── features/            # 機能単位
-│   └── <feature>/
-│       ├── components/  # 機能固有コンポーネント
-│       ├── hooks/       # 機能固有 Hook
-│       └── types/       # 機能固有型（必要な場合のみ）
-├── components/
-│   ├── layout/         # レイアウト（Header, Sidebar, Footer）
-│   └── ui/             # Shadcn/ui コンポーネント（自動生成、編集禁止）
-├── api/                # Orval 自動生成（編集禁止、npx orval で再生成）
-├── hooks/              # 汎用 Hooks（機能横断）
-├── lib/                # ユーティリティ・API クライアント
-├── types/              # 共有型定義
-└── styles/
-    └── globals.css     # Tailwind エントリポイント + デザイントークン
-```
+ディレクトリ構成は `frontend/README.md` の「ディレクトリ構成」を参照する。
 
 共通コンポーネント（複数 feature で使うもの）は `components/` 直下に配置する。
 
@@ -192,51 +168,6 @@ frontend/src/
 
 ---
 
-## import ルール
-
-- パスエイリアス `@/` を使う（`../` のような親ディレクトリへの相対パスは禁止）
-- 同一ディレクトリ内の `./` は許可（例: `./use-member-list`）
-- 型の import は `import type { X }` を使う（oxlint で強制）
-- default export 禁止（ルートファイルと設定ファイルを除く）
-- barrel export（`index.ts` からの re-export）禁止
-- 循環 import 禁止（oxlint で強制）
-
----
-
-## スタイリング
-
-- Tailwind CSS のユーティリティクラスのみ使用する
-- インラインスタイル（`style={}`）禁止（`react/forbid-dom-props` で検証）
-- CSS ファイルの追加禁止（`globals.css` のみ）
-- クラスの結合には `cn()` を使う（`@/lib/utils`）
-- Shadcn/ui コンポーネントは `vp dlx shadcn@latest add <component>` で追加する
-
----
-
-## 禁止事項（oxlint で強制）
-
-- `any` 型の使用
-- `console.log`（デバッグ用途でも残さない）
-- 配列の index を React の key に使用
-- `dangerouslySetInnerHTML`
-- `==` / `!=`（`===` / `!==` を使う）
-- `var`（`const` / `let` を使う）
-
----
-
-## Shadcn/ui コンポーネントの追加方法
-
-```bash
-cd frontend
-vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
-```
-
-- `src/components/ui/` に生成される
-- 生成されたファイルは原則編集しない
-- カスタマイズが必要な場合は `components/` 直下または `features/` 内に作成する
-
----
-
 ## 変更後の確認
 
 コード変更後は必ず以下を実行する:
@@ -248,18 +179,13 @@ vp dlx shadcn@latest add button    # 例: Button コンポーネント追加
 エラーが出た場合は修正してからコミットする。
 自動修正可能なものは `./scripts/verify.sh --fix` で修正できる。
 
+検証コマンドの一覧・使い分け、Kiro CLI hook（`preToolUse`/`stop`）と Git pre-commit hook を含めた品質チェックの全体像は `frontend/README.md` の「コード品質の仕組み」を参照する。
+
 ---
 
 ## チェックの線引き（oxlint vs shell）
 
-コードパターンと配置ルールで担当を分離する:
-
-| チェック対象 | oxlint | shell |
-|-------------|--------|-------|
-| コードの書き方（any禁止、console禁止等） | ✅ | ❌ |
-| import/export パターン（apiClient 直接禁止、Hook 定義場所） | ✅ | ❌ |
-| ファイル・ディレクトリ配置（use-*.ts の配置場所） | ❌ | ✅ |
-| Git 状態（src/api/ や components/ui/ の変更検出） | ❌ | ✅ |
+判断基準（コードパターンか配置ルールか）は `frontend/README.md` の「コード品質の仕組み」の「oxlint と shell の役割分担」を参照する。
 
 ### oxlint カスタムルール（`oxlint-plugins/project-rules.js`）
 
@@ -309,19 +235,6 @@ npx ctx7@latest docs /tanstack/router "createFileRoute params"
 - TanStack Query のオプション（`queryKey`、`staleTime`、`gcTime`）
 - Radix UI / Shadcn/ui のコンポーネント Props（`asChild`、`onOpenChange`）
 - Tailwind CSS v4 の新しい構文
-
----
-
-## テスト
-
-- テストは `vp test` で実行する（Vitest 内蔵）
-- テストファイルは `*.test.ts` / `*.test.tsx` で命名する
-- テストは対象ファイルと同じディレクトリに配置する（例: `lib/utils.test.ts`）
-- import は `vite-plus/test` から行う（`vitest` を直接インストールしない）
-
-```typescript
-import { describe, expect, it } from "vite-plus/test";
-```
 
 ---
 

@@ -71,17 +71,17 @@ export function use<Resource>List() {
 
 ### Orval 生成 Hook の命名規則
 
-OpenAPI の operationId に基づいて Hook 名が決まる。同名の操作が複数タグにある場合は番号が付く:
+OpenAPI の `operationId` に基づいて Hook 名が決まる。本プロジェクトでは Controller の `@Operation(operationId = ...)` で `<動詞><Resource>` 形式（例: `findProductById`, `createCategory`）を明示指定している。命名規則の詳細は `rest-api-standards.md` の「operationId の命名規則」を参照する。
 
-| 操作 | 1つ目のタグ | 2つ目のタグ | 3つ目のタグ |
-|------|-------------|-------------|-------------|
-| 一覧取得 | `useList` | `useList1` | `useList2` |
-| 単体取得 | `useFindById` | `useFindById1` | `useFindById2` |
-| 作成 | `useCreate` | `useCreate1` | `useCreate2` |
-| 更新 | `useUpdate` | `useUpdate1` | `useUpdate2` |
-| 削除 | `useDelete` | `useDelete1` | `useDelete2` |
+| 操作 | パターン | 例（Product） |
+|------|---------|---------------|
+| 一覧取得 | `useList<Resource>` | `useListProduct` |
+| 単体取得 | `useFind<Resource>ById` | `useFindProductById` |
+| 作成 | `useCreate<Resource>` | `useCreateProduct` |
+| 更新 | `useUpdate<Resource>` | `useUpdateProduct` |
+| 削除 | `useDelete<Resource>` | `useDeleteProduct` |
 
-`src/api/<tag>/<tag>.ts` を見て、どの Hook を使うか確認すること。
+`src/api/<tag>/<tag>.ts` を見て、正確な Hook 名を確認すること。
 
 ### queryKey の命名規則
 
@@ -137,13 +137,13 @@ export function use<Resource>(id: string) {
 // src/features/category/hooks/use-create-category.ts
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useCreate2 } from "@/api/category/category";  // Orval 生成 Hook
+import { useCreateCategory as useCreateCategoryMutation } from "@/api/category/category";  // Orval 生成 Hook
 
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const mutation = useCreate2({
+  const mutation = useCreateCategoryMutation({
     mutation: {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -160,11 +160,10 @@ export function useCreateCategory() {
 }
 ```
 
-Orval 生成の mutation Hook（`useCreate`, `useUpdate`, `useDelete` 等）をそのまま使う。
+Orval 生成の mutation Hook（`useCreate<Resource>`, `useUpdate<Resource>`, `useDelete<Resource>` 等）をそのまま使う。
 `useMutation` を直接使わない。
 
-**注意**: 上記例の `useCreate2` は category が 3 番目のタグのため番号付き。
-`src/api/<tag>/<tag>.ts` を確認して正しい Hook 名を使うこと。
+Orval 生成 Hook 名（`useCreateCategory`）と features 側のラッパー Hook 名（`useCreateCategory`）が同名になる場合は、上記のように `import` 時に別名を付けて区別する。
 
 ### 命名規則
 
@@ -332,6 +331,40 @@ function handleSubmit() {
 
 ---
 
+## 状態管理の分類
+
+状態は影響範囲に応じて3種類に分類し、それぞれに適した手法で管理する。
+
+| 種類 | 説明 | 例 | 本プロジェクトでの管理手法 |
+|---|---|---|---|
+| UIの状態 | 特定コンポーネントに紐づく一時データ | モーダル開閉、フォーム入力値、タブ選択 | `useState`（本ファイルの「ローカル状態」参照） |
+| アプリケーションの状態 | アプリ全体で共有される状態 | 認証情報、テーマ設定 | React Context（必要になるまで作らない） |
+| サーバーの状態 | サーバーと同期が必要なデータ | APIレスポンス、マスタデータ | TanStack Query（Orval 生成 Hook 経由） |
+
+### 避けるべきアンチパターン
+
+- **グローバル状態の過剰な使用**: 本来コンポーネント内に閉じられる状態（モーダル開閉等）をグローバルに持ち上げない。変更の影響範囲が不明瞭になり、不要な再レンダリングを招く
+- **不必要な状態管理ライブラリの導入**: フレームワーク標準機能（`useState`, Context）で十分な場合に外部ライブラリを導入しない。本プロジェクトは Zustand 等の状態管理ライブラリを導入していない。導入する場合は必要性を明確にしてから
+
+## 画面間パラメータ連携（データの保持・受け渡し方式の選択）
+
+画面間でデータを受け渡す方式は、用途に応じて以下から選択する。
+
+| 方式 | 用途 | URLに含む | リロード時 | 適する場面 |
+|---|---|---|---|---|
+| パスパラメータ | リソースの識別子（ID等） | ✅ | 維持される | `/orders/{orderId}` |
+| クエリパラメータ | 検索条件・フィルタ・ページネーション | ✅ | 維持される | 共有・再アクセスしたいデータ |
+| オンメモリ（`useState`, TanStack Query キャッシュ） | アプリ内部の一時データ | ❌ | 維持されない | APIレスポンスキャッシュ、URLに見せてはいけないデータ |
+| Web ストレージ（`localStorage`/`sessionStorage`） | 長期的な画面共通データ | ❌ | 維持される | ユーザー設定、テーマ |
+
+判断基準:
+
+- **直接リンクで共有・再アクセスさせたい** → パスパラメータ or クエリパラメータ
+- **URLで見せてはいけないデータ** → オンメモリ or Web ストレージ
+- 検索条件・フィルタ・ソート順は、検索ボタン押下時にクエリパラメータへ反映する（URLで結果を共有できるようにする）
+
+---
+
 ## グローバル状態
 
 ### 原則: 使わない
@@ -398,10 +431,10 @@ src/api/
 
 ```tsx
 // src/features/<resource>/hooks/use-<resource>-list.ts
-import { useList } from "@/api/<resource>/<resource>";  // Orval 生成 Hook
+import { useList<Resource> } from "@/api/<resource>/<resource>";  // Orval 生成 Hook
 
 export function use<Resource>List() {
-  const query = useList({
+  const query = useList<Resource>({
     param: {},
     pageable: { page: 0, size: 20, sort: ["createdAt,desc"] },
   });
@@ -414,8 +447,7 @@ export function use<Resource>List() {
 }
 ```
 
-Orval 生成の Hook 名は OpenAPI の operationId に基づく（例: `useList`, `useList2`, `useFindById`, `useCreate`）。
-番号が付く場合は同名の操作が複数タグにある場合。
+Orval 生成の Hook 名は OpenAPI の `operationId` に基づく（例: `useListProduct`, `useFindProductById`, `useCreateProduct`）。本プロジェクトでは Controller の `@Operation(operationId = ...)` で Resource 名込みの命名を明示指定している（詳細は「Orval 生成 Hook の命名規則」セクション参照）。
 
 ### 禁止
 

@@ -35,12 +35,13 @@ src/
 ├── routes/              # ページ（ファイル構造 = URL構造）
 ├── features/            # 機能単位（components/, hooks/, types/）
 ├── components/
+│   ├── layout/         # レイアウト（Header, Sidebar, Footer）
 │   └── ui/             # Shadcn/ui（自動生成、編集禁止）
 ├── api/                 # Orval 自動生成（編集禁止）
 ├── hooks/              # 汎用 Hooks
 ├── lib/                # ユーティリティ
 ├── types/              # 共有型定義
-└── styles/             # Tailwind CSS
+└── styles/             # Tailwind CSS（globals.css がエントリポイント）
 ```
 
 ## API クライアント生成（Orval）
@@ -181,9 +182,9 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 - **lint/型/フォーマット**も書き込み前には検証されず、応答終了時（`stop`）が最初の検出機会になる
 - 人間がコミットする瞬間（pre-commit）は、唯一すべての項目がブロックとして機能する
 
-**steeringはこの3つの実行機構とは別枠**であることに注意する。`.kiro/steering/frontend-rules.md`の「コード変更後は必ず`./scripts/verify.sh`を実行する」という一文はAIへの規範（読んで従うべきルール）であり、hook機構のように自動実行されるものではない。実際に強制力を持つのは上表の`preToolUse`・`stop`（Kiro CLI hook）と pre-commit（Git hook）のみで、steeringはAIがそれらのフックの通知に頼らず自主的に`verify.sh`を実行する動機付けの役割を担う。
+**steeringはこの3つの実行機構とは別枠**であることに注意する。`.kiro/steering/frontend-dev-environment.md`の「コード変更後は必ず`./scripts/verify.sh`を実行する」という一文はAIへの規範（読んで従うべきルール）であり、hook機構のように自動実行されるものではない。実際に強制力を持つのは上表の`preToolUse`・`stop`（Kiro CLI hook）と pre-commit（Git hook）のみで、steeringはAIがそれらのフックの通知に頼らず自主的に`verify.sh`を実行する動機付けの役割を担う。
 
-`oxlint-plugins/project-rules.js` にカスタムルールを追加する前に、oxlint組み込みルールで同等の検証ができないか必ず確認する（`frontend-rules.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
+`oxlint-plugins/project-rules.js` にカスタムルールを追加する前に、oxlint組み込みルールで同等の検証ができないか必ず確認する（`frontend-dev-environment.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
 
 ### 検証コマンド一覧
 
@@ -208,23 +209,22 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 ## ルール
 
-frontend 関連の AI 向け規約（steering）は `.kiro/steering/` 配下に7ファイルある。PRで規約が変更された場合、どのファイルに何が書かれているかの一覧は以下の通り。
+frontend 関連の AI 向け規約（steering）は `.kiro/steering/` 配下に6ファイルある。PRで規約が変更された場合、どのファイルに何が書かれているかの一覧は以下の通り。
 
 「機械チェック」列は、そのファイルの規約が`vp check`（oxlint）またはshellカスタムチェックで実際に検証されるかを示す。**「一部」は、規約の一部（構文パターン等）のみ機械チェックがあり、残り（設計判断・命名規則の一部等）はAIが読んで従うことに依存する**という意味。
 
-| ファイル                             | 役割                                                                                       | 機械チェック                                                                                                                                                                                                                                                      |
-| ------------------------------------ | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `frontend-rules.md`                  | 技術スタック、コマンド、Vite+/oxlintの運用、ディレクトリ構成、命名規則、禁止事項の全体方針 | 一部（`components/ui/`・`src/api/`編集禁止 → `check-ui-readonly.sh`・`api-readonly.sh`、Hook配置 → `check-hook-location.sh`、kebab-case → oxlint`unicorn/filename-case`、インラインスタイル禁止 → `react/forbid-dom-props`）                                      |
-| `frontend-code-patterns.md`          | コンポーネント/Hook定義、イベントハンドラ、条件付きレンダリング等のコードの書き方          | 一部（関数宣言強制 → oxlint`react/function-component-definition`・`project-rules/no-arrow-function-hook`、Props分割代入 → `project-rules/no-props-object-param`、Link内Buttonネスト禁止 → `project-rules/no-button-inside-link`。early returnパターン等は未検証） |
-| `frontend-data-patterns.md`          | データフェッチング・ミューテーション・状態管理・エラーハンドリング・Orval運用              | 一部（apiClient直接使用禁止 → oxlint`project-rules/no-direct-api-client`、Hook配置 → `project-rules/hook-in-dedicated-file`、Promiseへの`void`付与 → `typescript/no-floating-promises`。queryKey命名規則等は未検証）                                              |
-| `frontend-ui-patterns.md`            | UIコンポーネントの選択、Shadcn/ui使用ルール、ローディング/エラー状態の表現                 | 一部（`size-*`・`truncate`省略形強制 → oxlint`better-tailwindcss/enforce-shorthand-classes`。Dialog/Sheetへの`Title`必須、Loading→Error→Emptyの順序等は未検証）                                                                                                   |
-| `frontend-test-patterns.md`          | テスト必須ルール、モック方針、Hook/コンポーネントのテストパターン                          | 一部（テストファイル存在 → `check-test-exists.sh`、MSW/vitest直接import禁止 → `no-restricted-imports`。モック方針・命名規則は未検証）                                                                                                                             |
-| `frontend-url-and-state-patterns.md` | URL・クエリパラメータ設計、画面間パラメータ連携、状態管理の分類、バリデーション原則        | なし                                                                                                                                                                                                                                                              |
-| `frontend-lint-fix-guide.md`         | oxlintルール・カスタムチェック・TypeScriptコンパイラエラーの個別修正方法（辞書的な参照用） | 該当（oxlintエラー自体が検証機構であり、このファイルは修正方法の参照先）                                                                                                                                                                                          |
+| ファイル                      | 役割                                                                                       | 機械チェック                                                                                                                                                                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend-dev-environment.md` | 技術スタック、コマンド、Vite+/oxlintの運用、ディレクトリ構成、命名規則、禁止事項の全体方針 | 一部（`components/ui/`・`src/api/`編集禁止 → `check-ui-readonly.sh`・`api-readonly.sh`、Hook配置 → `check-hook-location.sh`、kebab-case → oxlint`unicorn/filename-case`、インラインスタイル禁止 → `react/forbid-dom-props`）                                      |
+| `frontend-code-patterns.md`   | コンポーネント/Hook定義、イベントハンドラ、条件付きレンダリング等のコードの書き方          | 一部（関数宣言強制 → oxlint`react/function-component-definition`・`project-rules/no-arrow-function-hook`、Props分割代入 → `project-rules/no-props-object-param`、Link内Buttonネスト禁止 → `project-rules/no-button-inside-link`。early returnパターン等は未検証） |
+| `frontend-data-patterns.md`   | データフェッチング・ミューテーション・状態管理・エラーハンドリング・Orval運用              | 一部（apiClient直接使用禁止 → oxlint`project-rules/no-direct-api-client`、Hook配置 → `project-rules/hook-in-dedicated-file`、Promiseへの`void`付与 → `typescript/no-floating-promises`。queryKey命名規則等は未検証）                                              |
+| `frontend-ui-patterns.md`     | UIコンポーネントの選択、Shadcn/ui使用ルール、ローディング/エラー状態の表現                 | 一部（`size-*`・`truncate`省略形強制 → oxlint`better-tailwindcss/enforce-shorthand-classes`。Dialog/Sheetへの`Title`必須、Loading→Error→Emptyの順序等は未検証）                                                                                                   |
+| `frontend-test-patterns.md`   | テスト必須ルール、モック方針、Hook/コンポーネントのテストパターン                          | 一部（テストファイル存在 → `check-test-exists.sh`、MSW/vitest直接import禁止 → `no-restricted-imports`。モック方針・命名規則は未検証）                                                                                                                             |
+| `frontend-lint-fix-guide.md`  | oxlintルール・カスタムチェック・TypeScriptコンパイラエラーの個別修正方法（辞書的な参照用） | 該当（oxlintエラー自体が検証機構であり、このファイルは修正方法の参照先）                                                                                                                                                                                          |
 
-機械チェックがない・一部のみの規約は、AIがsteeringを読んで自主的に従うことに依存する。「機械的に検証可能なのに未対応」なものを見つけたら、oxlintカスタムルールまたはshellチェックへの追加を検討する（判断基準は`frontend-rules.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
+機械チェックがない・一部のみの規約は、AIがsteeringを読んで自主的に従うことに依存する。「機械的に検証可能なのに未対応」なものを見つけたら、oxlintカスタムルールまたはshellチェックへの追加を検討する（判断基準は`frontend-dev-environment.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
 
-- 詳細は `.kiro/steering/frontend-rules.md` を参照
+- 詳細は `.kiro/steering/frontend-dev-environment.md` を参照
 - Lint 方針は `docs/adr/0007-frontend-lint-all-error-policy.md` を参照
 - API クライアント生成方針は `docs/adr/0008-openapi-orval-codegen.md` を参照
 - `oxlint-plugins/` ディレクトリの実体（oxlint の JS plugin）は `docs/adr/0009-oxlint-plugins-directory-naming.md` を参照

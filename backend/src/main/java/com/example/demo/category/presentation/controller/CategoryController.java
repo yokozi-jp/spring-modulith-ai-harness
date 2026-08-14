@@ -53,7 +53,7 @@ public class CategoryController {
   private final CategoryQueryService queryService;
 
   /** カテゴリを作成する。 */
-  @Operation(summary = "カテゴリを作成する")
+  @Operation(summary = "カテゴリを作成する", operationId = "createCategory")
   @ApiResponse(responseCode = "201", description = "作成成功")
   @PostMapping
   public ResponseEntity<Void> create(
@@ -74,7 +74,7 @@ public class CategoryController {
   }
 
   /** ルートカテゴリ一覧を取得する。 */
-  @Operation(summary = "ルートカテゴリ一覧を取得する")
+  @Operation(summary = "ルートカテゴリ一覧を取得する", operationId = "listCategory")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @GetMapping
   public Page<CategorySummaryResponse> list(
@@ -83,7 +83,7 @@ public class CategoryController {
   }
 
   /** カテゴリ詳細を取得する。 */
-  @Operation(summary = "カテゴリ詳細を取得する")
+  @Operation(summary = "カテゴリ詳細を取得する", operationId = "findCategoryById")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @ApiResponse(responseCode = "404", description = "見つからない")
   @GetMapping("/{id}")
@@ -95,7 +95,7 @@ public class CategoryController {
   }
 
   /** 直接の子カテゴリ一覧を取得する。 */
-  @Operation(summary = "直接の子カテゴリ一覧を取得する")
+  @Operation(summary = "直接の子カテゴリ一覧を取得する", operationId = "findCategoryChildren")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @GetMapping("/{id}/children")
   public List<CategorySummaryResponse> findChildren(@PathVariable final String id) {
@@ -103,7 +103,7 @@ public class CategoryController {
   }
 
   /** カテゴリを更新する。 */
-  @Operation(summary = "カテゴリを更新する")
+  @Operation(summary = "カテゴリを更新する", operationId = "updateCategory")
   @ApiResponse(responseCode = "200", description = "更新成功")
   @PutMapping("/{id}")
   public ResponseEntity<Void> update(
@@ -117,7 +117,7 @@ public class CategoryController {
   }
 
   /** カテゴリを移動する。 */
-  @Operation(summary = "カテゴリを移動する")
+  @Operation(summary = "カテゴリを移動する", operationId = "moveCategory")
   @ApiResponse(responseCode = "200", description = "移動成功")
   @PatchMapping("/{id}/move")
   public ResponseEntity<Void> move(
@@ -131,7 +131,7 @@ public class CategoryController {
   }
 
   /** カテゴリを削除する。 */
-  @Operation(summary = "カテゴリを削除する")
+  @Operation(summary = "カテゴリを削除する", operationId = "deleteCategory")
   @ApiResponse(responseCode = "204", description = "削除成功")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(

@@ -12,7 +12,7 @@
       "get": {
         "tags": ["Product"],
         "summary": "商品詳細を取得する",
-        "operationId": "findById",
+        "operationId": "findProductById",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -34,7 +34,7 @@
       "put": {
         "tags": ["Product"],
         "summary": "商品を更新する",
-        "operationId": "update",
+        "operationId": "updateProduct",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -51,7 +51,7 @@
       "delete": {
         "tags": ["Product"],
         "summary": "商品を削除する",
-        "operationId": "delete",
+        "operationId": "deleteProduct",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -68,7 +68,7 @@
       "get": {
         "tags": ["Pricing"],
         "summary": "価格詳細を取得する",
-        "operationId": "findById_1",
+        "operationId": "findPricingById",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -90,7 +90,7 @@
       "put": {
         "tags": ["Pricing"],
         "summary": "価格を更新する",
-        "operationId": "update_1",
+        "operationId": "updatePricing",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -107,7 +107,7 @@
       "delete": {
         "tags": ["Pricing"],
         "summary": "価格を削除する",
-        "operationId": "delete_1",
+        "operationId": "deletePricing",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -124,7 +124,7 @@
       "get": {
         "tags": ["Category"],
         "summary": "カテゴリ詳細を取得する",
-        "operationId": "findById_2",
+        "operationId": "findCategoryById",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -146,7 +146,7 @@
       "put": {
         "tags": ["Category"],
         "summary": "カテゴリを更新する",
-        "operationId": "update_2",
+        "operationId": "updateCategory",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -163,7 +163,7 @@
       "delete": {
         "tags": ["Category"],
         "summary": "カテゴリを削除する",
-        "operationId": "delete_2",
+        "operationId": "deleteCategory",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -180,7 +180,7 @@
       "get": {
         "tags": ["Product"],
         "summary": "商品一覧を取得する",
-        "operationId": "list",
+        "operationId": "listProduct",
         "parameters": [
           {
             "name": "param",
@@ -207,7 +207,7 @@
       "post": {
         "tags": ["Product"],
         "summary": "商品を作成する",
-        "operationId": "create",
+        "operationId": "createProduct",
         "requestBody": {
           "content": {
             "application/json": {
@@ -223,7 +223,7 @@
       "get": {
         "tags": ["Pricing"],
         "summary": "価格一覧を取得する",
-        "operationId": "list_1",
+        "operationId": "listPricing",
         "parameters": [
           {
             "name": "param",
@@ -250,7 +250,7 @@
       "post": {
         "tags": ["Pricing"],
         "summary": "価格を作成する",
-        "operationId": "create_1",
+        "operationId": "createPricing",
         "requestBody": {
           "content": {
             "application/json": {
@@ -266,7 +266,7 @@
       "get": {
         "tags": ["Category"],
         "summary": "ルートカテゴリ一覧を取得する",
-        "operationId": "list_2",
+        "operationId": "listCategory",
         "parameters": [
           {
             "name": "param",
@@ -293,7 +293,7 @@
       "post": {
         "tags": ["Category"],
         "summary": "カテゴリを作成する",
-        "operationId": "create_2",
+        "operationId": "createCategory",
         "requestBody": {
           "content": {
             "application/json": {
@@ -309,7 +309,7 @@
       "patch": {
         "tags": ["Product"],
         "summary": "商品を非公開にする",
-        "operationId": "unpublish",
+        "operationId": "unpublishProduct",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -326,7 +326,7 @@
       "patch": {
         "tags": ["Product"],
         "summary": "商品を公開する",
-        "operationId": "publish",
+        "operationId": "publishProduct",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -343,7 +343,7 @@
       "patch": {
         "tags": ["Product"],
         "summary": "商品をアーカイブする",
-        "operationId": "archive",
+        "operationId": "archiveProduct",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -360,7 +360,7 @@
       "patch": {
         "tags": ["Category"],
         "summary": "カテゴリを移動する",
-        "operationId": "move",
+        "operationId": "moveCategory",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -377,7 +377,7 @@
       "get": {
         "tags": ["Category"],
         "summary": "直接の子カテゴリ一覧を取得する",
-        "operationId": "findChildren",
+        "operationId": "findCategoryChildren",
         "parameters": [
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
@@ -495,9 +495,9 @@
           "number": { "type": "integer", "format": "int32" },
           "pageable": { "$ref": "#/components/schemas/PageableObject" },
           "sort": { "$ref": "#/components/schemas/SortObject" },
-          "numberOfElements": { "type": "integer", "format": "int32" },
           "first": { "type": "boolean" },
           "last": { "type": "boolean" },
+          "numberOfElements": { "type": "integer", "format": "int32" },
           "empty": { "type": "boolean" }
         }
       },
@@ -563,9 +563,9 @@
           "number": { "type": "integer", "format": "int32" },
           "pageable": { "$ref": "#/components/schemas/PageableObject" },
           "sort": { "$ref": "#/components/schemas/SortObject" },
-          "numberOfElements": { "type": "integer", "format": "int32" },
           "first": { "type": "boolean" },
           "last": { "type": "boolean" },
+          "numberOfElements": { "type": "integer", "format": "int32" },
           "empty": { "type": "boolean" }
         }
       },
@@ -614,9 +614,9 @@
           "number": { "type": "integer", "format": "int32" },
           "pageable": { "$ref": "#/components/schemas/PageableObject" },
           "sort": { "$ref": "#/components/schemas/SortObject" },
-          "numberOfElements": { "type": "integer", "format": "int32" },
           "first": { "type": "boolean" },
           "last": { "type": "boolean" },
+          "numberOfElements": { "type": "integer", "format": "int32" },
           "empty": { "type": "boolean" }
         }
       },

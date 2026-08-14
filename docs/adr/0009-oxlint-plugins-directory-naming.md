@@ -34,7 +34,7 @@ oxlint の組み込みルールでは表現できない、本プロジェクト�
 | `project-rules/no-arrow-function-hook` | Hook はアロー関数ではなく関数宣言で定義 | 組み込みの `react/function-component-definition` はコンポーネント（`.tsx`）のみが対象で、Hook（`.ts`、`use` プレフィックス）を検証できない |
 | `project-rules/no-props-object-param` | Props は分割代入で受け取る（`props: XProps` 禁止） | `*Props` で終わる型注釈を持つ単一引数を検出する組み込みルールがない |
 
-判断基準の詳細は `.kiro/steering/frontend-rules.md` の「カスタム oxlint ルール vs 組み込みルール」を参照。
+判断基準の詳細は `.kiro/steering/frontend-dev-environment.md` の「カスタム oxlint ルール vs 組み込みルール」を参照。
 
 ## Consequences
 

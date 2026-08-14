@@ -49,7 +49,7 @@ public class PricingController {
   private final PricingQueryService queryService;
 
   /** 価格を作成する。 */
-  @Operation(summary = "価格を作成する")
+  @Operation(summary = "価格を作成する", operationId = "createPricing")
   @ApiResponse(responseCode = "201", description = "作成成功")
   @PostMapping
   public ResponseEntity<Void> create(
@@ -73,7 +73,7 @@ public class PricingController {
   }
 
   /** 価格一覧を取得する。 */
-  @Operation(summary = "価格一覧を取得する")
+  @Operation(summary = "価格一覧を取得する", operationId = "listPricing")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @GetMapping
   public Page<PricingSummaryResponse> list(final PricingListParam param, final Pageable pageable) {
@@ -81,7 +81,7 @@ public class PricingController {
   }
 
   /** 価格詳細を取得する。 */
-  @Operation(summary = "価格詳細を取得する")
+  @Operation(summary = "価格詳細を取得する", operationId = "findPricingById")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @ApiResponse(responseCode = "404", description = "見つからない")
   @GetMapping("/{id}")
@@ -93,7 +93,7 @@ public class PricingController {
   }
 
   /** 価格を更新する。 */
-  @Operation(summary = "価格を更新する")
+  @Operation(summary = "価格を更新する", operationId = "updatePricing")
   @ApiResponse(responseCode = "200", description = "更新成功")
   @PutMapping("/{id}")
   public ResponseEntity<Void> update(
@@ -112,7 +112,7 @@ public class PricingController {
   }
 
   /** 価格を削除する。 */
-  @Operation(summary = "価格を削除する")
+  @Operation(summary = "価格を削除する", operationId = "deletePricing")
   @ApiResponse(responseCode = "204", description = "削除成功")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(

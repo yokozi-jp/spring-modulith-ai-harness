@@ -203,6 +203,8 @@ return (
 {isEditing ? <EditForm /> : <DisplayView />}
 ```
 
+一覧表示における Loading → Error → Empty → Content の具体的な表示順序ルールは `frontend-ui-patterns.md` の「一覧表示の定型パターン」を参照する。
+
 ---
 
 ## 定数
@@ -255,6 +257,15 @@ export const STATUS_COLORS: Record<ProductStatus, string> = {
 - 複数コンポーネントで再利用可能
 - backend の enum 変更時に一箇所で対応可能
 
+### 区分値（参照データ）の管理方式
+
+セレクトボックス等のプルダウン項目に使う区分値は、以下のいずれかで管理する:
+
+- backend の enum に対応する固定値 → 上記「ステータスラベル・カラー定義」パターンに従い `types/` に定数として持つ（マスタAPIを都度呼ばない）
+- 動的に変わる参照データ（DBで管理） → 専用の一覧取得APIから TanStack Query で取得する（Orval 生成 Hook 経由）
+
+固定値か動的値かの判断基準: 「アプリケーションのデプロイなしに値を追加・変更する必要があるか」。必要ならDB管理、不要なら定数管理。
+
 ### アプリ共通の定数は `src/lib/constants.ts` に配置
 
 ---
@@ -282,161 +293,22 @@ const grouped = groupBySameDay(orders);
 
 ---
 
-## Link と Button の組み合わせ
+## import ルール
 
-### `<Link>` 内に `<Button>` をネストしない
-
-HTML 仕様上、`<a>` 内に `<button>` は配置できない。クリックイベントが正しく動作しない。
-
-```tsx
-// ❌ 動かない（HTML 仕様違反）
-<Link to={`/orders/${id}/edit`}>
-  <Button>編集</Button>
-</Link>
-
-// ✅ asChild を使う（Button が Link の子要素としてレンダリング）
-<Button asChild>
-  <Link to={`/orders/${id}/edit`}>編集</Link>
-</Button>
-```
-
-**機械チェック**: `project-rules/no-button-inside-link`（oxlintカスタムルール）が `<Link>` 内への `<Button>` のネストを検出する。
-
-- `asChild` は Radix UI / Shadcn/ui の prop で、子要素にスタイルと振る舞いを委譲する
-- `Button` のスタイルが適用された `<a>` タグがレンダリングされる
+- パスエイリアス `@/` を使う（`../` のような親ディレクトリへの相対パスは禁止）
+- 同一ディレクトリ内の `./` は許可（例: `./use-member-list`）
+- 型の import は `import type { X }` を使う（oxlint で強制）
+- default export 禁止（ルートファイルと設定ファイルを除く）
+- barrel export（`index.ts` からの re-export）禁止
+- 循環 import 禁止（oxlint で強制）
 
 ---
 
-## レイアウト構成
+## 禁止事項（oxlint で強制）
 
-### 基本構造
-
-```
-┌─────────────────────────────────────┐
-│ Header（ロゴ、ユーザー名、ログアウト）│
-├──────────┬──────────────────────────┤
-│ Sidebar  │ Main Content             │
-│ (メニュー)│ <Outlet />               │
-├──────────┴──────────────────────────┤
-│ Footer（省略可）                     │
-└─────────────────────────────────────┘
-```
-
-### ファイル配置
-
-```
-src/components/layout/
-├── app-layout.tsx       # 全体レイアウト（Header + Sidebar + Main）
-├── header.tsx           # ヘッダー
-├── sidebar.tsx          # サイドバーメニュー
-└── footer.tsx           # フッター（必要な場合のみ）
-```
-
-### __root.tsx のパターン
-
-```tsx
-// src/routes/__root.tsx
-import type { QueryClient } from "@tanstack/react-query";
-import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
-import { AppLayout } from "@/components/layout/app-layout";
-
-interface RouterContext {
-  readonly queryClient: QueryClient;
-}
-
-export const Route = createRootRouteWithContext<RouterContext>()({
-  component: RootLayout,
-});
-
-function RootLayout() {
-  return (
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
-  );
-}
-```
-
-### AppLayout コンポーネント
-
-```tsx
-// src/components/layout/app-layout.tsx
-import type { ReactNode } from "react";
-import { Header } from "@/components/layout/header";
-import { Sidebar } from "@/components/layout/sidebar";
-
-interface AppLayoutProps {
-  readonly children: ReactNode;
-}
-
-export function AppLayout({ children }: AppLayoutProps) {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-6">{children}</main>
-      </div>
-    </div>
-  );
-}
-```
-
-### Header コンポーネント
-
-```tsx
-// src/components/layout/header.tsx
-export function Header() {
-  return (
-    <header className="flex h-14 items-center justify-between border-b px-6">
-      <div className="font-semibold">アプリ名</div>
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-muted-foreground">ユーザー名</span>
-        <a href="/logout" className="text-sm underline">ログアウト</a>
-      </div>
-    </header>
-  );
-}
-```
-
-### Sidebar コンポーネント
-
-```tsx
-// src/components/layout/sidebar.tsx
-import { Link } from "@tanstack/react-router";
-
-const MENU_ITEMS = [
-  { to: "/", label: "ホーム" },
-  { to: "/products", label: "商品管理" },
-  { to: "/categories", label: "カテゴリ管理" },
-] as const;
-
-export function Sidebar() {
-  return (
-    <aside className="w-56 border-r bg-muted/40 p-4">
-      <nav className="space-y-1">
-        {MENU_ITEMS.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className="block rounded-md px-3 py-2 text-sm hover:bg-muted"
-            activeProps={{ className: "bg-muted font-medium" }}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-```
-
-### 認証情報の取得（将来）
-
-認証状態（ユーザー名等）が必要になったら:
-
-1. backend に `/api/v1/me` エンドポイントを追加
-2. `useCurrentUser` Hook を作成
-3. Header でユーザー名を表示
-
-**先に作らない**。必要になるまで実装しない。
+- `any` 型の使用
+- `console.log`（デバッグ用途でも残さない）
+- 配列の index を React の key に使用
+- `dangerouslySetInnerHTML`
+- `==` / `!=`（`===` / `!==` を使う）
+- `var`（`const` / `let` を使う）

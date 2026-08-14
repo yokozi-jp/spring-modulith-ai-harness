@@ -62,7 +62,7 @@ if [[ ${#errors[@]} -gt 0 ]]; then
       echo "  • $err"
     done
     echo ""
-    echo "参照: .kiro/steering/frontend-rules.md"
+    echo "参照: .kiro/steering/frontend-dev-environment.md"
   } >&2
   exit 2
 fi

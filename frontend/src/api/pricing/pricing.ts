@@ -23,7 +23,7 @@ import type {
 import type {
   CreatePricingRequest,
   DeleteRequest,
-  List1Params,
+  ListPricingParams,
   PagePricingSummaryResponse,
   PricingDetailResponse,
   UpdatePricingRequest,
@@ -48,85 +48,88 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type findById1Response200 = {
+export type findPricingByIdResponse200 = {
   data: PricingDetailResponse;
   status: 200;
 };
 
-export type findById1Response404 = {
+export type findPricingByIdResponse404 = {
   data: PricingDetailResponse;
   status: 404;
 };
 
-export type findById1ResponseSuccess = findById1Response200 & {
+export type findPricingByIdResponseSuccess = findPricingByIdResponse200 & {
   headers: Headers;
 };
-export type findById1ResponseError = findById1Response404 & {
+export type findPricingByIdResponseError = findPricingByIdResponse404 & {
   headers: Headers;
 };
 
-export type findById1Response = findById1ResponseSuccess | findById1ResponseError;
+export type findPricingByIdResponse = findPricingByIdResponseSuccess | findPricingByIdResponseError;
 
-export const getFindById1Url = (id: string) => {
+export const getFindPricingByIdUrl = (id: string) => {
   return `/api/v1/pricings/${id}`;
 };
 
 /**
  * @summary 価格詳細を取得する
  */
-export const findById1 = async (id: string, options?: RequestInit): Promise<findById1Response> => {
-  return apiClient<findById1Response>(getFindById1Url(id), {
+export const findPricingById = async (
+  id: string,
+  options?: RequestInit,
+): Promise<findPricingByIdResponse> => {
+  return apiClient<findPricingByIdResponse>(getFindPricingByIdUrl(id), {
     ...options,
     method: "GET",
   });
 };
 
-export const getFindById1QueryKey = (id: string) => {
+export const getFindPricingByIdQueryKey = (id: string) => {
   return [`/api/v1/pricings/${id}`] as const;
 };
 
-export const getFindById1QueryOptions = <
-  TData = Awaited<ReturnType<typeof findById1>>,
+export const getFindPricingByIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof findPricingById>>,
   TError = PricingDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById1>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findPricingById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getFindById1QueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getFindPricingByIdQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof findById1>>> = ({ signal }) =>
-    findById1(id, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof findPricingById>>> = ({ signal }) =>
+    findPricingById(id, { signal, ...requestOptions });
 
   return {
     queryKey,
     queryFn,
     enabled: id !== null && id !== undefined,
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof findById1>>, TError, TData> & {
+  } as UseQueryOptions<Awaited<ReturnType<typeof findPricingById>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>;
   };
 };
 
-export type FindById1QueryResult = NonNullable<Awaited<ReturnType<typeof findById1>>>;
-export type FindById1QueryError = PricingDetailResponse;
+export type FindPricingByIdQueryResult = NonNullable<Awaited<ReturnType<typeof findPricingById>>>;
+export type FindPricingByIdQueryError = PricingDetailResponse;
 
-export function useFindById1<
-  TData = Awaited<ReturnType<typeof findById1>>,
+export function useFindPricingById<
+  TData = Awaited<ReturnType<typeof findPricingById>>,
   TError = PricingDetailResponse,
 >(
   id: string,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById1>>, TError, TData>> &
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof findPricingById>>, TError, TData>> &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findById1>>,
+          Awaited<ReturnType<typeof findPricingById>>,
           TError,
-          Awaited<ReturnType<typeof findById1>>
+          Awaited<ReturnType<typeof findPricingById>>
         >,
         "initialData"
       >;
@@ -134,18 +137,18 @@ export function useFindById1<
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindById1<
-  TData = Awaited<ReturnType<typeof findById1>>,
+export function useFindPricingById<
+  TData = Awaited<ReturnType<typeof findPricingById>>,
   TError = PricingDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById1>>, TError, TData>> &
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findPricingById>>, TError, TData>> &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof findById1>>,
+          Awaited<ReturnType<typeof findPricingById>>,
           TError,
-          Awaited<ReturnType<typeof findById1>>
+          Awaited<ReturnType<typeof findPricingById>>
         >,
         "initialData"
       >;
@@ -153,13 +156,13 @@ export function useFindById1<
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useFindById1<
-  TData = Awaited<ReturnType<typeof findById1>>,
+export function useFindPricingById<
+  TData = Awaited<ReturnType<typeof findPricingById>>,
   TError = PricingDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById1>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findPricingById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
@@ -168,18 +171,18 @@ export function useFindById1<
  * @summary 価格詳細を取得する
  */
 
-export function useFindById1<
-  TData = Awaited<ReturnType<typeof findById1>>,
+export function useFindPricingById<
+  TData = Awaited<ReturnType<typeof findPricingById>>,
   TError = PricingDetailResponse,
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findById1>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof findPricingById>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getFindById1QueryOptions(id, options);
+  const queryOptions = getFindPricingByIdQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;
@@ -188,30 +191,30 @@ export function useFindById1<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export type update1Response200 = {
+export type updatePricingResponse200 = {
   data: void;
   status: 200;
 };
 
-export type update1ResponseSuccess = update1Response200 & {
+export type updatePricingResponseSuccess = updatePricingResponse200 & {
   headers: Headers;
 };
 
-export type update1Response = update1ResponseSuccess;
+export type updatePricingResponse = updatePricingResponseSuccess;
 
-export const getUpdate1Url = (id: string) => {
+export const getUpdatePricingUrl = (id: string) => {
   return `/api/v1/pricings/${id}`;
 };
 
 /**
  * @summary 価格を更新する
  */
-export const update1 = async (
+export const updatePricing = async (
   id: string,
   updatePricingRequest: UpdatePricingRequest,
   options?: RequestInit,
-): Promise<update1Response> => {
-  return apiClient<update1Response>(getUpdate1Url(id), {
+): Promise<updatePricingResponse> => {
+  return apiClient<updatePricingResponse>(getUpdatePricingUrl(id), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -219,21 +222,21 @@ export const update1 = async (
   });
 };
 
-export const getUpdate1MutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getUpdatePricingMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof update1>>,
+    Awaited<ReturnType<typeof updatePricing>>,
     TError,
     { id: string; data: UpdatePricingRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof update1>>,
+  Awaited<ReturnType<typeof updatePricing>>,
   TError,
   { id: string; data: UpdatePricingRequest },
   TContext
 > => {
-  const mutationKey = ["update1"];
+  const mutationKey = ["updatePricing"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -241,28 +244,28 @@ export const getUpdate1MutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof update1>>,
+    Awaited<ReturnType<typeof updatePricing>>,
     { id: string; data: UpdatePricingRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return update1(id, data, requestOptions);
+    return updatePricing(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type Update1MutationResult = NonNullable<Awaited<ReturnType<typeof update1>>>;
-export type Update1MutationBody = UpdatePricingRequest;
-export type Update1MutationError = unknown;
+export type UpdatePricingMutationResult = NonNullable<Awaited<ReturnType<typeof updatePricing>>>;
+export type UpdatePricingMutationBody = UpdatePricingRequest;
+export type UpdatePricingMutationError = unknown;
 
 /**
  * @summary 価格を更新する
  */
-export const useUpdate1 = <TError = unknown, TContext = unknown>(
+export const useUpdatePricing = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof update1>>,
+      Awaited<ReturnType<typeof updatePricing>>,
       TError,
       { id: string; data: UpdatePricingRequest },
       TContext
@@ -271,37 +274,37 @@ export const useUpdate1 = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof update1>>,
+  Awaited<ReturnType<typeof updatePricing>>,
   TError,
   { id: string; data: UpdatePricingRequest },
   TContext
 > => {
-  return useMutation(getUpdate1MutationOptions(options), queryClient);
+  return useMutation(getUpdatePricingMutationOptions(options), queryClient);
 };
-export type delete1Response204 = {
+export type deletePricingResponse204 = {
   data: void;
   status: 204;
 };
 
-export type delete1ResponseSuccess = delete1Response204 & {
+export type deletePricingResponseSuccess = deletePricingResponse204 & {
   headers: Headers;
 };
 
-export type delete1Response = delete1ResponseSuccess;
+export type deletePricingResponse = deletePricingResponseSuccess;
 
-export const getDelete1Url = (id: string) => {
+export const getDeletePricingUrl = (id: string) => {
   return `/api/v1/pricings/${id}`;
 };
 
 /**
  * @summary 価格を削除する
  */
-export const delete1 = async (
+export const deletePricing = async (
   id: string,
   deleteRequest: DeleteRequest,
   options?: RequestInit,
-): Promise<delete1Response> => {
-  return apiClient<delete1Response>(getDelete1Url(id), {
+): Promise<deletePricingResponse> => {
+  return apiClient<deletePricingResponse>(getDeletePricingUrl(id), {
     ...options,
     method: "DELETE",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -309,21 +312,21 @@ export const delete1 = async (
   });
 };
 
-export const getDelete1MutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getDeletePricingMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof delete1>>,
+    Awaited<ReturnType<typeof deletePricing>>,
     TError,
     { id: string; data: DeleteRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof delete1>>,
+  Awaited<ReturnType<typeof deletePricing>>,
   TError,
   { id: string; data: DeleteRequest },
   TContext
 > => {
-  const mutationKey = ["delete1"];
+  const mutationKey = ["deletePricing"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -331,28 +334,28 @@ export const getDelete1MutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof delete1>>,
+    Awaited<ReturnType<typeof deletePricing>>,
     { id: string; data: DeleteRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return delete1(id, data, requestOptions);
+    return deletePricing(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type Delete1MutationResult = NonNullable<Awaited<ReturnType<typeof delete1>>>;
-export type Delete1MutationBody = DeleteRequest;
-export type Delete1MutationError = unknown;
+export type DeletePricingMutationResult = NonNullable<Awaited<ReturnType<typeof deletePricing>>>;
+export type DeletePricingMutationBody = DeleteRequest;
+export type DeletePricingMutationError = unknown;
 
 /**
  * @summary 価格を削除する
  */
-export const useDelete1 = <TError = unknown, TContext = unknown>(
+export const useDeletePricing = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof delete1>>,
+      Awaited<ReturnType<typeof deletePricing>>,
       TError,
       { id: string; data: DeleteRequest },
       TContext
@@ -361,25 +364,25 @@ export const useDelete1 = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof delete1>>,
+  Awaited<ReturnType<typeof deletePricing>>,
   TError,
   { id: string; data: DeleteRequest },
   TContext
 > => {
-  return useMutation(getDelete1MutationOptions(options), queryClient);
+  return useMutation(getDeletePricingMutationOptions(options), queryClient);
 };
-export type list1Response200 = {
+export type listPricingResponse200 = {
   data: PagePricingSummaryResponse;
   status: 200;
 };
 
-export type list1ResponseSuccess = list1Response200 & {
+export type listPricingResponseSuccess = listPricingResponse200 & {
   headers: Headers;
 };
 
-export type list1Response = list1ResponseSuccess;
+export type listPricingResponse = listPricingResponseSuccess;
 
-export const getList1Url = (params: List1Params) => {
+export const getListPricingUrl = (params: ListPricingParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -398,50 +401,56 @@ export const getList1Url = (params: List1Params) => {
 /**
  * @summary 価格一覧を取得する
  */
-export const list1 = async (params: List1Params, options?: RequestInit): Promise<list1Response> => {
-  return apiClient<list1Response>(getList1Url(params), {
+export const listPricing = async (
+  params: ListPricingParams,
+  options?: RequestInit,
+): Promise<listPricingResponse> => {
+  return apiClient<listPricingResponse>(getListPricingUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getList1QueryKey = (params?: List1Params) => {
+export const getListPricingQueryKey = (params?: ListPricingParams) => {
   return [`/api/v1/pricings`, ...(params ? [params] : [])] as const;
 };
 
-export const getList1QueryOptions = <TData = Awaited<ReturnType<typeof list1>>, TError = unknown>(
-  params: List1Params,
+export const getListPricingQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPricing>>,
+  TError = unknown,
+>(
+  params: ListPricingParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list1>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getList1QueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getListPricingQueryKey(params);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof list1>>> = ({ signal }) =>
-    list1(params, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listPricing>>> = ({ signal }) =>
+    listPricing(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof list1>>,
+    Awaited<ReturnType<typeof listPricing>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type List1QueryResult = NonNullable<Awaited<ReturnType<typeof list1>>>;
-export type List1QueryError = unknown;
+export type ListPricingQueryResult = NonNullable<Awaited<ReturnType<typeof listPricing>>>;
+export type ListPricingQueryError = unknown;
 
-export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unknown>(
-  params: List1Params,
+export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
+  params: ListPricingParams,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof list1>>, TError, TData>> &
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>> &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof list1>>,
+          Awaited<ReturnType<typeof listPricing>>,
           TError,
-          Awaited<ReturnType<typeof list1>>
+          Awaited<ReturnType<typeof listPricing>>
         >,
         "initialData"
       >;
@@ -449,15 +458,15 @@ export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unk
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unknown>(
-  params: List1Params,
+export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
+  params: ListPricingParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list1>>, TError, TData>> &
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>> &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof list1>>,
+          Awaited<ReturnType<typeof listPricing>>,
           TError,
-          Awaited<ReturnType<typeof list1>>
+          Awaited<ReturnType<typeof listPricing>>
         >,
         "initialData"
       >;
@@ -465,10 +474,10 @@ export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unk
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unknown>(
-  params: List1Params,
+export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
+  params: ListPricingParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list1>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
@@ -477,15 +486,15 @@ export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unk
  * @summary 価格一覧を取得する
  */
 
-export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unknown>(
-  params: List1Params,
+export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
+  params: ListPricingParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof list1>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getList1QueryOptions(params, options);
+  const queryOptions = getListPricingQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;
@@ -494,29 +503,29 @@ export function useList1<TData = Awaited<ReturnType<typeof list1>>, TError = unk
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export type create1Response201 = {
+export type createPricingResponse201 = {
   data: void;
   status: 201;
 };
 
-export type create1ResponseSuccess = create1Response201 & {
+export type createPricingResponseSuccess = createPricingResponse201 & {
   headers: Headers;
 };
 
-export type create1Response = create1ResponseSuccess;
+export type createPricingResponse = createPricingResponseSuccess;
 
-export const getCreate1Url = () => {
+export const getCreatePricingUrl = () => {
   return `/api/v1/pricings`;
 };
 
 /**
  * @summary 価格を作成する
  */
-export const create1 = async (
+export const createPricing = async (
   createPricingRequest: CreatePricingRequest,
   options?: RequestInit,
-): Promise<create1Response> => {
-  return apiClient<create1Response>(getCreate1Url(), {
+): Promise<createPricingResponse> => {
+  return apiClient<createPricingResponse>(getCreatePricingUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -524,21 +533,21 @@ export const create1 = async (
   });
 };
 
-export const getCreate1MutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getCreatePricingMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof create1>>,
+    Awaited<ReturnType<typeof createPricing>>,
     TError,
     { data: CreatePricingRequest },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof create1>>,
+  Awaited<ReturnType<typeof createPricing>>,
   TError,
   { data: CreatePricingRequest },
   TContext
 > => {
-  const mutationKey = ["create1"];
+  const mutationKey = ["createPricing"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
@@ -546,28 +555,28 @@ export const getCreate1MutationOptions = <TError = unknown, TContext = unknown>(
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof create1>>,
+    Awaited<ReturnType<typeof createPricing>>,
     { data: CreatePricingRequest }
   > = (props) => {
     const { data } = props ?? {};
 
-    return create1(data, requestOptions);
+    return createPricing(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type Create1MutationResult = NonNullable<Awaited<ReturnType<typeof create1>>>;
-export type Create1MutationBody = CreatePricingRequest;
-export type Create1MutationError = unknown;
+export type CreatePricingMutationResult = NonNullable<Awaited<ReturnType<typeof createPricing>>>;
+export type CreatePricingMutationBody = CreatePricingRequest;
+export type CreatePricingMutationError = unknown;
 
 /**
  * @summary 価格を作成する
  */
-export const useCreate1 = <TError = unknown, TContext = unknown>(
+export const useCreatePricing = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof create1>>,
+      Awaited<ReturnType<typeof createPricing>>,
       TError,
       { data: CreatePricingRequest },
       TContext
@@ -576,10 +585,10 @@ export const useCreate1 = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof create1>>,
+  Awaited<ReturnType<typeof createPricing>>,
   TError,
   { data: CreatePricingRequest },
   TContext
 > => {
-  return useMutation(getCreate1MutationOptions(options), queryClient);
+  return useMutation(getCreatePricingMutationOptions(options), queryClient);
 };

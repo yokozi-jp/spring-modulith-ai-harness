@@ -93,7 +93,7 @@ export function OrderList() {
 }
 ```
 
-**理由**: React 公式推奨、DevTools での表示名が明確、一貫性。
+**理由**: 一貫性（コンポーネント定義の書き方をプロジェクト全体で統一する）、関数宣言はホイスティングされるため定義順序に依存しない。
 
 ---
 
@@ -175,6 +175,8 @@ items.map((item) => <li key={item.id}>{item.name}</li>)
 // ❌ UserList.tsx, userList.tsx
 // ✅ user-list.tsx
 ```
+
+kebab-case を採用する理由、および TanStack Router のルートファイル（`$id.tsx`, `__root.tsx` 等）がこのルールと衝突しない理由は `docs/adr/0012-frontend-kebab-case-filenames.md` を参照する。
 
 ---
 

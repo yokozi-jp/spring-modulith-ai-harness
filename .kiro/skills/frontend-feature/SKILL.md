@@ -20,7 +20,7 @@ Use this skill when the user:
 - Uses keywords: フロントエンド, 画面, CRUD, 一覧, 詳細, create frontend, create UI
 
 Do NOT use when:
-- Modifying an existing feature (follow `frontend-rules.md` instead)
+- Modifying an existing feature (follow `frontend-dev-environment.md` instead)
 - Fixing bugs in existing code
 - Adding fields to existing components
 
@@ -121,7 +121,7 @@ function <PascalName>Page() {
 
 すべてのコード生成は以下のステアリングに従う:
 
-- `frontend-rules.md` — ディレクトリ構成、import ルール、禁止事項
+- `frontend-dev-environment.md` — ディレクトリ構成、import ルール、禁止事項
 - `frontend-code-patterns.md` — コンポーネント、Hook、イベントハンドラの書き方
 - `frontend-data-patterns.md` — useQuery、useMutation、エラーハンドリング
 - `frontend-ui-patterns.md` — Loading、Error、Empty、フォームの UI パターン

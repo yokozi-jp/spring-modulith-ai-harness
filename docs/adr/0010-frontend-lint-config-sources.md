@@ -67,4 +67,4 @@ React + TypeScript + Vitest + Tailwind CSS という同種の技術スタック�
 ## Consequences
 
 - 新しい lint ルールの導入を検討する際は、まず本ドキュメントに記載済みの参考リポジトリと照合し、重複調査を避ける
-- 出典が明確な設定のみ本ドキュメントに記載する。steering ファイル（`.kiro/steering/frontend-rules.md` 等）には AI の実装判断に直接関わる規約のみを置き、出典・経緯といったメタ情報は本 ADR に集約する
+- 出典が明確な設定のみ本ドキュメントに記載する。steering ファイル（`.kiro/steering/frontend-dev-environment.md` 等）には AI の実装判断に直接関わる規約のみを置き、出典・経緯といったメタ情報は本 ADR に集約する
