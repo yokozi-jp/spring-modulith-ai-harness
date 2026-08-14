@@ -1,13 +1,13 @@
 ---
 name: frontend-feature
 description: >-
-  Scaffold a NEW frontend feature from scratch. Use when user says
+  Create a NEW frontend feature from scratch. Use when user says
   "フロントエンドを作って", "画面を作って", "CRUD画面", "一覧画面", "詳細画面",
   "create frontend", "create UI", or requests a new feature that does not exist yet.
   Do NOT use for modifying existing features.
 ---
 
-# Frontend Feature Scaffold
+# Frontend Feature Generation
 
 Generate a complete feature structure under `frontend/src/features/<name>/`.
 
@@ -44,12 +44,13 @@ frontend/src/features/<feature-name>/
 
 2. API の存在確認:
    - `src/api/` に該当する hooks があるか確認
-   - なければ Orval でコード生成:
+   - なければ Orval でコード生成（`frontend-data-patterns.md` のワークフロー参照）:
      ```bash
-     cd frontend
-     ./scripts/orval-generate.sh   # backend 起動中に実行
+     # backend が起動していることを確認してから実行
+     curl -s -u admin:admin http://localhost:18080/v3/api-docs -o frontend/openapi.json
+     cd frontend && npx orval
      ```
-   - スクリプトが backend から OpenAPI spec を取得し、`src/api/` に hooks を生成する
+   - 上記コマンドが backend から OpenAPI spec を取得し、`src/api/` に hooks を生成する
 
 3. ステアリングに従ってファイル生成:
    - コンポーネント → `frontend-code-patterns.md`
