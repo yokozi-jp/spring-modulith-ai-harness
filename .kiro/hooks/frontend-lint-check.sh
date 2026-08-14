@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# Kiro CLI stop hook: フロントエンドのLint違反パターンを抽出し、
-# ステアリング追加候補として出力する。
+# Kiro CLI stop hook: フロントエンド変更後に ./scripts/verify.sh を実行し、
+# 失敗していれば AI に強く通知する。
+#
+# stop フックは exit code によるブロックができない（PreToolUse のみ可能）。
+# そのため exit 0 を維持しつつ、STDOUT で失敗内容を明示し、
+# AI が次のターンで確実に対応するよう仕向ける。
 #
 # AI の応答が frontend/ 配下のファイルに変更を加えた場合にのみ実行。
-# exit 0 + STDOUT → AI のコンテキストに追加される。
 
 set -euo pipefail
 
 # hook は cwd がプロジェクトルートで実行される
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(pwd)"
 FRONTEND_DIR="${SCRIPT_DIR}/frontend"
 
 if [[ ! -d "$FRONTEND_DIR" ]]; then
@@ -24,52 +27,43 @@ if [[ -z "$RESPONSE" ]]; then
   exit 0
 fi
 
-# git で frontend/ に変更があるか確認
-CHANGED=$(git -C "$SCRIPT_DIR" diff --name-only -- frontend/ 2>/dev/null | head -20)
+# git で frontend/ に変更があるか確認（追跡済みの変更 + 新規ファイル）
+CHANGED_TRACKED=$(git -C "$SCRIPT_DIR" diff --name-only -- frontend/ 2>/dev/null || true)
+CHANGED_UNTRACKED=$(git -C "$SCRIPT_DIR" ls-files --others --exclude-standard -- frontend/ 2>/dev/null || true)
+CHANGED=$(printf '%s\n%s\n' "$CHANGED_TRACKED" "$CHANGED_UNTRACKED" | grep -v '^$' | head -20)
 if [[ -z "$CHANGED" ]]; then
   exit 0
 fi
 
-# Lint + 型チェック実行（エラーがあっても続行）
-LINT_OUTPUT=$(cd "$FRONTEND_DIR" && ./node_modules/.bin/vp check 2>&1 || true)
+# verify.sh を実行（vp check + shell カスタムチェック5種すべて）
+VERIFY_OUTPUT=$(cd "$FRONTEND_DIR" && ./scripts/verify.sh 2>&1) && VERIFY_EXIT=0 || VERIFY_EXIT=$?
 
-# エラーがなければ何も出力しない
-if echo "$LINT_OUTPUT" | grep -q "Found no warnings"; then
-  # フォーマットも通っているか確認
-  if ! echo "$LINT_OUTPUT" | grep -q "Formatting issues\|error"; then
-    exit 0
-  fi
-fi
-
-# すべてpassならexit
-if echo "$LINT_OUTPUT" | grep -qP "^pass:.*pass:" 2>/dev/null; then
-  exit 0
-fi
-if [[ $(echo "$LINT_OUTPUT" | grep -c "^pass:") -ge 2 ]]; then
+# 全チェック成功なら何も出力しない
+if [[ "$VERIFY_EXIT" -eq 0 ]]; then
   exit 0
 fi
 
-# エラーからルール名を抽出して集計
-VIOLATIONS=$(echo "$LINT_OUTPUT" | grep -oP '(?<=\()\S+(?=\))' | grep -v "ms\|threads\|files" | sort | uniq -c | sort -rn | head -10)
-
-if [[ -z "$VIOLATIONS" ]]; then
-  exit 0
-fi
-
-# ステアリング候補として出力
+# 失敗内容をそのまま出力し、AI に対応を強く要求する
 cat <<EOF
 ---
-⚠️ Lint違反パターン検出（frontend）
+🛑 ./scripts/verify.sh が失敗しました（frontend）
 
-以下のルールに違反するコードが生成されました。
-ステアリング (.kiro/steering/frontend-lint-fix-guide.md) に修正方法が記載されていないルールがあれば追記を検討してください。
+以下の変更ファイルに対する検証でエラーが検出されました:
+${CHANGED}
 
-違反ルール（頻度順）:
-${VIOLATIONS}
+--- verify.sh 出力 ---
+${VERIFY_OUTPUT}
+--- 出力終わり ---
 
-対応:
-1. 上記の違反を修正してください
-2. 繰り返し発生するルールは frontend-lint-fix-guide.md への追記を検討してください
-3. 修正後 ./scripts/verify.sh で確認してください
+対応（次のターンで必ず実施）:
+1. 上記のエラーをすべて修正する
+2. 修正後、再度 ./scripts/verify.sh を実行し、"All checks passed." が
+   表示されることを確認する
+3. shell カスタムチェック（配置ルール・components/ui・src/api 誤編集・
+   テスト未作成）の違反は vp check では検出されないため、
+   このメッセージが唯一の検出機会になる場合がある
+
+繰り返し発生する oxlint ルール違反は
+.kiro/steering/frontend-lint-fix-guide.md への追記も検討すること。
 ---
 EOF
