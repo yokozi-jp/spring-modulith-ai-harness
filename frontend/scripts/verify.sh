@@ -23,8 +23,7 @@ echo "=== vp check ${FIX_FLAG} ==="
 if [[ -n "$FIX_FLAG" ]]; then
   vp check --fix
 else
-  vp fmt src --check --ignore-path .oxfmtignore
-  vp check --no-fmt
+  vp check
 fi
 
 echo ""
