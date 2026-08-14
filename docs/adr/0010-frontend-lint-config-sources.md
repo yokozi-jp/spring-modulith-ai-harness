@@ -1,6 +1,37 @@
 # フロントエンド Lint 設定の出典と参考リポジトリ照合
 
-`frontend/vite.config.ts` の oxlint 設定を検討する際に参考にした外部リポジトリと、実際に採用・見送りした設定の記録。
+`frontend/vite.config.ts` の oxlint 設定を検討する際に参考にした外部リポジトリ・スタイルガイドと、実際に採用・見送りした設定の記録。
+
+## 組み込みルールへの移行経緯
+
+- `no-arrow-function-component`（自作カスタムルール） → `react/function-component-definition`（oxlint 組み込み、v1.75.0 以降）に移行した。Airbnb React style guide も同じ方針（`prefer normal functions over arrow functions` for named components）であることを確認済み
+
+## Google TypeScript Style Guide との照合
+
+`eslint-config-airbnb` や Google の ESLint 設定パッケージをそのまま import して一括導入することはしない。理由:
+
+- ESLint 前提のパッケージは oxlint にそのまま適用できない。oxlint は ESLint 互換の Rust 実装だが、ルール名・オプション形式が独自であり、`eslint-config-airbnb` 等の設定オブジェクトを読み込む仕組みがない
+- 本プロジェクトの oxlint 設定は主要カテゴリを全て `error` にしており、Airbnb/Google が個別に選定したルール群の大部分を既に包含している（`no-var`, `eqeqeq`, `prefer-const` 等は oxlint の `style`/`correctness` カテゴリで標準カバー）
+
+oxlint はカテゴリ（`style`/`pedantic`/`restriction` 等）を一括 `error` にしても、ルール定義側で `default: false` のルールは自動有効化されない。Google TypeScript Style Guide との照合で、以下のルールを個別に有効化した:
+
+| ルール | 内容 | 採用理由 |
+|---|---|---|
+| `typescript/ban-ts-comment` | `@ts-ignore` / `@ts-expect-error` を制限 | 型エラーの誤魔化しを防ぐ。NullAway/PMD の厳格方針と一致 |
+| `typescript/consistent-type-definitions` | オブジェクト型は `interface` に統一（`type` エイリアス禁止） | 「書き方を1通りにする」という steering の一貫方針に合致 |
+| `typescript/array-type` | `T[]` 記法に統一（`Array<T>` 禁止） | 同上 |
+| `typescript/no-empty-object-type` | `{}` 型の使用を制限 | `unknown` / `Record<string, T>` 等の明示的な型を促す |
+
+## Airbnb JavaScript Style Guide との照合
+
+以下2つの見落としを発見・採用した:
+
+| ルール | 内容 | 採用理由 |
+|---|---|---|
+| `radix` | `parseInt()` に基数（第2引数）を明示 | 省略時は先頭が `0x`/`0X` かどうかで解釈が変わり、バグの元になる。Airbnb・Google 両方が明示的に要求 |
+| `no-new-wrappers` | `new String()` / `new Boolean()` / `new Number()` を禁止 | `new Boolean(false)` が truthy になる等、直感に反する挙動を防ぐ |
+
+Airbnb のフォーマット系ルール（`quotes`, `semi`, `comma-dangle`, `space-before-blocks` 等）は oxlint（lint）の対象外であり、oxfmt（フォーマッター）側で担当するため対応不要。`camelcase`, `no-mixed-operators` 等は oxlint に対応ルールが存在せず見送り。
 
 ## 参考リポジトリとの照合
 
