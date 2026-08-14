@@ -241,7 +241,7 @@ frontend/src/
 ## スタイリング
 
 - Tailwind CSS のユーティリティクラスのみ使用する
-- インラインスタイル（`style={}`）禁止
+- インラインスタイル（`style={}`）禁止（`react/forbid-dom-props` で検証）
 - CSS ファイルの追加禁止（`globals.css` のみ）
 - クラスの結合には `cn()` を使う（`@/lib/utils`）
 - Shadcn/ui コンポーネントは `vp dlx shadcn@latest add <component>` で追加する

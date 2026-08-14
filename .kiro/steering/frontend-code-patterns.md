@@ -300,6 +300,8 @@ HTML 仕様上、`<a>` 内に `<button>` は配置できない。クリックイ
 </Button>
 ```
 
+**機械チェック**: `project-rules/no-button-inside-link`（oxlintカスタムルール）が `<Link>` 内への `<Button>` のネストを検出する。
+
 - `asChild` は Radix UI / Shadcn/ui の prop で、子要素にスタイルと振る舞いを委譲する
 - `Button` のスタイルが適用された `<a>` タグがレンダリングされる
 

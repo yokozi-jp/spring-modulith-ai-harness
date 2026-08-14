@@ -289,5 +289,61 @@ export default {
         };
       },
     },
+
+    /**
+     * <Link> 内に <Button> をネストしない
+     *
+     * HTML 仕様上 <a> 内に <button> は配置できずクリックイベントが正しく動作しない。
+     * asChild パターン（<Button asChild><Link>...</Link></Button>）を使うべき。
+     */
+    "no-button-inside-link": {
+      meta: {
+        type: "problem",
+        docs: {
+          description: "<Link> 内に <Button> をネストしない",
+          recommended: true,
+        },
+        messages: {
+          noNesting:
+            "<Link> 内に <Button> をネストしないでください。<Button asChild><Link>...</Link></Button> パターンを使ってください。",
+        },
+      },
+      create(context) {
+        const filename = context.filename || context.getFilename();
+
+        if (!filename.endsWith(".tsx")) {
+          return {};
+        }
+
+        if (filename.includes(".test.")) {
+          return {};
+        }
+
+        // Link 要素のネスト深度を追跡するスタック
+        let linkDepth = 0;
+
+        function getElementName(node) {
+          return node.name && node.name.type === "JSXIdentifier" ? node.name.name : "";
+        }
+
+        return {
+          JSXOpeningElement(node) {
+            const name = getElementName(node);
+            if (name === "Link") {
+              linkDepth += 1;
+              return;
+            }
+            if (name === "Button" && linkDepth > 0) {
+              context.report({ node, messageId: "noNesting" });
+            }
+          },
+          JSXClosingElement(node) {
+            if (getElementName(node) === "Link" && linkDepth > 0) {
+              linkDepth -= 1;
+            }
+          },
+        };
+      },
+    },
   },
 };

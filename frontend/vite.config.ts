@@ -89,6 +89,9 @@ export default defineConfig({
       "guard-for-in": "error",
       "no-throw-literal": "error",
       "typescript/only-throw-error": "error",
+      // floating promise 対策の `void invalidateQueries(...)` 等（frontend-data-patterns.md）を
+      // 許可するため、ステートメントとしての void 演算子は許容する
+      "no-void": ["error", { allowAsStatement: true }],
       "no-use-before-define": ["error", { functions: false }],
       "no-shadow": "error",
       "default-case-last": "error",
@@ -101,6 +104,18 @@ export default defineConfig({
       "react/jsx-no-target-blank": "error",
       "react/no-danger": "error",
       "react/function-component-definition": ["error", { namedComponents: "function-declaration" }],
+      "react/forbid-dom-props": [
+        "error",
+        {
+          forbid: [
+            {
+              propName: "style",
+              message:
+                "インラインスタイルは禁止です。Tailwind CSS のユーティリティクラスを使用してください。",
+            },
+          ],
+        },
+      ],
 
       "unicorn/filename-case": ["error", { case: "kebabCase" }],
       "unicorn/prefer-node-protocol": "error",
@@ -112,6 +127,7 @@ export default defineConfig({
       "project-rules/hook-in-dedicated-file": "error",
       "project-rules/no-arrow-function-hook": "error",
       "project-rules/no-props-object-param": "error",
+      "project-rules/no-button-inside-link": "error",
 
       "no-restricted-imports": [
         "error",
@@ -292,6 +308,48 @@ export default defineConfig({
           "import/no-default-export": "off",
           "typescript/consistent-type-definitions": "off",
           "no-nested-ternary": "off",
+        },
+      },
+      {
+        files: ["**/*.test.{ts,tsx}"],
+        rules: {
+          // テストで使わないものを明示的に禁止する（frontend-test-patterns.md）
+          "no-restricted-imports": [
+            "error",
+            {
+              patterns: [
+                {
+                  regex: "^\\.\\./",
+                  message:
+                    "親ディレクトリへの相対パスは禁止です。@/ エイリアスを使用してください。",
+                },
+                {
+                  group: ["*/index", "*/index.*"],
+                  message:
+                    "barrel export (index.ts) からのimportは禁止です。モジュールを直接importしてください。",
+                },
+              ],
+              paths: [
+                {
+                  name: "vitest",
+                  message:
+                    "vitest を直接 import しないでください。vite-plus/test を使用してください。",
+                },
+                {
+                  name: "msw",
+                  message: "MSW は使用禁止です。vi.mock を使用してください。",
+                },
+                {
+                  name: "msw/node",
+                  message: "MSW は使用禁止です。vi.mock を使用してください。",
+                },
+                {
+                  name: "enzyme",
+                  message: "enzyme は非推奨です。@testing-library/react を使用してください。",
+                },
+              ],
+            },
+          ],
         },
       },
     ],

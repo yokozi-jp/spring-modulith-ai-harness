@@ -151,7 +151,7 @@ describe("useOrderList", () => {
 - `vi.mock("@/api/...")` で API モジュール全体をモック
 - `vi.mocked(fn).mockResolvedValue(...)` で戻り値を設定
 - `beforeEach` で `vi.resetAllMocks()` を呼ぶ
-- MSW は使わない（シンプルに `vi.mock` で統一）
+- MSW は使わない（シンプルに `vi.mock` で統一）。`no-restricted-imports` で `msw`/`vitest`/`enzyme` の直接 import を検出する
 
 ---
 
