@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Kiro CLI postToolUse hook: features/ 内にコンポーネントや Hook を作成した後、
+# Kiro CLI postToolUse hook: Hook・ユーティリティファイルを作成した後、
 # 対応するテストファイルが存在しなければ作成を促す。
+# 対象は check-test-exists.sh と同じ（features/*/hooks/, hooks/, lib/）。
 #
 # exit 0 で STDOUT を AI コンテキストに追加。
 
@@ -15,8 +16,10 @@ if [[ -z "$FILE_PATH" ]]; then
   exit 0
 fi
 
-# features/ 内の hooks/ または components/ のファイルのみ対象
-if [[ "$FILE_PATH" != *frontend/src/features/*/hooks/* && "$FILE_PATH" != *frontend/src/features/*/components/* ]]; then
+# 対象: features/*/hooks/, hooks/, lib/（check-test-exists.sh と同一範囲）
+if [[ "$FILE_PATH" != *frontend/src/features/*/hooks/* \
+   && "$FILE_PATH" != *frontend/src/hooks/* \
+   && "$FILE_PATH" != *frontend/src/lib/* ]]; then
   exit 0
 fi
 
@@ -25,9 +28,11 @@ if [[ "$FILE_PATH" == *.test.* ]]; then
   exit 0
 fi
 
-# .gitkeep は除外
+# .gitkeep, index.ts, api-client.ts, query-client.ts, .d.ts は除外
 FILENAME=$(basename "$FILE_PATH")
-if [[ "$FILENAME" == ".gitkeep" ]]; then
+if [[ "$FILENAME" == ".gitkeep" || "$FILENAME" == "index.ts" \
+   || "$FILENAME" == "api-client.ts" || "$FILENAME" == "query-client.ts" \
+   || "$FILENAME" == *.d.ts ]]; then
   exit 0
 fi
 

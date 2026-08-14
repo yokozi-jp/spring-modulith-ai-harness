@@ -26,6 +26,16 @@ fi
 
 errors=()
 
+# components/ui/ への書き込みは禁止（Shadcn/ui 自動生成、編集禁止）
+if [[ "$FILE_PATH" == *src/components/ui/* ]]; then
+  errors+=("$FILE_PATH: components/ui/ は Shadcn/ui の自動生成ディレクトリです。直接編集せず、カスタマイズが必要な場合は components/ 直下または features/ 内にラッパーを作成してください。")
+fi
+
+# src/api/ への書き込みは禁止（Orval 自動生成、編集禁止）
+if [[ "$FILE_PATH" == *src/api/* ]]; then
+  errors+=("$FILE_PATH: src/api/ は Orval の自動生成ディレクトリです。手動編集せず、'npx orval' で再生成してください。")
+fi
+
 # features/ 構造ルール
 if [[ "$FILE_PATH" == *src/features/* ]]; then
   RESULT=$("$CHECKS_DIR/check-features-structure.sh" --file "$FILE_PATH" 2>&1) || true
