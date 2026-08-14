@@ -50,14 +50,21 @@ export default defineConfig({
       react: {
         linkComponents: [{ name: "Link", attribute: "to" }],
       },
+      "better-tailwindcss": {
+        entryPoint: "src/styles/globals.css",
+      },
     },
     env: {
       browser: true,
       es2024: true,
     },
     plugins: ["typescript", "react", "unicorn", "import", "jsx-a11y", "oxc"],
-    jsPlugins: ["./oxlint-plugins/project-rules.js"],
+    jsPlugins: ["./oxlint-plugins/project-rules.js", "eslint-plugin-better-tailwindcss"],
     rules: {
+      "better-tailwindcss/enforce-shorthand-classes": "error",
+      "better-tailwindcss/no-duplicate-classes": "error",
+      "better-tailwindcss/no-conflicting-classes": "error",
+      "better-tailwindcss/no-unknown-classes": "error",
       "typescript/no-explicit-any": "error",
       "typescript/no-non-null-assertion": "error",
       "typescript/consistent-type-imports": "error",

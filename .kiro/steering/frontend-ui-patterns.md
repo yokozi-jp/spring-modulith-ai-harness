@@ -25,8 +25,8 @@ Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/ski
 
 - **`className` はレイアウトのみに使う**。コンポーネントの色・タイポグラフィを上書きしない
 - **`space-x-*` / `space-y-*` は使わない**。`flex` + `gap-*` を使う（縦積みは `flex flex-col gap-*`）
-- **幅と高さが同じ場合は `size-*` を使う**（`size-10` であり `w-10 h-10` ではない）
-- **`truncate` の省略形を使う**（`overflow-hidden text-ellipsis whitespace-nowrap` ではない）
+- **幅と高さが同じ場合は `size-*` を使う**（`size-10` であり `w-10 h-10` ではない）。`vp lint`（`better-tailwindcss/enforce-shorthand-classes`）が検出・自動修正する
+- **`truncate` の省略形を使う**（`overflow-hidden text-ellipsis whitespace-nowrap` ではない）。同上、`vp lint --fix` で自動修正される
 - **セマンティックカラーを使う**（`bg-primary`, `text-muted-foreground` 等）。`bg-blue-500` のような直接値は使わない
 - **条件付きクラスは `cn()` を使う**。手動のテンプレートリテラル三項演算子は書かない
 - **オーバーレイ系コンポーネント（Dialog, Sheet, Popover 等）に手動で `z-index` を指定しない**（コンポーネントが自身のスタッキングを管理する）
@@ -40,6 +40,15 @@ Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/ski
 <div className="flex flex-col gap-4">...</div>
 <div className="size-10">...</div>
 ```
+
+**機械チェック**: `eslint-plugin-better-tailwindcss`（oxlint jsPlugin）を導入済み。`vp lint` で以下を検証する:
+
+- `better-tailwindcss/enforce-shorthand-classes` — `w-10 h-10` → `size-10` 等の省略形強制（自動修正可）
+- `better-tailwindcss/no-unknown-classes` — 存在しないクラス名（タイポ）の検出
+- `better-tailwindcss/no-duplicate-classes` — 同一クラスの重複検出
+- `better-tailwindcss/no-conflicting-classes` — `p-2 p-3` 等の矛盾するクラスの検出
+
+**未対応**: `space-x-*`/`space-y-*` 禁止（`gap-*` 推奨）に対応する機械チェックは存在しない（`enforce-shorthand-classes` は同一プロパティの省略形統合のみを扱い、`space-x` → `gap` のような別プロパティへの意味論的変換は検証しない）。AI/レビュアーが目視で確認すること。
 
 ### コンポーネント構成
 
