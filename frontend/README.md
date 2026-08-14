@@ -158,14 +158,14 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 **`verify.sh`は`stop`フック経由で自動実行される。** チェック項目ごとに、どのタイミングで検証されるかは以下の通り。
 
-| チェック項目                                    | 書き込み前<br>(`preToolUse`) | 書き込み後<br>(`postToolUse`) | 応答終了時<br>(`stop`) | コミット時<br>(pre-commit) |
-| ----------------------------------------------- | :--------------------------: | :---------------------------: | :--------------------: | :------------------------: |
-| lint / 型チェック / フォーマット（`vp check`）  |              ❌              |              ❌               |        ✅ 通知         |        ✅ ブロック         |
-| features/ 構造（`check-features-structure.sh`） |         ✅ ブロック          |              ❌               |        ✅ 通知         |        ✅ ブロック         |
-| Hook配置（`check-hook-location.sh`）            |         ✅ ブロック          |              ❌               |        ✅ 通知         |        ✅ ブロック         |
-| components/ui/ 誤編集（`check-ui-readonly.sh`） |         ✅ ブロック          |              ❌               |        ✅ 通知         |        ✅ ブロック         |
-| src/api/ 誤編集（`api-readonly.sh`）            |         ✅ ブロック          |              ❌               |        ✅ 通知         |        ✅ ブロック         |
-| テスト未作成（`check-test-exists.sh`）          |              ❌              |            ✅ 通知            |        ✅ 通知         |        ✅ ブロック         |
+| チェック項目                                    | 書き込み前<br>(`preToolUse`) | 応答終了時<br>(`stop`) | コミット時<br>(pre-commit) |
+| ----------------------------------------------- | :--------------------------: | :--------------------: | :------------------------: |
+| lint / 型チェック / フォーマット（`vp check`）  |              ❌              |        ✅ 通知         |        ✅ ブロック         |
+| features/ 構造（`check-features-structure.sh`） |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
+| Hook配置（`check-hook-location.sh`）            |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
+| components/ui/ 誤編集（`check-ui-readonly.sh`） |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
+| src/api/ 誤編集（`api-readonly.sh`）            |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
+| テスト未作成（`check-test-exists.sh`）          |              ❌              |        ✅ 通知         |        ✅ ブロック         |
 
 凡例:
 
@@ -177,8 +177,8 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 - **`components/ui/`・`src/api/`の誤編集**と**features構造・Hook配置**は、書き込み前にブロックされる。誤ったファイルはそもそも作成されない
 - **lint / 型チェック / フォーマット**は`stop`・pre-commitの両方で`--fix`付きで実行される（`stop`は`verify.sh --fix`、pre-commitは`vp lint --fix`）。自動修正可能な違反（フォーマット崩れ等）はその場で修正され、**自動修正できなかったエラーのみ**が通知・ブロックの対象になる
-- **テスト未作成**は書き込み前には検証不可能（対象ファイルがまだ存在しない）だが、書き込み直後に通知される
-- **lint/型/フォーマット**は書き込み前・書き込み後のどちらでも検証されず、応答終了時（`stop`）が最初の検出機会になる
+- **テスト未作成**は書き込み前には検証不可能（対象ファイルがまだ存在しない）ため、応答終了時（`stop`）が最初の検出機会になる。ファイル書き込み直後の個別通知は行わない（1つの応答で複数ファイルを書く場合、`stop`でまとめて通知する方がコンテキスト消費が少なく、AIの多くはコード生成時にテストも合わせて書く前提で動くため、書き込み直後の個別通知の実効性は低いと判断した）
+- **lint/型/フォーマット**も書き込み前には検証されず、応答終了時（`stop`）が最初の検出機会になる
 - 人間がコミットする瞬間（pre-commit）は、唯一すべての項目がブロックとして機能する
 
 `oxlint-plugins/project-rules.js` にカスタムルールを追加する前に、oxlint組み込みルールで同等の検証ができないか必ず確認する（`frontend-rules.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
@@ -194,13 +194,12 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 `vp check`はマトリクス表の shellチェック5種（features構造・Hook配置・UI編集検出・API編集検出・テスト未作成）を一切含まない。これらを含めるには`./scripts/verify.sh`を使う。
 
-補足: backend の Controller/Request/Response 変更時は別の`postToolUse`フック（`orval-regen-prompt.sh`）がOrval再生成を促すが、これはfrontendのコード品質チェックではなくAPI定義変更への追従を促す別目的のフックであり、上表の対象外。
+補足: backend の Controller/Request/Response 変更時は`postToolUse`フック（`orval-regen-prompt.sh`）がOrval再生成を促す。これはfrontendのコード品質チェックではなくAPI定義変更への追従を促す別目的のフックであり、上表の対象外。
 
 ### まとめ
 
 - **書く瞬間**: TypeScript strict + エディタのoxlint連携で即時フィードバック
 - **AIの書き込み時**: `preToolUse`が配置・生成物編集の4項目をブロック（lint/型/フォーマット・テスト未作成は未検証）
-- **AIの書き込み直後**: `postToolUse`がテスト未作成のみ通知（他4項目は非対応）
 - **AIの応答終了時**: `stop`が全項目を検証し失敗内容を通知（ブロックはできないため通知止まり）
 - **コミット時**: pre-commitが全項目をブロックとして強制（唯一の完全な強制ポイント）
 - **意味的な正しさ**: `vp test`でHook・コンポーネントの振る舞いを検証

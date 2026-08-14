@@ -25,11 +25,6 @@
     "postToolUse": [
       {
         "matcher": "write",
-        "command": ".kiro/hooks/frontend-test-prompt.sh",
-        "timeout_ms": 5000
-      },
-      {
-        "matcher": "write",
         "command": ".kiro/hooks/orval-regen-prompt.sh",
         "timeout_ms": 5000
       }
