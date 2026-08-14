@@ -35,18 +35,39 @@ if [[ -z "$CHANGED" ]]; then
   exit 0
 fi
 
-# verify.sh を実行（vp check + shell カスタムチェック5種すべて）
-VERIFY_OUTPUT=$(cd "$FRONTEND_DIR" && ./scripts/verify.sh 2>&1) && VERIFY_EXIT=0 || VERIFY_EXIT=$?
+# verify.sh を --fix 付きで実行（vp check の自動修正可能なものは先に修正し、
+# 残った修正不可能なエラーのみを通知する。pre-commit の vp lint --fix と
+# 同じ挙動に揃える）
+VERIFY_OUTPUT=$(cd "$FRONTEND_DIR" && ./scripts/verify.sh --fix 2>&1) && VERIFY_EXIT=0 || VERIFY_EXIT=$?
 
 # 全チェック成功なら何も出力しない
+# （--fix により、lint/フォーマットの自動修正可能な違反は既にファイルへ
+#   反映されている。AI が意図せず上書きされた差分に気づけるよう、
+#   git status で変更があれば一言だけ添える）
 if [[ "$VERIFY_EXIT" -eq 0 ]]; then
+  FIXED_TRACKED=$(git -C "$SCRIPT_DIR" diff --name-only -- frontend/ 2>/dev/null || true)
+  FIXED_UNTRACKED=$(git -C "$SCRIPT_DIR" ls-files --others --exclude-standard -- frontend/ 2>/dev/null || true)
+  FIXED=$(printf '%s\n%s\n' "$FIXED_TRACKED" "$FIXED_UNTRACKED" | grep -v '^$' | sort -u | head -20)
+  if [[ -n "$FIXED" ]]; then
+    cat <<EOF
+---
+✅ ./scripts/verify.sh --fix はすべて成功しました
+
+以下は今回の変更ファイル一覧です（このうち lint/フォーマットの
+自動修正可能な違反があったファイルは、既に修正が反映されています）:
+${FIXED}
+
+差分を確認してから次の作業に進んでください。
+---
+EOF
+  fi
   exit 0
 fi
 
 # 失敗内容をそのまま出力し、AI に対応を強く要求する
 cat <<EOF
 ---
-🛑 ./scripts/verify.sh が失敗しました（frontend）
+🛑 ./scripts/verify.sh --fix でも解決できないエラーが残っています（frontend）
 
 以下の変更ファイルに対する検証でエラーが検出されました:
 ${CHANGED}
@@ -56,7 +77,7 @@ ${VERIFY_OUTPUT}
 --- 出力終わり ---
 
 対応（次のターンで必ず実施）:
-1. 上記のエラーをすべて修正する
+1. 自動修正可能なものは既に修正済みです。残ったエラーを手動で修正する
 2. 修正後、再度 ./scripts/verify.sh を実行し、"All checks passed." が
    表示されることを確認する
 3. shell カスタムチェック（配置ルール・components/ui・src/api 誤編集・
