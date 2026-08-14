@@ -177,14 +177,14 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 **`verify.sh`は`stop`フック経由で自動実行される。** 実行タイミングごとに検証範囲が異なる。
 
-| タイミング                   | 仕組み                                                                            | 実行内容                                                                                                                                                                                    | `verify.sh`との差分                                                       |
-| ---------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Kiro CLI: ファイル書き込み前 | `preToolUse(write)` フック（`frontend-write-guard.sh`）                           | `check-features-structure.sh --file`、`check-hook-location.sh --file`（**書き込み対象の1ファイルのみ検証**、違反時は書き込み自体をブロック）                                                | `check-ui-readonly.sh`・`api-readonly.sh`・`check-test-exists.sh`は非対応 |
-| Kiro CLI: ファイル書き込み後 | `postToolUse(write)` フック（`frontend-test-prompt.sh`, `orval-regen-prompt.sh`） | テスト未作成の通知、Orval再生成の提案（**通知のみ、ブロックしない**）                                                                                                                       | `check-test-exists.sh`と目的は同じだが独立実装、強制力なし                |
-| Kiro CLI: 応答終了時         | `stop` フック（`frontend-lint-check.sh`）                                         | frontend/ に変更があれば `./scripts/verify.sh` を実行し、**失敗内容を全文AIコンテキストに注入**（stop フックは exit code によるブロックができないため、次のターンでの対応を強く要求する形） | `verify.sh`と同等の網羅性（shellチェック5種を含む）                       |
-| 人間のコミット時             | Git pre-commit（`core.hooksPath` → `vp staged`）                                  | `vite.config.ts`の`staged`設定に従い、lint --fix + fmt + shellチェック5種を**全て実行**（違反時はコミットをブロック）                                                                       | `verify.sh`と同等の網羅性                                                 |
+| タイミング                   | 仕組み                                                                            | 検証範囲                                                                                                                     | 検出漏れ                                                                      |
+| ---------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Kiro CLI: ファイル書き込み前 | `preToolUse(write)` フック（`frontend-write-guard.sh`）                           | 書き込み対象の1ファイルに対して配置ルール2種のみ検証。違反時は書き込み自体をブロック                                         | `check-ui-readonly.sh`・`api-readonly.sh`・`check-test-exists.sh`は検証しない |
+| Kiro CLI: ファイル書き込み後 | `postToolUse(write)` フック（`frontend-test-prompt.sh`, `orval-regen-prompt.sh`） | テスト未作成・Orval再生成の必要性を通知（検証ではなく提案、ブロックしない）                                                  | shellチェック5種のうち`check-test-exists.sh`相当の通知のみ、他は検証しない    |
+| Kiro CLI: 応答終了時         | `stop` フック（`frontend-lint-check.sh`）                                         | `./scripts/verify.sh`を**そのまま実行**（vp check + shellチェック5種すべて）。失敗内容を全文AIコンテキストに注入             | なし。ただし通知止まりでブロックはできない（`stop`フックの仕様上の制約）      |
+| 人間のコミット時             | Git pre-commit（`core.hooksPath` → `vp staged`）                                  | `vite.config.ts`の`staged`設定で`verify.sh`と同じチェック（lint --fix + fmt + shellチェック5種）をステージ済みファイルに実行 | なし。違反時はコミット自体をブロック                                          |
 
-つまりAIの書き込み中に即座に強制されるのは配置ルール2種のみだが、**応答完了時には`stop`フックが`verify.sh`全体を実行し、shellチェック5種を含む違反があれば次のターンで対応するよう通知される**。`stop`フックはブロック機能を持たない（exit codeでの強制は`preToolUse`のみ可能）ため、この通知を無視して応答を終えることは技術的に可能だが、steeringの「コード変更後は必ず`./scripts/verify.sh`を実行する」という要求と`stop`フックの検証内容は一致している。
+つまりAIの書き込み中に即座に強制されるのは配置ルール2種のみだが、**応答完了時には`stop`フックが`verify.sh`をそのまま実行し**、shellチェック5種を含む違反があれば次のターンで対応するよう通知される。`stop`フックはブロック機能を持たない（exit codeでの強制は`preToolUse`のみ可能）ため、この通知を無視して応答を終えることは技術的に可能だが、steeringの「コード変更後は必ず`./scripts/verify.sh`を実行する」という要求と`stop`フックの検証内容は一致している。
 
 ### まとめ
 
