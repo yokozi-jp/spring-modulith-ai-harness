@@ -175,22 +175,22 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 - `api-readonly.sh` — `src/api/`（Orval自動生成）への誤編集
 - `check-test-exists.sh` — Hook/utilに対応するテストファイルの有無
 
-**`verify.sh`はどのタイミングでも自動実行されない。** 手動で実行することが前提のコマンドであり、以下の自動化ポイントはそれぞれ異なるサブセットしかカバーしていない。
+**`verify.sh`は`stop`フック経由で自動実行される。** 実行タイミングごとに検証範囲が異なる。
 
-| タイミング                   | 仕組み                                                                            | 実行内容                                                                                                                                     | `verify.sh`との差分                                                       |
-| ---------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Kiro CLI: ファイル書き込み前 | `preToolUse(write)` フック（`frontend-write-guard.sh`）                           | `check-features-structure.sh --file`、`check-hook-location.sh --file`（**書き込み対象の1ファイルのみ検証**、違反時は書き込み自体をブロック） | `check-ui-readonly.sh`・`api-readonly.sh`・`check-test-exists.sh`は非対応 |
-| Kiro CLI: ファイル書き込み後 | `postToolUse(write)` フック（`frontend-test-prompt.sh`, `orval-regen-prompt.sh`） | テスト未作成の通知、Orval再生成の提案（**通知のみ、ブロックしない**）                                                                        | `check-test-exists.sh`と目的は同じだが独立実装、強制力なし                |
-| Kiro CLI: 応答終了時         | `stop` フック（`frontend-lint-check.sh`）                                         | `vp check`のみ実行し、違反パターンを通知（**通知のみ、ブロックしない**）                                                                     | shellチェック5種は一切実行されない                                        |
-| 人間のコミット時             | Git pre-commit（`core.hooksPath` → `vp staged`）                                  | `vite.config.ts`の`staged`設定に従い、lint --fix + fmt + shellチェック5種を**全て実行**（違反時はコミットをブロック）                        | `verify.sh`と同等の網羅性                                                 |
+| タイミング                   | 仕組み                                                                            | 実行内容                                                                                                                                                                                    | `verify.sh`との差分                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Kiro CLI: ファイル書き込み前 | `preToolUse(write)` フック（`frontend-write-guard.sh`）                           | `check-features-structure.sh --file`、`check-hook-location.sh --file`（**書き込み対象の1ファイルのみ検証**、違反時は書き込み自体をブロック）                                                | `check-ui-readonly.sh`・`api-readonly.sh`・`check-test-exists.sh`は非対応 |
+| Kiro CLI: ファイル書き込み後 | `postToolUse(write)` フック（`frontend-test-prompt.sh`, `orval-regen-prompt.sh`） | テスト未作成の通知、Orval再生成の提案（**通知のみ、ブロックしない**）                                                                                                                       | `check-test-exists.sh`と目的は同じだが独立実装、強制力なし                |
+| Kiro CLI: 応答終了時         | `stop` フック（`frontend-lint-check.sh`）                                         | frontend/ に変更があれば `./scripts/verify.sh` を実行し、**失敗内容を全文AIコンテキストに注入**（stop フックは exit code によるブロックができないため、次のターンでの対応を強く要求する形） | `verify.sh`と同等の網羅性（shellチェック5種を含む）                       |
+| 人間のコミット時             | Git pre-commit（`core.hooksPath` → `vp staged`）                                  | `vite.config.ts`の`staged`設定に従い、lint --fix + fmt + shellチェック5種を**全て実行**（違反時はコミットをブロック）                                                                       | `verify.sh`と同等の網羅性                                                 |
 
-つまりAIがコード変更中に強制されるのは配置ルール2種のみで、`components/ui/`・`src/api/`の誤編集やテスト未作成は**AIの応答中には検出されず**、人間がコミットしようとした瞬間（pre-commit）で初めて弾かれる。そのため、AIはコード変更後に**必ず`./scripts/verify.sh`を自主的に実行する**必要がある（steeringで明示されているが、フックによる強制はない）。
+つまりAIの書き込み中に即座に強制されるのは配置ルール2種のみだが、**応答完了時には`stop`フックが`verify.sh`全体を実行し、shellチェック5種を含む違反があれば次のターンで対応するよう通知される**。`stop`フックはブロック機能を持たない（exit codeでの強制は`preToolUse`のみ可能）ため、この通知を無視して応答を終えることは技術的に可能だが、steeringの「コード変更後は必ず`./scripts/verify.sh`を実行する」という要求と`stop`フックの検証内容は一致している。
 
 ### まとめ
 
 - **書く瞬間**: TypeScript strict + エディタのoxlint連携で即時フィードバック
 - **AIの書き込み時**: `preToolUse`フックが配置ルール2種のみを強制ブロック
-- **変更後（手動）**: `./scripts/verify.sh`で全チェックを横断実行
+- **AIの応答終了時**: `stop`フックが`./scripts/verify.sh`を実行し、失敗内容を通知（ブロックはできないため通知止まり）
 - **コミット時**: pre-commitフックが`verify.sh`と同等のチェックを強制
 - **意味的な正しさ**: `vp test`でHook・コンポーネントの振る舞いを検証
 
