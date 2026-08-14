@@ -157,7 +157,7 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 | コマンド | 実行内容 | 使う場面 |
 |---|---|---|
 | `vp check` | フォーマット + lint + 型チェック | エディタ保存時、開発中の高速フィードバック |
-| `./scripts/verify.sh` | `vp check` + shell カスタムチェック5種 | **コード変更後は必ずこれを実行する** |
+| `./scripts/verify.sh` | `vp check` + shell カスタムチェック5種 | **コード変更後、コミット前に必ず手動実行する** |
 | `./scripts/verify.sh --fix` | 上記 + 自動修正 | 修正を一括反映したいとき |
 | `vp test` | Vitest 実行 | Hook・ユーティリティ・コンポーネントの振る舞い確認 |
 
@@ -169,17 +169,29 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 - `api-readonly.sh` — `src/api/`（Orval自動生成）への誤編集
 - `check-test-exists.sh` — Hook/utilに対応するテストファイルの有無
 
-### Git pre-commit フック
+### どこで何が自動実行されるか（現状の実態）
 
-`core.hooksPath = frontend/.vite-hooks` により、コミット時に `vp staged` が自動実行される。
-`vite.config.ts` の `staged` フィールドで定義された内容（lint --fix、fmt、上記shellチェック）が、ステージ済みファイルに対して走る。
-これにより「AIやエディタでの`verify.sh`実行を忘れても、コミット時に同じチェックで弾かれる」二重の防波堤になっている。
+`verify.sh`はどのタイミングでも自動実行されない。**手動で実行することが前提のコマンド**であり、以下の自動化ポイントはそれぞれ異なるサブセットしかカバーしていない。
+
+| タイミング | 仕組み | 実行内容 | `verify.sh`との差分 |
+|---|---|---|---|
+| Kiro CLI: ファイル書き込み前 | `preToolUse(write)` フック（`frontend-write-guard.sh`） | `check-features-structure.sh --file`、`check-hook-location.sh --file`（**書き込み対象の1ファイルのみ検証**、違反時は書き込み自体をブロック） | `check-ui-readonly.sh`・`api-readonly.sh`・`check-test-exists.sh`は非対応 |
+| Kiro CLI: ファイル書き込み後 | `postToolUse(write)` フック（`frontend-test-prompt.sh`, `orval-regen-prompt.sh`） | テスト未作成の通知、Orval再生成の提案（**通知のみ、ブロックしない**） | `check-test-exists.sh`と目的は同じだが独立実装、強制力なし |
+| Kiro CLI: 応答終了時 | `stop` フック（`frontend-lint-check.sh`） | `vp check`のみ実行し、違反パターンを通知（**通知のみ、ブロックしない**） | shellチェック5種は一切実行されない |
+| 人間のコミット時 | Git pre-commit（`core.hooksPath` → `vp staged`） | `vite.config.ts`の`staged`設定に従い、lint --fix + fmt + shellチェック5種を**全て実行**（違反時はコミットをブロック） | `verify.sh`と同等の網羅性 |
+
+**現状の実質的な意味**:
+
+- AIがコード変更中に「書き込みブロック」で強制されるのは配置ルール2種のみ
+- `components/ui/`・`src/api/`の誤編集や、テストファイル未作成は、**AIの応答中には検出されず**、人間がコミットしようとした瞬間（pre-commit）で初めて弾かれる
+- そのため、AIはコード変更後に**必ず`./scripts/verify.sh`を自主的に実行する**必要がある（steeringで明示されているが、フックによる強制はない）
 
 ### まとめ: 何が漏れを防いでいるか
 
 - **書く瞬間**: TypeScript strict + エディタのoxlint連携で即時フィードバック
-- **変更後の確認**: `./scripts/verify.sh`で1ファイル解析・ファイル間関係・Git状態を横断チェック
-- **コミット時**: pre-commitフックが同じチェックを強制（人間・AI問わず回避できない）
+- **AIの書き込み時**: `preToolUse`フックが配置ルール2種のみを強制ブロック（`verify.sh`の一部にすぎない）
+- **変更後の確認（手動）**: `./scripts/verify.sh`で1ファイル解析・ファイル間関係・Git状態を横断チェック。**自動実行されないため、コード変更のたびに明示的に実行する**
+- **コミット時**: pre-commitフックが`verify.sh`と同等のチェックを強制（人間がコミットする瞬間に限り回避できない）
 - **意味的な正しさ**: `vp test`でHook・コンポーネントの振る舞いを検証
 
 ## ルール
