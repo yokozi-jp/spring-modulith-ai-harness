@@ -158,16 +158,14 @@ React + TypeScript + Vitest + Tailwind CSS という同種の技術スタック�
 - [`expo/oxlint-config-universe`](https://github.com/expo/oxlint-config-universe) — README に「oxlint でカバーできない eslint-config-universe のルール一覧」が明記されており、oxlint 未実装ルールの把握に有用
 - [`schoero/eslint-plugin-better-tailwindcss`](https://github.com/schoero/eslint-plugin-better-tailwindcss) — oxlint 対応の公式 Tailwind CSS lint プラグイン。本プロジェクトの `better-tailwindcss/*` ルールの出典
 
-**照合結果**: `oxlint-config-raccoon` が個別に列挙しているルールの大半（`array-callback-return`, `curly`, `no-alert`, `react/hook-use-state`, `react/no-unstable-nested-components` 等ほぼ全て）は、本プロジェクトの `categories` 一括 `error` 設定で既に暗黙的に有効化されていた（`vp lint --print-config` で個別に確認済み）。
-
-この照合で実際に採用・変更した設定:
+この照合で採用・変更した設定:
 
 | 設定 | 出典 | 内容 |
 |---|---|---|
-| `no-void: ["error", { allowAsStatement: true }]` | `oxlint-config-raccoon/base.ts` と同一設定であることを確認 | `restriction` カテゴリ一括設定で暗黙有効化されていた `no-void`（`allowAsStatement: false`）が `void invalidateQueries(...)` 等の frontend-data-patterns.md パターンと矛盾していたため明示修正。raccoon も同じ設定だったことで妥当性を確認できた |
-| `no-unreachable-loop: "error"` | `oxlint-config-raccoon/base.ts` | カテゴリ一括設定でも `default: false` のため個別追加が必要だった |
+| `no-void: ["error", { allowAsStatement: true }]` | `oxlint-config-raccoon/base.ts` | `restriction` カテゴリ一括設定で暗黙有効化されていた `no-void`（`allowAsStatement: false`）が `void invalidateQueries(...)` 等の frontend-data-patterns.md パターンと矛盾するため明示修正 |
+| `no-unreachable-loop: "error"` | `oxlint-config-raccoon/base.ts` | カテゴリ一括設定でも `default: false` のため個別追加 |
 | `promise` プラグイン全体（`plugins` に追加） | `oxlint-config-raccoon/base.ts` | `promise/catch-or-return`, `promise/prefer-await-to-then`, `promise/no-nesting` 等、`.then()/.catch()` チェーンを検出し async/await への書き換えを促す |
-| `promise/avoid-new: "off"` | raccoon には存在しない設定（本プロジェクト独自の判断） | `await new Promise((resolve) => setTimeout(resolve, ms))` のような正当な Promise 化パターンまで一律禁止するため実機検証の末 off にした |
+| `promise/avoid-new: "off"` | 本プロジェクト独自の判断（raccoon には存在しない設定） | `await new Promise((resolve) => setTimeout(resolve, ms))` のような正当な Promise 化パターンまで一律禁止するため off |
 
 `expo/oxlint-config-universe` が指摘する `no-dupe-args` / `no-octal` / `react/jsx-no-bind` 等は、本プロジェクトの oxlint バージョンでも同様に未実装と確認済み（oxlint 自体の制約であり対応不可）。
 
