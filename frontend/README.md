@@ -20,11 +20,11 @@ vp install
 vp dev        # http://localhost:5173 で起動
 ```
 
-| コマンド | 用途 |
-| --- | --- |
+| コマンド     | 用途             |
+| ------------ | ---------------- |
 | `vp install` | 依存インストール |
-| `vp dev` | 開発サーバー起動 |
-| `vp build` | 本番ビルド |
+| `vp dev`     | 開発サーバー起動 |
+| `vp build`   | 本番ビルド       |
 
 検証コマンド（`vp check` / `verify.sh` / `vp test`）は [コード品質の仕組み](#コード品質の仕組み) を参照。
 
@@ -149,23 +149,23 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 判定に必要な情報の種類で担当が分かれる。
 
-| 判定対象 | 担当 | 理由 |
-|---|---|---|
-| 1ファイルの構文・パターン（`any`禁止、関数宣言強制、Props分割代入等） | oxlint | AST解析で1ファイル内に閉じて判定できる |
-| ファイル名とファイルの配置場所（`use-*.ts`が`hooks/`にあるか） | shell | ファイルシステム上の配置はAST解析の対象外 |
-| ファイル間の対応関係（Hookファイルに対応するテストファイルの有無） | shell | 複数ファイルの存在確認はoxlintの管轄外 |
-| Git追跡状態（`src/api/`や`components/ui/`が意図せず変更されていないか） | shell | oxlintは1ファイルの中身しか見ず、Git状態は判定できない |
+| 判定対象                                                                | 担当   | 理由                                                   |
+| ----------------------------------------------------------------------- | ------ | ------------------------------------------------------ |
+| 1ファイルの構文・パターン（`any`禁止、関数宣言強制、Props分割代入等）   | oxlint | AST解析で1ファイル内に閉じて判定できる                 |
+| ファイル名とファイルの配置場所（`use-*.ts`が`hooks/`にあるか）          | shell  | ファイルシステム上の配置はAST解析の対象外              |
+| ファイル間の対応関係（Hookファイルに対応するテストファイルの有無）      | shell  | 複数ファイルの存在確認はoxlintの管轄外                 |
+| Git追跡状態（`src/api/`や`components/ui/`が意図せず変更されていないか） | shell  | oxlintは1ファイルの中身しか見ず、Git状態は判定できない |
 
 `oxlint-plugins/project-rules.js` にカスタムルールを追加する前に、oxlint組み込みルールで同等の検証ができないか必ず確認する（`frontend-rules.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
 
 ### 検証コマンドの使い分けと自動実行の実態
 
-| コマンド | 実行内容 | 使う場面 |
-|---|---|---|
-| `vp check` | フォーマット + lint + 型チェック | エディタ保存時、開発中の高速フィードバック |
-| `./scripts/verify.sh` | `vp check` + shell カスタムチェック5種 | **コード変更後、コミット前に必ず手動実行する** |
-| `./scripts/verify.sh --fix` | 上記 + 自動修正 | 修正を一括反映したいとき |
-| `vp test` | Vitest 実行 | Hook・ユーティリティ・コンポーネントの振る舞い確認 |
+| コマンド                    | 実行内容                               | 使う場面                                           |
+| --------------------------- | -------------------------------------- | -------------------------------------------------- |
+| `vp check`                  | フォーマット + lint + 型チェック       | エディタ保存時、開発中の高速フィードバック         |
+| `./scripts/verify.sh`       | `vp check` + shell カスタムチェック5種 | **コード変更後、コミット前に必ず手動実行する**     |
+| `./scripts/verify.sh --fix` | 上記 + 自動修正                        | 修正を一括反映したいとき                           |
+| `vp test`                   | Vitest 実行                            | Hook・ユーティリティ・コンポーネントの振る舞い確認 |
 
 `vp check`だけでは以下の5つのshellチェックが素通りしてしまう:
 
@@ -177,12 +177,12 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 **`verify.sh`はどのタイミングでも自動実行されない。** 手動で実行することが前提のコマンドであり、以下の自動化ポイントはそれぞれ異なるサブセットしかカバーしていない。
 
-| タイミング | 仕組み | 実行内容 | `verify.sh`との差分 |
-|---|---|---|---|
-| Kiro CLI: ファイル書き込み前 | `preToolUse(write)` フック（`frontend-write-guard.sh`） | `check-features-structure.sh --file`、`check-hook-location.sh --file`（**書き込み対象の1ファイルのみ検証**、違反時は書き込み自体をブロック） | `check-ui-readonly.sh`・`api-readonly.sh`・`check-test-exists.sh`は非対応 |
-| Kiro CLI: ファイル書き込み後 | `postToolUse(write)` フック（`frontend-test-prompt.sh`, `orval-regen-prompt.sh`） | テスト未作成の通知、Orval再生成の提案（**通知のみ、ブロックしない**） | `check-test-exists.sh`と目的は同じだが独立実装、強制力なし |
-| Kiro CLI: 応答終了時 | `stop` フック（`frontend-lint-check.sh`） | `vp check`のみ実行し、違反パターンを通知（**通知のみ、ブロックしない**） | shellチェック5種は一切実行されない |
-| 人間のコミット時 | Git pre-commit（`core.hooksPath` → `vp staged`） | `vite.config.ts`の`staged`設定に従い、lint --fix + fmt + shellチェック5種を**全て実行**（違反時はコミットをブロック） | `verify.sh`と同等の網羅性 |
+| タイミング                   | 仕組み                                                                            | 実行内容                                                                                                                                     | `verify.sh`との差分                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Kiro CLI: ファイル書き込み前 | `preToolUse(write)` フック（`frontend-write-guard.sh`）                           | `check-features-structure.sh --file`、`check-hook-location.sh --file`（**書き込み対象の1ファイルのみ検証**、違反時は書き込み自体をブロック） | `check-ui-readonly.sh`・`api-readonly.sh`・`check-test-exists.sh`は非対応 |
+| Kiro CLI: ファイル書き込み後 | `postToolUse(write)` フック（`frontend-test-prompt.sh`, `orval-regen-prompt.sh`） | テスト未作成の通知、Orval再生成の提案（**通知のみ、ブロックしない**）                                                                        | `check-test-exists.sh`と目的は同じだが独立実装、強制力なし                |
+| Kiro CLI: 応答終了時         | `stop` フック（`frontend-lint-check.sh`）                                         | `vp check`のみ実行し、違反パターンを通知（**通知のみ、ブロックしない**）                                                                     | shellチェック5種は一切実行されない                                        |
+| 人間のコミット時             | Git pre-commit（`core.hooksPath` → `vp staged`）                                  | `vite.config.ts`の`staged`設定に従い、lint --fix + fmt + shellチェック5種を**全て実行**（違反時はコミットをブロック）                        | `verify.sh`と同等の網羅性                                                 |
 
 つまりAIがコード変更中に強制されるのは配置ルール2種のみで、`components/ui/`・`src/api/`の誤編集やテスト未作成は**AIの応答中には検出されず**、人間がコミットしようとした瞬間（pre-commit）で初めて弾かれる。そのため、AIはコード変更後に**必ず`./scripts/verify.sh`を自主的に実行する**必要がある（steeringで明示されているが、フックによる強制はない）。
 
