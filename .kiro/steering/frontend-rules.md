@@ -8,6 +8,7 @@
 ## 技術スタック
 
 - React 19 + TypeScript (strict)
+- React Compiler（`babel-plugin-react-compiler`、`vite.config.ts` で有効化）
 - TanStack Router（ファイルベースルーティング）
 - Tailwind CSS v4 + Shadcn/ui
 - Vite+（`vp` コマンドで操作）
@@ -173,6 +174,14 @@ React + TypeScript + Vitest + Tailwind CSS という同種の技術スタック�
 `jsdoc` プラグインは見送った。本プロジェクトは「コンポーネント/Hook に JSDoc は不要」方針（`frontend-code-patterns.md`）のため導入価値が薄い。
 
 上記以外の大半のルール（`react/forbid-dom-props`, `project-rules/no-button-inside-link` 等）は参考リポジトリの照合以前に、steering の既存規約に対応させる独自調査（Web 検索・自作カスタムルール）で導入したものであり、特定の外部リポジトリ由来ではない。`vite.config.ts` 内には出典コメントを付けていない（大半のルールに出典がなく、一部にだけ付けると却って分かりにくいため、出典情報はこのファイルに集約する）。
+
+### `vercel-labs/agent-skills`（react-best-practices）は不採用
+
+[`vercel-labs/agent-skills` の React Best Practices](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md)（Vercel 公式、パフォーマンス最適化ルール 70 件）を確認したが、本プロジェクトには採用しない。
+
+- カテゴリの大半（Eliminating Waterfalls、Bundle Size Optimization、Server-Side Performance 等）は Next.js 固有（RSC・Server Actions・`next/dynamic`・`after()` 等）であり、本プロジェクトの技術スタック（Vite + TanStack Router、CSR）に適用対象がない
+- Re-render Optimization カテゴリ（`rerender-memo`, `rerender-functional-setstate` 等の手動 `memo()`/`useMemo()`/`useCallback()` 最適化）は、ルール本文に「**React Compiler が有効な場合はこの最適化は不要**」と明記されている。本プロジェクトは `vite.config.ts` で `babel-plugin-react-compiler` を有効化済みのため、これらのルールを採用すると React Compiler の自動最適化と二重管理になる
+- 残る JavaScript Performance カテゴリ（`js-set-map-lookups` 等の汎用最適化）は、現状 CRUD 中心の実装（大量データのループ処理等が発生していない）では適用箇所がなく、先に規約化する必要性がない
 
 ---
 
