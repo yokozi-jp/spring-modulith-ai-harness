@@ -58,7 +58,7 @@ export default defineConfig({
       browser: true,
       es2024: true,
     },
-    plugins: ["typescript", "react", "unicorn", "import", "jsx-a11y", "oxc"],
+    plugins: ["typescript", "react", "unicorn", "import", "jsx-a11y", "oxc", "promise"],
     jsPlugins: ["./oxlint-plugins/project-rules.js", "eslint-plugin-better-tailwindcss"],
     rules: {
       "better-tailwindcss/enforce-shorthand-classes": "error",
@@ -99,6 +99,7 @@ export default defineConfig({
       "array-callback-return": "error",
       "no-case-declarations": "error",
       "no-else-return": "error",
+      "no-unreachable-loop": "error",
 
       "react/no-array-index-key": "error",
       "react/jsx-no-target-blank": "error",
@@ -261,6 +262,11 @@ export default defineConfig({
 
       // new URL("./src", ...) の相対パス表記は明示的で正しい
       "unicorn/relative-url-style": "off",
+
+      // setTimeout 等のコールバックベース API を Promise 化する際の
+      // 典型パターン（await new Promise((resolve) => setTimeout(resolve, ms))）を許容する。
+      // async/await に書き換えられない正当なケースが存在するため一律禁止は過剰
+      "promise/avoid-new": "off",
     },
     overrides: [
       {

@@ -149,6 +149,22 @@ Airbnb 側も同様の照合を行い、以下2つの見落としを発見・採
 
 Airbnb のフォーマット系ルール（`quotes`, `semi`, `comma-dangle`, `space-before-blocks` 等）は oxlint（lint）の対象外であり、oxfmt（フォーマッター）側で担当するため対応不要。`camelcase`, `no-mixed-operators` 等は oxlint に対応ルールが存在せず見送り。
 
+### 参考リポジトリとの照合
+
+React + TypeScript + Vitest + Tailwind CSS という同種の技術スタックで oxlint を運用している OSS の設定と照合し、抜け漏れを確認する運用にしている。
+
+- [`sapegin/oxlint-config-raccoon`](https://github.com/sapegin/oxlint-config-raccoon) — 最も構成が近い。`base`/`typescript`/`typescript-react`/`typescript-react-tailwind` の階層プリセット
+- [`expo/oxlint-config-universe`](https://github.com/expo/oxlint-config-universe) — README に「oxlint でカバーできない eslint-config-universe のルール一覧」が明記されており、oxlint 未実装ルールの把握に有用
+
+**照合結果**: `oxlint-config-raccoon` が個別に列挙しているルールの大半は、本プロジェクトの `categories` 一括 `error` 設定で既に暗黙的に有効化されていた（`vp lint --print-config` で個別に確認済み）。追加で採用したのは以下:
+
+- `no-unreachable-loop` — カテゴリ一括設定でも `default: false` のため個別追加が必要だった
+- `promise` プラグイン全体（`promise/catch-or-return`, `promise/prefer-await-to-then`, `promise/no-nesting` 等） — `.then()/.catch()` チェーンを検出し async/await への書き換えを促す。ただし `promise/avoid-new` は `await new Promise((resolve) => setTimeout(resolve, ms))` のような正当な Promise 化パターンまで一律禁止するため `off` にした（実機検証で確認）
+
+`expo/oxlint-config-universe` が指摘する `no-dupe-args` / `no-octal` / `react/jsx-no-bind` 等は、本プロジェクトの oxlint バージョンでも同様に未実装と確認済み（oxlint 自体の制約であり対応不可）。
+
+`jsdoc` プラグインは見送った。本プロジェクトは「コンポーネント/Hook に JSDoc は不要」方針（`frontend-code-patterns.md`）のため導入価値が薄い。
+
 ---
 
 ## Git pre-commit フック
