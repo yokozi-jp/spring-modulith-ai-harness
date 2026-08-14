@@ -58,7 +58,12 @@ export default defineConfig({
       browser: true,
       es2024: true,
     },
+    // promise: .then()/.catch() チェーンを検出し async/await への書き換えを促す
+    // 参考: sapegin/oxlint-config-raccoon の base.ts
+    // https://github.com/sapegin/oxlint-config-raccoon/blob/main/src/base.ts
     plugins: ["typescript", "react", "unicorn", "import", "jsx-a11y", "oxc", "promise"],
+    // eslint-plugin-better-tailwindcss: oxlint 対応の公式 Tailwind CSS lint プラグイン
+    // https://github.com/schoero/eslint-plugin-better-tailwindcss
     jsPlugins: ["./oxlint-plugins/project-rules.js", "eslint-plugin-better-tailwindcss"],
     rules: {
       "better-tailwindcss/enforce-shorthand-classes": "error",
@@ -91,6 +96,8 @@ export default defineConfig({
       "typescript/only-throw-error": "error",
       // floating promise 対策の `void invalidateQueries(...)` 等（frontend-data-patterns.md）を
       // 許可するため、ステートメントとしての void 演算子は許容する
+      // 参考: sapegin/oxlint-config-raccoon の base.ts が同一設定
+      // https://github.com/sapegin/oxlint-config-raccoon/blob/main/src/base.ts
       "no-void": ["error", { allowAsStatement: true }],
       "no-use-before-define": ["error", { functions: false }],
       "no-shadow": "error",
@@ -99,6 +106,8 @@ export default defineConfig({
       "array-callback-return": "error",
       "no-case-declarations": "error",
       "no-else-return": "error",
+      // categories 一括 error でも default: false のため個別追加が必要だった
+      // 参考: sapegin/oxlint-config-raccoon の base.ts
       "no-unreachable-loop": "error",
 
       "react/no-array-index-key": "error",
