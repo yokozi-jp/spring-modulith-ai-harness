@@ -306,8 +306,11 @@ export default defineConfig({
       "./scripts/checks/check-hook-location.sh",
       "./scripts/checks/check-features-structure.sh",
       "./scripts/checks/check-test-exists.sh",
-      "./scripts/checks/check-ui-readonly.sh",
-      "./scripts/checks/api-readonly.sh",
     ],
+    // components/ui/ と src/api/ は生成物の誤編集検出のため、
+    // 対象ディレクトリへの変更があれば拡張子を問わず必ず実行する
+    // （新規追加ファイルのみのステージングでも発火させるため）
+    "src/components/ui/**": ["./scripts/checks/check-ui-readonly.sh"],
+    "src/api/**": ["./scripts/checks/api-readonly.sh"],
   },
 });
