@@ -158,7 +158,7 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 `oxlint-plugins/project-rules.js` にカスタムルールを追加する前に、oxlint組み込みルールで同等の検証ができないか必ず確認する（`frontend-rules.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
 
-### 検証コマンドの使い分け
+### 検証コマンドの使い分けと自動実行の実態
 
 | コマンド | 実行内容 | 使う場面 |
 |---|---|---|
@@ -167,7 +167,7 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 | `./scripts/verify.sh --fix` | 上記 + 自動修正 | 修正を一括反映したいとき |
 | `vp test` | Vitest 実行 | Hook・ユーティリティ・コンポーネントの振る舞い確認 |
 
-`vp check`だけでは以下の5つのshellチェックが素通りしてしまう点に注意する:
+`vp check`だけでは以下の5つのshellチェックが素通りしてしまう:
 
 - `check-hook-location.sh` — Hookファイルの配置場所
 - `check-features-structure.sh` — `features/`ディレクトリ構造
@@ -175,9 +175,7 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 - `api-readonly.sh` — `src/api/`（Orval自動生成）への誤編集
 - `check-test-exists.sh` — Hook/utilに対応するテストファイルの有無
 
-### どこで何が自動実行されるか（現状の実態）
-
-`verify.sh`はどのタイミングでも自動実行されない。**手動で実行することが前提のコマンド**であり、以下の自動化ポイントはそれぞれ異なるサブセットしかカバーしていない。
+**`verify.sh`はどのタイミングでも自動実行されない。** 手動で実行することが前提のコマンドであり、以下の自動化ポイントはそれぞれ異なるサブセットしかカバーしていない。
 
 | タイミング | 仕組み | 実行内容 | `verify.sh`との差分 |
 |---|---|---|---|
@@ -186,11 +184,7 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 | Kiro CLI: 応答終了時 | `stop` フック（`frontend-lint-check.sh`） | `vp check`のみ実行し、違反パターンを通知（**通知のみ、ブロックしない**） | shellチェック5種は一切実行されない |
 | 人間のコミット時 | Git pre-commit（`core.hooksPath` → `vp staged`） | `vite.config.ts`の`staged`設定に従い、lint --fix + fmt + shellチェック5種を**全て実行**（違反時はコミットをブロック） | `verify.sh`と同等の網羅性 |
 
-**現状の実質的な意味**:
-
-- AIがコード変更中に「書き込みブロック」で強制されるのは配置ルール2種のみ
-- `components/ui/`・`src/api/`の誤編集や、テストファイル未作成は、**AIの応答中には検出されず**、人間がコミットしようとした瞬間（pre-commit）で初めて弾かれる
-- そのため、AIはコード変更後に**必ず`./scripts/verify.sh`を自主的に実行する**必要がある（steeringで明示されているが、フックによる強制はない）
+つまりAIがコード変更中に強制されるのは配置ルール2種のみで、`components/ui/`・`src/api/`の誤編集やテスト未作成は**AIの応答中には検出されず**、人間がコミットしようとした瞬間（pre-commit）で初めて弾かれる。そのため、AIはコード変更後に**必ず`./scripts/verify.sh`を自主的に実行する**必要がある（steeringで明示されているが、フックによる強制はない）。
 
 ### まとめ
 
