@@ -208,6 +208,18 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 
 ## ルール
 
+frontend 関連の AI 向け規約（steering）は `.kiro/steering/` 配下に7ファイルある。PRで規約が変更された場合、どのファイルに何が書かれているかの一覧は以下の通り。
+
+| ファイル                             | 役割                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `frontend-rules.md`                  | 技術スタック、コマンド、Vite+/oxlintの運用、ディレクトリ構成、命名規則、禁止事項の全体方針 |
+| `frontend-code-patterns.md`          | コンポーネント/Hook定義、イベントハンドラ、条件付きレンダリング等のコードの書き方          |
+| `frontend-data-patterns.md`          | データフェッチング・ミューテーション・状態管理・エラーハンドリング・Orval運用              |
+| `frontend-ui-patterns.md`            | UIコンポーネントの選択、Shadcn/ui使用ルール、ローディング/エラー状態の表現                 |
+| `frontend-test-patterns.md`          | テスト必須ルール、モック方針、Hook/コンポーネントのテストパターン                          |
+| `frontend-url-and-state-patterns.md` | URL・クエリパラメータ設計、画面間パラメータ連携、状態管理の分類、バリデーション原則        |
+| `frontend-lint-fix-guide.md`         | oxlintルール・カスタムチェック・TypeScriptコンパイラエラーの個別修正方法（辞書的な参照用） |
+
 - 詳細は `.kiro/steering/frontend-rules.md` を参照
 - Lint 方針は `docs/adr/0007-frontend-lint-all-error-policy.md` を参照
 - API クライアント生成方針は `docs/adr/0008-openapi-orval-codegen.md` を参照
