@@ -2,6 +2,16 @@
 
 React + TanStack Router + Tailwind CSS + Shadcn/ui のフロントエンド基盤。
 
+## 目次
+
+- [セットアップ](#セットアップ)
+- [ディレクトリ構成](#ディレクトリ構成)
+- [API クライアント生成（Orval）](#api-クライアント生成orval)
+- [コンポーネント追加](#コンポーネント追加)
+- [スタイリングの仕組み](#スタイリングの仕組み)
+- [コード品質の仕組み](#コード品質の仕組み)
+- [ルール](#ルール)
+
 ## セットアップ
 
 ```bash
@@ -10,17 +20,28 @@ vp install
 vp dev        # http://localhost:5173 で起動
 ```
 
-## コマンド一覧
+| コマンド | 用途 |
+| --- | --- |
+| `vp install` | 依存インストール |
+| `vp dev` | 開発サーバー起動 |
+| `vp build` | 本番ビルド |
 
-| コマンド              | 用途                                     |
-| --------------------- | ---------------------------------------- |
-| `vp install`          | 依存インストール                         |
-| `vp dev`              | 開発サーバー起動                         |
-| `vp check`            | Lint + 型チェック + フォーマットチェック |
-| `vp check --fix`      | 自動修正                                 |
-| `./scripts/verify.sh` | 全検証（vp check + カスタムチェック）    |
-| `vp test`             | テスト実行                               |
-| `vp build`            | 本番ビルド                               |
+検証コマンド（`vp check` / `verify.sh` / `vp test`）は [コード品質の仕組み](#コード品質の仕組み) を参照。
+
+## ディレクトリ構成
+
+```text
+src/
+├── routes/              # ページ（ファイル構造 = URL構造）
+├── features/            # 機能単位（components/, hooks/, types/）
+├── components/
+│   └── ui/             # Shadcn/ui（自動生成、編集禁止）
+├── api/                 # Orval 自動生成（編集禁止）
+├── hooks/              # 汎用 Hooks
+├── lib/                # ユーティリティ
+├── types/              # 共有型定義
+└── styles/             # Tailwind CSS
+```
 
 ## API クライアント生成（Orval）
 
@@ -43,21 +64,6 @@ cd frontend && npx orval
 
 生成物は `src/api/` 配下（タグごとにディレクトリ分割）。**手動編集しない**（再生成で上書きされる）。
 `src/features/*/hooks/` から生成された Hook をラップして使う。
-
-## ディレクトリ構成
-
-```text
-src/
-├── routes/              # ページ（ファイル構造 = URL構造）
-├── features/            # 機能単位（components/, hooks/, types/）
-├── components/
-│   └── ui/             # Shadcn/ui（自動生成、編集禁止）
-├── api/                 # Orval 自動生成（編集禁止）
-├── hooks/              # 汎用 Hooks
-├── lib/                # ユーティリティ
-├── types/              # 共有型定義
-└── styles/             # Tailwind CSS
-```
 
 ## コンポーネント追加
 
@@ -186,12 +192,12 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 - `components/ui/`・`src/api/`の誤編集や、テストファイル未作成は、**AIの応答中には検出されず**、人間がコミットしようとした瞬間（pre-commit）で初めて弾かれる
 - そのため、AIはコード変更後に**必ず`./scripts/verify.sh`を自主的に実行する**必要がある（steeringで明示されているが、フックによる強制はない）
 
-### まとめ: 何が漏れを防いでいるか
+### まとめ
 
 - **書く瞬間**: TypeScript strict + エディタのoxlint連携で即時フィードバック
-- **AIの書き込み時**: `preToolUse`フックが配置ルール2種のみを強制ブロック（`verify.sh`の一部にすぎない）
-- **変更後の確認（手動）**: `./scripts/verify.sh`で1ファイル解析・ファイル間関係・Git状態を横断チェック。**自動実行されないため、コード変更のたびに明示的に実行する**
-- **コミット時**: pre-commitフックが`verify.sh`と同等のチェックを強制（人間がコミットする瞬間に限り回避できない）
+- **AIの書き込み時**: `preToolUse`フックが配置ルール2種のみを強制ブロック
+- **変更後（手動）**: `./scripts/verify.sh`で全チェックを横断実行
+- **コミット時**: pre-commitフックが`verify.sh`と同等のチェックを強制
 - **意味的な正しさ**: `vp test`でHook・コンポーネントの振る舞いを検証
 
 ## ルール
