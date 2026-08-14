@@ -156,16 +156,16 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 | ファイル間の対応関係（Hookファイルに対応するテストファイルの有無）      | shell  | 複数ファイルの存在確認はoxlintの管轄外                 |
 | Git追跡状態（`src/api/`や`components/ui/`が意図せず変更されていないか） | shell  | oxlintは1ファイルの中身しか見ず、Git状態は判定できない |
 
-**`verify.sh`は`stop`フック経由で自動実行される。** チェック項目ごとに、どのタイミングで検証されるかは以下の通り。
+**`verify.sh`は`stop`フック経由で自動実行される。** チェック項目ごとに、どのタイミングで検証されるかは以下の通り。3つの列はいずれも仕組みが異なる: `preToolUse`・`stop`は**Kiro CLIのhook機構**（`.kiro/agents/default.json`で定義、実体は`.kiro/hooks/*.sh`）、pre-commitは**Gitのhook機構**（`core.hooksPath`経由で`vp staged`を実行）。
 
-| チェック項目                                    | 書き込み前<br>(`preToolUse`) | 応答終了時<br>(`stop`) | コミット時<br>(pre-commit) |
-| ----------------------------------------------- | :--------------------------: | :--------------------: | :------------------------: |
-| lint / 型チェック / フォーマット（`vp check`）  |              ❌              |        ✅ 通知         |        ✅ ブロック         |
-| features/ 構造（`check-features-structure.sh`） |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
-| Hook配置（`check-hook-location.sh`）            |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
-| components/ui/ 誤編集（`check-ui-readonly.sh`） |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
-| src/api/ 誤編集（`api-readonly.sh`）            |         ✅ ブロック          |        ✅ 通知         |        ✅ ブロック         |
-| テスト未作成（`check-test-exists.sh`）          |              ❌              |        ✅ 通知         |        ✅ ブロック         |
+| チェック項目                                    | 書き込み前<br>(`preToolUse`)<br>Kiro CLI hook | 応答終了時<br>(`stop`)<br>Kiro CLI hook | コミット時<br>(pre-commit)<br>Git hook |
+| ----------------------------------------------- | :-------------------------------------------: | :-------------------------------------: | :------------------------------------: |
+| lint / 型チェック / フォーマット（`vp check`）  |                      ❌                       |                 ✅ 通知                 |              ✅ ブロック               |
+| features/ 構造（`check-features-structure.sh`） |                  ✅ ブロック                  |                 ✅ 通知                 |              ✅ ブロック               |
+| Hook配置（`check-hook-location.sh`）            |                  ✅ ブロック                  |                 ✅ 通知                 |              ✅ ブロック               |
+| components/ui/ 誤編集（`check-ui-readonly.sh`） |                  ✅ ブロック                  |                 ✅ 通知                 |              ✅ ブロック               |
+| src/api/ 誤編集（`api-readonly.sh`）            |                  ✅ ブロック                  |                 ✅ 通知                 |              ✅ ブロック               |
+| テスト未作成（`check-test-exists.sh`）          |                      ❌                       |                 ✅ 通知                 |              ✅ ブロック               |
 
 凡例:
 
@@ -180,6 +180,8 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 - **テスト未作成**は書き込み前には検証不可能（対象ファイルがまだ存在しない）ため、応答終了時（`stop`）が最初の検出機会になる。ファイル書き込み直後の個別通知は行わない（1つの応答で複数ファイルを書く場合、`stop`でまとめて通知する方がコンテキスト消費が少なく、AIの多くはコード生成時にテストも合わせて書く前提で動くため、書き込み直後の個別通知の実効性は低いと判断した）
 - **lint/型/フォーマット**も書き込み前には検証されず、応答終了時（`stop`）が最初の検出機会になる
 - 人間がコミットする瞬間（pre-commit）は、唯一すべての項目がブロックとして機能する
+
+**steeringはこの3つの実行機構とは別枠**であることに注意する。`.kiro/steering/frontend-rules.md`の「コード変更後は必ず`./scripts/verify.sh`を実行する」という一文はAIへの規範（読んで従うべきルール）であり、hook機構のように自動実行されるものではない。実際に強制力を持つのは上表の`preToolUse`・`stop`（Kiro CLI hook）と pre-commit（Git hook）のみで、steeringはAIがそれらのフックの通知に頼らず自主的に`verify.sh`を実行する動機付けの役割を担う。
 
 `oxlint-plugins/project-rules.js` にカスタムルールを追加する前に、oxlint組み込みルールで同等の検証ができないか必ず確認する（`frontend-rules.md`の「カスタム oxlint ルール vs 組み込みルール」参照）。
 
@@ -199,9 +201,9 @@ cn() でクラスを結合・重複解決（src/lib/utils.ts、clsx + tailwind-m
 ### まとめ
 
 - **書く瞬間**: TypeScript strict + エディタのoxlint連携で即時フィードバック
-- **AIの書き込み時**: `preToolUse`が配置・生成物編集の4項目をブロック（lint/型/フォーマット・テスト未作成は未検証）
-- **AIの応答終了時**: `stop`が全項目を検証し失敗内容を通知（ブロックはできないため通知止まり）
-- **コミット時**: pre-commitが全項目をブロックとして強制（唯一の完全な強制ポイント）
+- **AIの書き込み時**: `preToolUse`（Kiro CLI hook）が配置・生成物編集の4項目をブロック（lint/型/フォーマット・テスト未作成は未検証）
+- **AIの応答終了時**: `stop`（Kiro CLI hook）が全項目を検証し失敗内容を通知（ブロックはできないため通知止まり）
+- **コミット時**: pre-commit（Git hook）が全項目をブロックとして強制（唯一の完全な強制ポイント）
 - **意味的な正しさ**: `vp test`でHook・コンポーネントの振る舞いを検証
 
 ## ルール
