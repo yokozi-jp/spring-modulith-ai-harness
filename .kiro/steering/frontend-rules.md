@@ -153,17 +153,26 @@ Airbnb のフォーマット系ルール（`quotes`, `semi`, `comma-dangle`, `sp
 
 React + TypeScript + Vitest + Tailwind CSS という同種の技術スタックで oxlint を運用している OSS の設定と照合し、抜け漏れを確認する運用にしている。
 
-- [`sapegin/oxlint-config-raccoon`](https://github.com/sapegin/oxlint-config-raccoon) — 最も構成が近い。`base`/`typescript`/`typescript-react`/`typescript-react-tailwind` の階層プリセット
+- [`sapegin/oxlint-config-raccoon`](https://github.com/sapegin/oxlint-config-raccoon) — 最も構成が近い。`base`/`typescript`/`typescript-react`/`typescript-react-tailwind` の階層プリセット（[`base.ts`](https://github.com/sapegin/oxlint-config-raccoon/blob/main/src/base.ts), [`typescript-react.ts`](https://github.com/sapegin/oxlint-config-raccoon/blob/main/src/typescript-react.ts) を参照）
 - [`expo/oxlint-config-universe`](https://github.com/expo/oxlint-config-universe) — README に「oxlint でカバーできない eslint-config-universe のルール一覧」が明記されており、oxlint 未実装ルールの把握に有用
+- [`schoero/eslint-plugin-better-tailwindcss`](https://github.com/schoero/eslint-plugin-better-tailwindcss) — oxlint 対応の公式 Tailwind CSS lint プラグイン。本プロジェクトの `better-tailwindcss/*` ルールの出典
 
-**照合結果**: `oxlint-config-raccoon` が個別に列挙しているルールの大半は、本プロジェクトの `categories` 一括 `error` 設定で既に暗黙的に有効化されていた（`vp lint --print-config` で個別に確認済み）。追加で採用したのは以下:
+**照合結果**: `oxlint-config-raccoon` が個別に列挙しているルールの大半（`array-callback-return`, `curly`, `no-alert`, `react/hook-use-state`, `react/no-unstable-nested-components` 等ほぼ全て）は、本プロジェクトの `categories` 一括 `error` 設定で既に暗黙的に有効化されていた（`vp lint --print-config` で個別に確認済み）。
 
-- `no-unreachable-loop` — カテゴリ一括設定でも `default: false` のため個別追加が必要だった
-- `promise` プラグイン全体（`promise/catch-or-return`, `promise/prefer-await-to-then`, `promise/no-nesting` 等） — `.then()/.catch()` チェーンを検出し async/await への書き換えを促す。ただし `promise/avoid-new` は `await new Promise((resolve) => setTimeout(resolve, ms))` のような正当な Promise 化パターンまで一律禁止するため `off` にした（実機検証で確認）
+この照合で実際に採用・変更した設定:
+
+| 設定 | 出典 | 内容 |
+|---|---|---|
+| `no-void: ["error", { allowAsStatement: true }]` | `oxlint-config-raccoon/base.ts` と同一設定であることを確認 | `restriction` カテゴリ一括設定で暗黙有効化されていた `no-void`（`allowAsStatement: false`）が `void invalidateQueries(...)` 等の frontend-data-patterns.md パターンと矛盾していたため明示修正。raccoon も同じ設定だったことで妥当性を確認できた |
+| `no-unreachable-loop: "error"` | `oxlint-config-raccoon/base.ts` | カテゴリ一括設定でも `default: false` のため個別追加が必要だった |
+| `promise` プラグイン全体（`plugins` に追加） | `oxlint-config-raccoon/base.ts` | `promise/catch-or-return`, `promise/prefer-await-to-then`, `promise/no-nesting` 等、`.then()/.catch()` チェーンを検出し async/await への書き換えを促す |
+| `promise/avoid-new: "off"` | raccoon には存在しない設定（本プロジェクト独自の判断） | `await new Promise((resolve) => setTimeout(resolve, ms))` のような正当な Promise 化パターンまで一律禁止するため実機検証の末 off にした |
 
 `expo/oxlint-config-universe` が指摘する `no-dupe-args` / `no-octal` / `react/jsx-no-bind` 等は、本プロジェクトの oxlint バージョンでも同様に未実装と確認済み（oxlint 自体の制約であり対応不可）。
 
 `jsdoc` プラグインは見送った。本プロジェクトは「コンポーネント/Hook に JSDoc は不要」方針（`frontend-code-patterns.md`）のため導入価値が薄い。
+
+上記以外の大半のルール（`react/forbid-dom-props`, `project-rules/no-button-inside-link` 等）は参考リポジトリの照合以前に、steering の既存規約に対応させる独自調査（Web 検索・自作カスタムルール）で導入したものであり、特定の外部リポジトリ由来ではない。`vite.config.ts` 内には出典コメントを付けていない（大半のルールに出典がなく、一部にだけ付けると却って分かりにくいため、出典情報はこのファイルに集約する）。
 
 ---
 
