@@ -13,6 +13,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
+# shellcheck source=lib/test-file-exclusion.sh
+source "scripts/checks/lib/test-file-exclusion.sh"
 
 # --- 単一ファイル検証モード ---
 if [[ "${1:-}" == "--file" ]]; then
@@ -25,7 +27,7 @@ if [[ "${1:-}" == "--file" ]]; then
   fi
 
   # テストファイルは対象外
-  if [[ "$FILENAME" == *.test.ts || "$FILENAME" == *.test.tsx ]]; then
+  if is_test_file "$FILENAME"; then
     exit 0
   fi
 
@@ -50,7 +52,7 @@ while IFS= read -r file; do
   if [[ "$file" != src/hooks/* && "$file" != src/features/*/hooks/* ]]; then
     errors+=("$file: Hookファイルは src/hooks/ または src/features/<feature>/hooks/ 内に配置してください。")
   fi
-done < <(find src -name "use-*.ts" ! -name "*.test.ts" | grep -v node_modules)
+done < <(find src -name "use-*.ts" "${TEST_FILE_EXCLUDE_FIND_ARGS[@]}" | grep -v node_modules)
 
 if [[ ${#errors[@]} -gt 0 ]]; then
   echo "ERROR: Hook の配置ルール違反が見つかりました。"

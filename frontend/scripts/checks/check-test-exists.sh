@@ -2,30 +2,33 @@
 # Hook と util のテストファイル存在チェック
 #
 # 対象:
-#   - src/features/*/hooks/*.ts → *.test.ts が必要
-#   - src/hooks/*.ts → *.test.ts が必要
-#   - src/lib/*.ts → *.test.ts が必要
+#   - src/features/*/hooks/*.ts → *.test.ts または *.test.tsx が必要
+#   - src/hooks/*.ts → *.test.ts または *.test.tsx が必要
+#   - src/lib/*.ts → *.test.ts または *.test.tsx が必要
 #
 # 除外:
-#   - *.test.ts（テストファイル自体）
+#   - *.test.ts / *.test.tsx（テストファイル自体）
 #   - *.d.ts（型定義ファイル）
 #   - index.ts（barrel export）
 
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
+# shellcheck source=lib/test-file-exclusion.sh
+source "scripts/checks/lib/test-file-exclusion.sh"
 
 errors=()
 
 # features/*/hooks/ 内の Hook ファイル
 while IFS= read -r file; do
   base="${file%.ts}"
-  test_file="${base}.test.ts"
-  if [[ ! -f "$test_file" ]]; then
-    errors+=("$file: テストファイルがありません → $test_file を作成してください")
+  test_file_ts="${base}.test.ts"
+  test_file_tsx="${base}.test.tsx"
+  if [[ ! -f "$test_file_ts" && ! -f "$test_file_tsx" ]]; then
+    errors+=("$file: テストファイルがありません → $test_file_ts を作成してください")
   fi
 done < <(find src/features -path "*/hooks/*.ts" \
-  ! -name "*.test.ts" \
+  "${TEST_FILE_EXCLUDE_FIND_ARGS[@]}" \
   ! -name "*.d.ts" \
   ! -name "index.ts" \
   -type f 2>/dev/null)
@@ -33,12 +36,13 @@ done < <(find src/features -path "*/hooks/*.ts" \
 # src/hooks/ 内の共通 Hook ファイル
 while IFS= read -r file; do
   base="${file%.ts}"
-  test_file="${base}.test.ts"
-  if [[ ! -f "$test_file" ]]; then
-    errors+=("$file: テストファイルがありません → $test_file を作成してください")
+  test_file_ts="${base}.test.ts"
+  test_file_tsx="${base}.test.tsx"
+  if [[ ! -f "$test_file_ts" && ! -f "$test_file_tsx" ]]; then
+    errors+=("$file: テストファイルがありません → $test_file_ts を作成してください")
   fi
 done < <(find src/hooks -name "*.ts" \
-  ! -name "*.test.ts" \
+  "${TEST_FILE_EXCLUDE_FIND_ARGS[@]}" \
   ! -name "*.d.ts" \
   ! -name "index.ts" \
   -type f 2>/dev/null)
@@ -46,12 +50,13 @@ done < <(find src/hooks -name "*.ts" \
 # src/lib/ 内のユーティリティファイル（設定ファイル的なものは除外）
 while IFS= read -r file; do
   base="${file%.ts}"
-  test_file="${base}.test.ts"
-  if [[ ! -f "$test_file" ]]; then
-    errors+=("$file: テストファイルがありません → $test_file を作成してください")
+  test_file_ts="${base}.test.ts"
+  test_file_tsx="${base}.test.tsx"
+  if [[ ! -f "$test_file_ts" && ! -f "$test_file_tsx" ]]; then
+    errors+=("$file: テストファイルがありません → $test_file_ts を作成してください")
   fi
 done < <(find src/lib -name "*.ts" \
-  ! -name "*.test.ts" \
+  "${TEST_FILE_EXCLUDE_FIND_ARGS[@]}" \
   ! -name "*.d.ts" \
   ! -name "index.ts" \
   ! -name "api-client.ts" \

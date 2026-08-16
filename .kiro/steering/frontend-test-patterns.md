@@ -44,9 +44,11 @@ import { describe, expect, it } from "vite-plus/test";
 | 対象 | テスト | モック |
 |------|--------|--------|
 | ユーティリティ関数 | **作る** | なし（純粋関数） |
-| カスタム Hook | **作る** | API 関数を `vi.mock` |
+| カスタム Hook（Orval 生成 Hook 経由） | **作る** | `@/lib/api-client` の `apiClient` を `vi.mock` |
 | コンポーネント | **作る** | Hook を `vi.mock` |
 | 純粋な見た目 | **作らない** | — |
+
+**重要**: features の Hook は Orval 生成 Hook（`useListXxx`, `useCreateXxx` 等）をラップしている（`frontend-data-patterns.md` 参照）。モック対象は Orval 生成モジュール（`@/api/<tag>/<tag>`）ではなく `@/lib/api-client` の `apiClient` である。理由は次セクションで説明する。
 
 ---
 
@@ -74,19 +76,42 @@ describe("cn", () => {
 
 ## Hook のテスト
 
-### API 関数をモックする
+### ⛔ 禁止パターン — Orval 生成モジュールを丸ごとモックする
+
+```typescript
+// ❌ これは機能しない
+vi.mock("@/api/order/order");
+vi.mocked(orderApi.getOrders).mockResolvedValue(mockOrders);
+```
+
+**理由**: Orval 生成モジュール（`src/api/<tag>/<tag>.ts`）は、`useListXxx`/`useCreateXxx` 等の TanStack Query Hook と、fetch 関数（`listXxx`/`createXxx` 等）が**同一モジュール内で直接参照し合う**構造になっている。Hook 内部の `queryFn`/`mutationFn` は、モジュールのトップレベルで定義された fetch 関数をクロージャで直接呼び出す。
+
+`vi.mock("@/api/order/order", factory)` で `factory` が `actual` をスプレッドしつつ fetch 関数だけを `vi.fn()` に差し替えても、**モジュール内部の相互参照までは差し替わらない**。外部から見える `orderApi.getOrders` は差し替わったモック関数だが、Hook 内部が呼ぶ実体は元のモジュールスコープの関数（本物の fetch 呼び出し）のままである。
+
+この状態でテストを実行すると、モックの `mockResolvedValue` は一切使われず、本物の `fetch` が発火して以下のような実行時エラーになる（テストでしか発覚しない）:
+
+```
+TypeError: Failed to parse URL from /api/v1/orders/1
+    at apiClient (src/lib/api-client.ts:17:26)
+    at deleteOrder (src/api/order/order.ts:174:44)
+    at Object.mutationFn (src/api/order/order.ts:198:10)
+```
+
+### ✅ 正しいパターン — `apiClient` をモックする
+
+Orval 生成コードは最終的にすべて `@/lib/api-client` の `apiClient` 関数を経由して fetch する（`frontend-data-patterns.md` の「API クライアント」参照）。この最下層をモックすれば、Hook・fetch 関数の内部結合を気にせず確実にモックできる。
 
 ```typescript
 // src/features/order/hooks/use-order-list.test.ts
+import type { ReactNode } from "react";
 import { describe, expect, it, vi, beforeEach } from "vite-plus/test";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
 import { useOrderList } from "@/features/order/hooks/use-order-list";
-import * as orderApi from "@/api/order";
+import { apiClient } from "@/lib/api-client";
 
-// API モジュールをモック
-vi.mock("@/api/order");
+// Orval 生成モジュールではなく apiClient をモックする
+vi.mock("@/lib/api-client");
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -108,7 +133,11 @@ describe("useOrderList", () => {
   });
 
   it("初期状態で isLoading が true", () => {
-    vi.mocked(orderApi.getOrders).mockReturnValue(new Promise(() => {})); // pending
+    vi.mocked(apiClient).mockReturnValue(
+      new Promise(() => {
+        // 意図的に resolve/reject しない: pending 状態を維持するためのモック
+      }),
+    );
 
     const { result } = renderHook(() => useOrderList(), {
       wrapper: createWrapper(),
@@ -119,8 +148,11 @@ describe("useOrderList", () => {
   });
 
   it("取得成功時に orders を返す", async () => {
-    const mockOrders = [{ id: "1", name: "注文A" }];
-    vi.mocked(orderApi.getOrders).mockResolvedValue(mockOrders);
+    vi.mocked(apiClient).mockResolvedValue({
+      data: { content: [{ id: "1", name: "注文A" }] },
+      status: 200,
+      headers: new Headers(),
+    });
 
     const { result } = renderHook(() => useOrderList(), {
       wrapper: createWrapper(),
@@ -130,11 +162,11 @@ describe("useOrderList", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.orders).toEqual(mockOrders);
+    expect(result.current.orders).toEqual([{ id: "1", name: "注文A" }]);
   });
 
   it("取得失敗時に error を返す", async () => {
-    vi.mocked(orderApi.getOrders).mockRejectedValue(new Error("API Error"));
+    vi.mocked(apiClient).mockRejectedValue(new Error("API Error"));
 
     const { result } = renderHook(() => useOrderList(), {
       wrapper: createWrapper(),
@@ -147,11 +179,89 @@ describe("useOrderList", () => {
 });
 ```
 
+`apiClient` の戻り値は Orval 生成コードが期待する `{ data, status, headers }` 構造で返すこと（`frontend-data-patterns.md` の「api-client.ts の正しい実装」参照）。
+
+### ミューテーション系 Hook のテスト（`mutate()` は `act()` でラップする）
+
+作成・更新・削除の Hook をテストする際、`result.current.createOrder(...)` のような呼び出しは同期的に見えるが、TanStack Query の `mutate()` は内部でバッチングされるため、**`act()` でラップしないと `mutate` が実際にトリガーされない**。ラップを忘れると `apiClient` の呼び出し自体が発生せず、`toHaveBeenCalledWith` のアサーションが「呼ばれていない」で失敗する。
+
+```typescript
+// src/features/order/hooks/use-create-order.test.tsx
+import type { ReactNode } from "react";
+import { act } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { useCreateOrder } from "@/features/order/hooks/use-create-order";
+import { apiClient } from "@/lib/api-client";
+import * as tanstackRouter from "@tanstack/react-router";
+
+vi.mock("@/lib/api-client");
+// navigate を使う Hook は useNavigate もモックする
+vi.mock("@tanstack/react-router", async () => {
+  const actual = await vi.importActual("@tanstack/react-router");
+  return { ...actual, useNavigate: vi.fn() };
+});
+
+function createWrapper() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return function Wrapper({ children }: { readonly children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  };
+}
+
+describe("useCreateOrder", () => {
+  const navigateMock = vi.fn();
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(tanstackRouter.useNavigate).mockReturnValue(navigateMock);
+  });
+
+  it("作成リクエストを正しい内容で送信する", async () => {
+    vi.mocked(apiClient).mockResolvedValue({ data: undefined, status: 201, headers: new Headers() });
+
+    const { result } = renderHook(() => useCreateOrder(), { wrapper: createWrapper() });
+
+    // ❌ act() なしだと mutate が実行されず apiClient が呼ばれない
+    // result.current.createOrder({ customerName: "山田" });
+
+    // ✅ act() でラップする
+    act(() => {
+      result.current.createOrder({ customerName: "山田" });
+    });
+
+    await waitFor(() => {
+      expect(apiClient).toHaveBeenCalledWith(
+        "/api/v1/orders",
+        expect.objectContaining({ method: "POST", body: JSON.stringify({ customerName: "山田" }) }),
+      );
+    });
+  });
+
+  it("作成成功時に一覧ページへ遷移する", async () => {
+    vi.mocked(apiClient).mockResolvedValue({ data: undefined, status: 201, headers: new Headers() });
+
+    const { result } = renderHook(() => useCreateOrder(), { wrapper: createWrapper() });
+
+    act(() => {
+      result.current.createOrder({ customerName: "山田" });
+    });
+
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith({ to: "/orders" });
+    });
+  });
+});
+```
+
 ### モックのルール
 
-- `vi.mock("@/api/...")` で API モジュール全体をモック
-- `vi.mocked(fn).mockResolvedValue(...)` で戻り値を設定
+- `vi.mock("@/lib/api-client")` で `apiClient` をモックする（Orval 生成モジュールを直接モックしない）
+- クエリ系: `vi.mocked(apiClient).mockResolvedValue({ data, status, headers })` で戻り値を設定
+- ミューテーション系: `mutate()` を呼ぶ操作は必ず `act()` でラップする
 - `beforeEach` で `vi.resetAllMocks()` を呼ぶ
+- `useNavigate` を使う Hook をテストする場合は `@tanstack/react-router` も `actual` スプレッド + `useNavigate: vi.fn()` でモックする
 - MSW は使わない（シンプルに `vi.mock` で統一）。`no-restricted-imports` で `msw`/`vitest`/`enzyme` の直接 import を検出する
 
 ---

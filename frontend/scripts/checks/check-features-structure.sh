@@ -13,6 +13,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
+# shellcheck source=lib/test-file-exclusion.sh
+source "scripts/checks/lib/test-file-exclusion.sh"
 
 FEATURES_DIR="src/features"
 
@@ -28,6 +30,13 @@ if [[ "${1:-}" == "--file" ]]; then
 
   FILENAME=$(basename "$FILE_PATH")
   if [[ "$FILENAME" == ".gitkeep" ]]; then
+    exit 0
+  fi
+
+  # テストファイル（*.test.ts, *.test.tsx）は hooks/ 配置ルールの対象外
+  # （frontend-test-patterns.md のテストファイル命名規則に従うファイルであり、
+  # Hook 本体の配置ルールとは無関係。check-hook-location.sh と同様の除外）
+  if is_test_file "$FILENAME"; then
     exit 0
   fi
 
@@ -90,10 +99,13 @@ while IFS= read -r file; do
   errors+=("$file: features/<feature>/ 直下にファイルを配置しないでください。components/, hooks/, types/ 内に配置してください。")
 done < <(find "$FEATURES_DIR" -mindepth 2 -maxdepth 2 -type f)
 
-# 3. hooks/ 内のファイルが use-*.ts パターンか
+# 3. hooks/ 内のファイルが use-*.ts パターンか（テストファイルは除外）
 while IFS= read -r file; do
   basename=$(basename "$file")
   if [[ "$basename" == ".gitkeep" ]]; then
+    continue
+  fi
+  if is_test_file "$basename"; then
     continue
   fi
   if [[ ! "$basename" =~ ^use-.*\.ts$ ]]; then
