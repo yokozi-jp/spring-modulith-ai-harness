@@ -57,6 +57,50 @@ export function OrderCard({ id, name, onSelect }: OrderCardProps) {
 export function OrderCard(props: OrderCardProps) {
 ```
 
+### 1 ファイル 1 コンポーネント
+
+エクスポートするコンポーネントは 1 ファイルに 1 つだけ定義する。表示状態の分岐（Loading/Error/Empty/Content）や見た目の一部を切り出す際、実装の都合で同じファイル内に内部コンポーネントを追加で定義しない。
+
+```tsx
+// ❌ 同一ファイル内に2つ目のコンポーネントを定義する
+export function OrderList({ orders, isLoading, error }: OrderListProps) {
+  return (
+    <div>
+      <h1>注文一覧</h1>
+      <OrderListContent orders={orders} isLoading={isLoading} error={error} />
+    </div>
+  );
+}
+
+// OrderList と同じファイル内に定義してしまっている
+function OrderListContent({ orders, isLoading, error }: OrderListContentProps) {
+  if (isLoading) return <OrderListSkeleton />;
+  // ...
+}
+```
+
+```tsx
+// ✅ order-list-content.tsx に分離する
+// order-list.tsx
+import { OrderListContent } from "@/features/order/components/order-list-content";
+
+export function OrderList({ orders, isLoading, error }: OrderListProps) {
+  return (
+    <div>
+      <h1>注文一覧</h1>
+      <OrderListContent orders={orders} isLoading={isLoading} error={error} />
+    </div>
+  );
+}
+```
+
+理由:
+- ファイル名とコンポーネント名の 1 対 1 対応が崩れると、grep やファイルジャンプでの発見性が下がる
+- テストファイル（`<name>.test.tsx`）もコンポーネント単位で 1 対 1 に対応させる規約と一致させる
+- 内部コンポーネントを後から他の画面で再利用したくなった際、ファイル分割のやり直しが発生する
+
+「見出し + コンテンツ」のような単純な構成でも、コンテンツ側の表示分岐（Loading/Error/Empty/Content）が複数行にわたる場合は迷わず別ファイルに切り出す。`import/max-dependencies` 対策の事前分割（`frontend-dev-environment.md` 参照）と合わせて、実装前にファイル構成を決めておくとやり直しを防げる。
+
 ---
 
 ## Hook 定義

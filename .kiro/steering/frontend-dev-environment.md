@@ -202,6 +202,25 @@ oxlint の `import/max-dependencies`（デフォルト閾値 10）により、1�
 
 検証コマンドの一覧・使い分け、Kiro CLI hook（`preToolUse`/`stop`）と Git pre-commit hook を含めた品質チェックの全体像は `frontend/README.md` の「コード品質の仕組み」を参照する。
 
+### 既知の制約: `routeTree.gen.ts` が `--fix` なしの `vp check`/`vp fmt --check` でフォーマット差分として検出される
+
+`src/routeTree.gen.ts`（TanStack Router の自動生成ファイル）は `.oxfmtignore` に登録済みだが、`vp fmt --check`（`vp check` の内部でも同様）実行時にこの ignore 設定が適用されず、毎回フォーマット差分として検出される（`vp` v0.2.9 で確認）。`vp fmt`（`--fix` 相当のデフォルト書き込みモード）では正しく除外される。
+
+原因は `.oxfmtignore` の設定ミスではなく、vite-plus が `vite.config.ts` の `fmt.ignorePath` 設定を write モードと check モードで異なる経路で oxfmt に渡しており、check モード側で設定が伝わっていない vite-plus 側の不具合と判断している（`--ignore-path=.oxfmtignore` を明示指定すれば check モードでも正しく除外されることを確認済み）。oxfmt 本体の既知バグ（[oxc-project/oxc#16621](https://github.com/oxc-project/oxc/issues/16621)、ファイルパス直接指定時に ignore が無視される）は現行バージョンで修正済みのため無関係。
+
+対処は常に `--fix` を使う:
+
+```bash
+# ✅ --fix を使えば解消する
+./scripts/verify.sh --fix
+vp check --fix
+
+# ❌ --fix なしでは routeTree.gen.ts のフォーマット差分で毎回失敗する
+vp check
+```
+
+`vite-plus` のアップグレード時にこの挙動が解消されているか確認する（上記「Vite+ / oxlint のアップグレード」参照）。
+
 ---
 
 ## チェックの線引き（oxlint vs shell）

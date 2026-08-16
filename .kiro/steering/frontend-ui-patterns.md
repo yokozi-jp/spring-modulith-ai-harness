@@ -55,6 +55,36 @@ Shadcn/ui 公式の Agent Skill（<https://github.com/shadcn-ui/ui/blob/main/ski
 
 **機械チェックの対象外**: `space-x-*`/`space-y-*` 禁止（`gap-*` 推奨）は目視確認とする。`enforce-shorthand-classes` は `w-10 h-10` → `size-10` のような同一プロパティの複数指定を単一のショートハンドクラスに統合する構文的な等価変換のみを扱う。`space-x`（子要素への `margin` 付与）と `gap`（Flexbox/Grid のネイティブなギャップ機構）は異なる CSS プロパティによる別のレイアウト手法であり、両者を機械的に等価とみなして自動変換することはできない。AI/レビュアーが目視で確認すること。
 
+### 動的な数値に応じたクラスは事前定義配列から選択する
+
+再帰コンポーネント（ツリー表示の階層深度 `depth` 等）やループ内で、変数の値に応じてクラス名を変える場合、テンプレートリテラルで動的にクラス名を生成しない。Tailwind CSS は静的解析でクラス名を検出してビルドするため、動的な文字列結合（`` `pl-${depth}` `` 等）は実行時に正しいクラス名になっても、ビルド時に該当クラスが CSS として生成されない、または `better-tailwindcss/no-unknown-classes` が誤検知するリスクがある。
+
+```tsx
+// ❌ テンプレートリテラルで動的にクラス名を生成する
+function TreeRow({ depth }: { readonly depth: number }) {
+  return <div className={`pl-${depth * 4}`}>...</div>;
+}
+
+// ✅ 事前定義した配列から選択する
+const INDENT_CLASSES = ["pl-2", "pl-7", "pl-12", "pl-17", "pl-22", "pl-27"] as const;
+
+function getIndentClass(depth: number): string {
+  return INDENT_CLASSES[Math.min(depth, INDENT_CLASSES.length - 1)] ?? "pl-2";
+}
+
+function TreeRow({ depth }: { readonly depth: number }) {
+  return <div className={getIndentClass(depth)}>...</div>;
+}
+```
+
+配列の最大インデックスを超える depth に対しては `Math.min()` で頭打ちにし、配列外アクセス（`noUncheckedIndexedAccess` により `undefined` になる）に対してフォールバック値（`?? "pl-2"`）を用意する。
+
+`cn()` と組み合わせる場合も同様に、事前定義済みのクラス文字列を渡す:
+
+```tsx
+<div className={cn("flex items-center gap-2 rounded-md py-1.5 hover:bg-accent", getIndentClass(depth))} />
+```
+
 ### レスポンシブ対応（Tailwind CSS ブレークポイント）
 
 #### メディアクエリファースト、コンテナクエリは必要な箇所のみ
