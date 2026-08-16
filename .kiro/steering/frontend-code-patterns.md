@@ -126,7 +126,7 @@ return query;
 
 ```tsx
 // ✅
-function handleSubmit(event: React.FormEvent<HTMLFormElement>) { ... }
+function handleSubmit(event: SubmitEvent<HTMLFormElement>) { ... }
 function handleDelete(id: string) { ... }
 function handlePageChange(page: number) { ... }
 

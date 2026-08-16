@@ -1,3 +1,5 @@
+import { ApiError } from "@/lib/api-error";
+
 function getCsrfToken(): string | null {
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
   const token = match?.[1];
@@ -20,18 +22,23 @@ export async function apiClient<T>(url: string, options?: RequestInit): Promise<
 
   if (!response.ok) {
     const text = await response.text();
-    let message = `${String(response.status)} ${response.statusText}`;
+    let title = response.statusText;
+    let detail = "";
     if (text.length > 0) {
       try {
-        const problem = JSON.parse(text) as { detail?: string };
-        if (problem.detail !== undefined) {
-          message = problem.detail;
+        const problem = JSON.parse(text) as { title?: string; detail?: string };
+        const { title: problemTitle, detail: problemDetail } = problem;
+        if (problemTitle !== undefined) {
+          title = problemTitle;
+        }
+        if (problemDetail !== undefined) {
+          detail = problemDetail;
         }
       } catch {
-        message = text;
+        detail = text;
       }
     }
-    throw new Error(message);
+    throw new ApiError(response.status, title, detail);
   }
 
   const text = await response.text();

@@ -150,6 +150,14 @@ vp --version
   - `products_.$id_.edit.tsx` → 独立ルート（詳細ページと並列、`<Outlet />` 不要）
 - CRUD 画面では編集・削除は詳細ページと**独立**させる（`$id_.edit.tsx` 形式を使う）
 
+### ネスト vs 独立の判断基準（一覧・詳細・編集すべてに適用）
+
+親ルートに `<Outlet />` を実装する意図が本当にあるかで判断する。一覧ページに `<Outlet />` がなければ、詳細ページも独立ルート（`categories_.$id.tsx` 形式）にする。同様に詳細ページに `<Outlet />` がなければ、編集ページも独立ルート（`$id_.edit.tsx` 形式）にする。
+
+CRUD 画面は基本的に「一覧」「詳細」「編集」がそれぞれ全画面を使う別レイアウトであり、親ルートが共通レイアウト（タブ・サイドパネル等）を提供する設計でない限り、ネスト（`_` なし）を使う理由はない。ネストは「親ルートが実際に子ルートを差し込む `<Outlet />` を持ち、共通のレイアウトを提供する」場合にのみ使う。
+
+`<Outlet />` のないルートを親として `_` なしでファイルを作ると、子ルートのコンテンツがどこにも表示されない不具合になる。ファイル作成前に親ルートの実装を確認し、`<Outlet />` の有無で独立/ネストを決めること。
+
 ---
 
 ## ページファイル（routes/）のルール
@@ -165,6 +173,19 @@ vp --version
 - ビジネスロジック → `features/<feature>/hooks/`
 - UI 部品の実装 → `features/<feature>/components/`
 - API 呼び出しの詳細 → `features/<feature>/hooks/`
+
+### import(max-dependencies) 超過を避ける事前分割
+
+oxlint の `import/max-dependencies`（デフォルト閾値 10）により、1ファイルの import 数が多すぎるとエラーになる。詳細ページのようにヘッダー・データ表示・状態ハンドリング・確認ダイアログ等が集まるページでは、実装してから1個ずつ超過分を削るのではなく、**最初から以下の単位で `features/<feature>/components/` に分割する**:
+
+| 分割単位 | 責務 | 命名例 |
+|---|---|---|
+| `<Resource>DetailHeader` | 見出し・編集/削除ボタン・削除確認ダイアログ | `CategoryDetailHeader` |
+| `<Resource>DetailState` | Loading/Error/NotFound の状態ハンドリング（early return） | `CategoryDetailState` |
+| `<Resource>DetailCard` | 詳細情報の表示本体 | `CategoryDetailCard` |
+| `<Resource>DetailSkeleton` | ローディング時のスケルトン | `CategoryDetailSkeleton` |
+
+ルートファイル（`routes/<resource>_.$id.tsx`）はこれらを組み合わせるだけにし、`import` はコンポーネント・Hook・`createFileRoute` 程度に収める。分割後もエラーが出る場合は、同じ粒度でさらに機能単位のコンポーネントに切り出す。
 
 ---
 

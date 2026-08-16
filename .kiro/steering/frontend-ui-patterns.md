@@ -419,6 +419,7 @@ export function OrderList({ orders, isLoading, error, refetch }: OrderListProps)
 ### HTML ネイティブ + Shadcn/ui を使う（フォームライブラリは使わない）
 
 ```tsx
+import type { SubmitEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -431,7 +432,7 @@ interface OrderFormProps {
 export function OrderForm({ onSubmit, isSubmitting }: OrderFormProps) {
   const [name, setName] = useState("");
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     onSubmit({ name });
   }

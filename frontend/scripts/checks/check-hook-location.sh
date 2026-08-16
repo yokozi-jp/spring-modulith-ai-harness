@@ -3,6 +3,8 @@
 #
 # use-*.ts ファイルは hooks/ ディレクトリ内にあること。
 # Hook 定義の検出（use-*.ts 以外での定義禁止）は oxlint カスタムルールで行う。
+# テストファイル（*.test.ts, *.test.tsx）は対象外（frontend-test-patterns.md の
+# テストファイル命名規則に従うファイルであり、Hook 本体の配置ルールとは無関係）。
 #
 # 使い方:
 #   ./scripts/checks/check-hook-location.sh              # 全体スキャン
@@ -22,6 +24,11 @@ if [[ "${1:-}" == "--file" ]]; then
     exit 0
   fi
 
+  # テストファイルは対象外
+  if [[ "$FILENAME" == *.test.ts || "$FILENAME" == *.test.tsx ]]; then
+    exit 0
+  fi
+
   REL_PATH="${FILE_PATH##*src/}"
 
   # use-*.ts ファイルが正しいディレクトリにあるか
@@ -38,12 +45,12 @@ fi
 
 errors=()
 
-# use-*.ts が正しいディレクトリにあるか検証
+# use-*.ts が正しいディレクトリにあるか検証（テストファイルは除外）
 while IFS= read -r file; do
   if [[ "$file" != src/hooks/* && "$file" != src/features/*/hooks/* ]]; then
     errors+=("$file: Hookファイルは src/hooks/ または src/features/<feature>/hooks/ 内に配置してください。")
   fi
-done < <(find src -name "use-*.ts" | grep -v node_modules)
+done < <(find src -name "use-*.ts" ! -name "*.test.ts" | grep -v node_modules)
 
 if [[ ${#errors[@]} -gt 0 ]]; then
   echo "ERROR: Hook の配置ルール違反が見つかりました。"

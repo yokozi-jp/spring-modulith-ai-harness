@@ -105,6 +105,36 @@ queryKey: ["orders", orderId, "items"]
 - フィルタはオブジェクトで渡す
 - 階層はネストして表現する
 
+### queryKey の明示上書き（必須）
+
+Orval 生成 Hook のデフォルト `queryKey` は URL パスベース（例: `["/api/v1/categories", params]`）であり、上記の規約形式（`["categories"]` 等）とは**異なる**。この違いに気づかず実装すると、`invalidateQueries({ queryKey: ["categories"] })` で一覧の再取得が発火せず、**「作成・更新・削除しても一覧に反映されない」という実害あるバグになる**。
+
+Orval 生成 Hook を呼ぶ際は、必ず第二引数の `query.queryKey` で規約形式に明示上書きする:
+
+```tsx
+// src/features/category/hooks/use-category-list.ts
+export function useCategoryList(page = 0, size = 20) {
+  const query = useListCategory(
+    {
+      param: {},
+      pageable: { page, size, sort: ["sortOrder,asc"] },
+    },
+    {
+      query: { queryKey: ["categories", { page, size }] },  // ← 規約形式に明示上書き
+    },
+  );
+
+  return {
+    categories: query.data?.data?.content ?? [],
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch,
+  };
+}
+```
+
+この上書きをしないと、`invalidateQueries` 側の `queryKey`（規約形式）と実際にキャッシュされている `queryKey`（URLパスベース）が一致せず、無効化が silent に失敗する。ミューテーション側の `onSuccess` で `invalidateQueries` を書いたら、対応する一覧・詳細 Hook 側で `queryKey` を明示上書きしているか必ず確認すること。
+
 ### パラメータ付きクエリ
 
 ```tsx
@@ -199,6 +229,26 @@ onSuccess: () => {
   void navigate({ to: "/orders" });
 }
 ```
+
+### JSX 属性内では void をブロック文にする
+
+本プロジェクトの oxlint 設定は `no-void: ["error", { allowAsStatement: true }]` であり、`void` は**文として単独で使う場合のみ**許可される。`onClick`/`onRetry` 等のイベントハンドラをインラインのアロー関数式で書き、その本体を式のまま `void expr()` にすると、文ではなく式としての `void` になりエラーになる。
+
+```tsx
+// ❌ 式としての void（no-void エラー）
+<Button onClick={() => void refetch()}>再試行</Button>
+
+// ✅ ブロック文にして void を文として使う
+<Button
+  onClick={() => {
+    void refetch();
+  }}
+>
+  再試行
+</Button>
+```
+
+`onSuccess` のような `mutation`/`query` オプション内のコールバックは元々ブロック文（`() => { ... }`）で書くため問題にならない。JSX 属性に直接渡すインラインハンドラでのみこの書き分けが必要になる。
 
 ---
 
