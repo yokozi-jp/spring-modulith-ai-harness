@@ -290,11 +290,11 @@ export function Sidebar() {
 // ✅ Skeleton（灰色ブロックで「もうすぐ表示される」感を出す）
 function OrderListSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
+    <output className="flex flex-col gap-4">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={`skeleton-${String(i)}`} className="h-16 animate-pulse rounded-md bg-muted" />
       ))}
-    </div>
+    </output>
   );
 }
 
@@ -303,6 +303,32 @@ return <Spinner />;
 ```
 
 Skeleton はコンポーネントと同じディレクトリに `<name>-skeleton.tsx` で配置する。
+
+### ルート要素は `role="status"` ではなく `<output>` タグを使う
+
+ローディング中であることを支援技術に伝えるため、Skeleton のルート要素には ARIA live region が必要。これを `<div role="status">` で表現すると `jsx-a11y/prefer-tag-over-role` に違反する（`role="status"` に対応するネイティブ HTML 要素 `<output>` が存在するため）。
+
+```tsx
+// ❌ role="status" を div に付与（jsx-a11y/prefer-tag-over-role 違反）
+function OrderListSkeleton() {
+  return (
+    <div role="status" className="flex flex-col gap-4">
+      ...
+    </div>
+  );
+}
+
+// ✅ <output> タグを使う（暗黙的に role="status" を持つ）
+function OrderListSkeleton() {
+  return (
+    <output className="flex flex-col gap-4">
+      ...
+    </output>
+  );
+}
+```
+
+`<output>` はブロック要素ではなくインライン要素だが、`className` で `flex`/`flex-col` 等を指定すれば見た目上は `div` と同様に振る舞う。テストで存在確認する場合は `screen.getByRole("status")` で取得できる（`<output>` が暗黙的に `role="status"` を持つため）。
 
 ---
 

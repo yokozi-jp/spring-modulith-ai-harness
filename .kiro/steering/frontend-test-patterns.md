@@ -268,6 +268,20 @@ describe("useCreateOrder", () => {
 
 ## コンポーネントのテスト
 
+### `@testing-library/jest-dom` は導入していない
+
+本プロジェクトは `@testing-library/jest-dom` を依存に追加していない。`toBeInTheDocument()` 等の jest-dom 拡張マッチャーは**使用できない**。代わりに Vitest 標準の `expect` で以下のように書く。
+
+| jest-dom（使用不可） | 標準 `expect`（本プロジェクトの書き方） |
+|---|---|
+| `expect(el).toBeInTheDocument()` | `expect(el).toBeTruthy()` |
+| `expect(el).not.toBeInTheDocument()` | `expect(el).toBeNull()` （`queryBy*` と組み合わせる） |
+| `expect(el).toHaveTextContent("x")` | `expect(el.textContent).toBe("x")` |
+
+`screen.getBy*` 系は見つからない場合に例外を投げるため、`toBeTruthy()` と組み合わせるだけで「存在すること」を十分検証できる。存在しないことを検証する場合は例外を投げない `screen.queryBy*` を使い `toBeNull()` で確認する。
+
+jest-dom の導入が必要な場面（より詳細なマッチャーが欲しい等）が出てきた場合は、依存追加とこのセクションの更新をセットで行うこと。
+
 ### Hook をモックする
 
 ```typescript
@@ -293,7 +307,7 @@ describe("OrderList", () => {
 
     render(<OrderList />);
 
-    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeTruthy();
   });
 
   it("エラー時は ErrorMessage を表示する", () => {
@@ -305,8 +319,8 @@ describe("OrderList", () => {
 
     render(<OrderList />);
 
-    expect(screen.getByRole("alert")).toBeInTheDocument();
-    expect(screen.getByText("取得失敗")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toBeTruthy();
+    expect(screen.getByText("取得失敗")).toBeTruthy();
   });
 
   it("空の場合は EmptyState を表示する", () => {
@@ -318,7 +332,7 @@ describe("OrderList", () => {
 
     render(<OrderList />);
 
-    expect(screen.getByText("注文がありません")).toBeInTheDocument();
+    expect(screen.getByText("注文がありません")).toBeTruthy();
   });
 
   it("データがある場合は一覧を表示する", () => {
@@ -330,7 +344,19 @@ describe("OrderList", () => {
 
     render(<OrderList />);
 
-    expect(screen.getByText("注文A")).toBeInTheDocument();
+    expect(screen.getByText("注文A")).toBeTruthy();
+  });
+
+  it("要素が存在しないことを確認する場合は queryBy* + toBeNull を使う", () => {
+    vi.mocked(useOrderListModule.useOrderList).mockReturnValue({
+      orders: [],
+      isLoading: true,
+      error: null,
+    });
+
+    render(<OrderList />);
+
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 ```
@@ -340,6 +366,7 @@ describe("OrderList", () => {
 - `vi.mock("@/features/.../hooks/use-xxx")` で Hook をモック
 - `vi.mocked(hook).mockReturnValue(...)` で返り値を設定
 - 要素の取得は `role` > `text` > `label` の順で優先（`data-testid` は最終手段）
+- 存在確認は `getBy*` + `toBeTruthy()`、非存在確認は `queryBy*` + `toBeNull()`（jest-dom 未導入のため）
 
 ---
 

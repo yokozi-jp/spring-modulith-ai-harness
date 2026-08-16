@@ -357,3 +357,53 @@ if (data.parentId !== undefined) {
 }
 createCategory({ data: requestData });
 ```
+
+#### JSX props でオプショナルな値を渡す場合も同じ考え方（スプレッド構文を優先）
+
+`exactOptionalPropertyTypes` は関数呼び出しの引数だけでなく、コンポーネントの JSX props にも適用される。子コンポーネントの prop が `readonly parentCategoryId?: string` のように optional の場合、値が `undefined` になり得る変数をそのまま渡すとエラーになる。
+
+このとき、**JSX 全体を丸ごと if 分岐で複製してはいけない**。コンポーネント呼び出しが複数箇所に重複し、片方だけ修正漏れが発生するリスクがある。
+
+```tsx
+// ❌ JSX 全体を条件分岐で複製する（重複が発生し保守性が低い）
+if (parentCategoryId !== undefined) {
+  return (
+    <MoveCategoryDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      options={options}
+      parentCategoryId={parentCategoryId}
+    />
+  );
+}
+return (
+  <MoveCategoryDialog
+    isOpen={isOpen}
+    onClose={onClose}
+    options={options}
+  />
+);
+
+// ✅ スプレッド構文で props オブジェクトを構築し1箇所にまとめる
+<MoveCategoryDialog
+  isOpen={isOpen}
+  onClose={onClose}
+  options={options}
+  {...(parentCategoryId !== undefined && { parentCategoryId })}
+/>
+```
+
+props が多く可読性が落ちる場合は、変数として props オブジェクトを事前構築してからスプレッドしてもよい:
+
+```tsx
+const optionalProps = parentCategoryId !== undefined ? { parentCategoryId } : {};
+
+<MoveCategoryDialog
+  isOpen={isOpen}
+  onClose={onClose}
+  options={options}
+  {...optionalProps}
+/>
+```
+
+関数引数（`createCategory({ data: {...} })` 等）と JSX props は同じ「optional プロパティに `undefined` を代入できない」制約を受けるため、対処方針も統一する。JSX 全体の複製は最終手段であり、まず上記のスプレッド構文で解決できないか検討すること。
