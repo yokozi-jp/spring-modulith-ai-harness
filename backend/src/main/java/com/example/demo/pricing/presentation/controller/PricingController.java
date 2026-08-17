@@ -20,6 +20,7 @@ import java.net.URI;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -76,7 +77,8 @@ public class PricingController {
   @Operation(summary = "価格一覧を取得する", operationId = "listPricing")
   @ApiResponse(responseCode = "200", description = "取得成功")
   @GetMapping
-  public Page<PricingSummaryResponse> list(final PricingListParam param, final Pageable pageable) {
+  public Page<PricingSummaryResponse> list(
+      @ParameterObject final PricingListParam param, @ParameterObject final Pageable pageable) {
     return queryService.findAll(param, pageable).map(PricingSummaryResponse::from);
   }
 

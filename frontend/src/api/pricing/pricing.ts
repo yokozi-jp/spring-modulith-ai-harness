@@ -382,7 +382,7 @@ export type listPricingResponseSuccess = listPricingResponse200 & {
 
 export type listPricingResponse = listPricingResponseSuccess;
 
-export const getListPricingUrl = (params: ListPricingParams) => {
+export const getListPricingUrl = (params?: ListPricingParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -402,7 +402,7 @@ export const getListPricingUrl = (params: ListPricingParams) => {
  * @summary 価格一覧を取得する
  */
 export const listPricing = async (
-  params: ListPricingParams,
+  params?: ListPricingParams,
   options?: RequestInit,
 ): Promise<listPricingResponse> => {
   return apiClient<listPricingResponse>(getListPricingUrl(params), {
@@ -419,7 +419,7 @@ export const getListPricingQueryOptions = <
   TData = Awaited<ReturnType<typeof listPricing>>,
   TError = unknown,
 >(
-  params: ListPricingParams,
+  params?: ListPricingParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
@@ -443,7 +443,7 @@ export type ListPricingQueryResult = NonNullable<Awaited<ReturnType<typeof listP
 export type ListPricingQueryError = unknown;
 
 export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
-  params: ListPricingParams,
+  params: undefined | ListPricingParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>> &
       Pick<
@@ -459,7 +459,7 @@ export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, 
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
-  params: ListPricingParams,
+  params?: ListPricingParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>> &
       Pick<
@@ -475,7 +475,7 @@ export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, 
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
-  params: ListPricingParams,
+  params?: ListPricingParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
@@ -487,7 +487,7 @@ export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, 
  */
 
 export function useListPricing<TData = Awaited<ReturnType<typeof listPricing>>, TError = unknown>(
-  params: ListPricingParams,
+  params?: ListPricingParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPricing>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;

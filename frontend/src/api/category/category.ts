@@ -386,7 +386,7 @@ export type listCategoryResponseSuccess = listCategoryResponse200 & {
 
 export type listCategoryResponse = listCategoryResponseSuccess;
 
-export const getListCategoryUrl = (params: ListCategoryParams) => {
+export const getListCategoryUrl = (params?: ListCategoryParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -406,7 +406,7 @@ export const getListCategoryUrl = (params: ListCategoryParams) => {
  * @summary ルートカテゴリ一覧を取得する
  */
 export const listCategory = async (
-  params: ListCategoryParams,
+  params?: ListCategoryParams,
   options?: RequestInit,
 ): Promise<listCategoryResponse> => {
   return apiClient<listCategoryResponse>(getListCategoryUrl(params), {
@@ -423,7 +423,7 @@ export const getListCategoryQueryOptions = <
   TData = Awaited<ReturnType<typeof listCategory>>,
   TError = unknown,
 >(
-  params: ListCategoryParams,
+  params?: ListCategoryParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
@@ -447,7 +447,7 @@ export type ListCategoryQueryResult = NonNullable<Awaited<ReturnType<typeof list
 export type ListCategoryQueryError = unknown;
 
 export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
-  params: ListCategoryParams,
+  params: undefined | ListCategoryParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>> &
       Pick<
@@ -463,7 +463,7 @@ export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
-  params: ListCategoryParams,
+  params?: ListCategoryParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>> &
       Pick<
@@ -479,7 +479,7 @@ export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
-  params: ListCategoryParams,
+  params?: ListCategoryParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;
@@ -491,7 +491,7 @@ export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>
  */
 
 export function useListCategory<TData = Awaited<ReturnType<typeof listCategory>>, TError = unknown>(
-  params: ListCategoryParams,
+  params?: ListCategoryParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listCategory>>, TError, TData>>;
     request?: SecondParameter<typeof apiClient>;

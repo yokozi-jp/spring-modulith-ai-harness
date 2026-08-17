@@ -7,10 +7,12 @@ import com.example.demo.catalog.application.query.dto.ProductSummaryDto;
 import com.example.demo.catalog.application.query.param.ProductListParam;
 import com.example.demo.catalog.application.query.service.ProductQueryService;
 import com.example.demo.jooq.SoftDeleteCondition;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,17 +29,16 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 
   @Override
   public Page<ProductSummaryDto> findAll(final ProductListParam param, final Pageable pageable) {
+    final List<Condition> conditions = buildConditions(param);
+
     final Integer totalCount =
-        dsl.selectCount()
-            .from(PRODUCTS)
-            .where(SoftDeleteCondition.notDeleted(PRODUCTS))
-            .fetchOne(0, Integer.class);
+        dsl.selectCount().from(PRODUCTS).where(conditions).fetchOne(0, Integer.class);
     final int total = totalCount != null ? totalCount : 0;
 
     final List<ProductSummaryDto> content =
         dsl.select(PRODUCTS.ID, PRODUCTS.NAME, PRODUCTS.STATUS, PRODUCTS.CATEGORY_ID)
             .from(PRODUCTS)
-            .where(SoftDeleteCondition.notDeleted(PRODUCTS))
+            .where(conditions)
             .orderBy(PRODUCTS.CREATED_AT.desc())
             .limit(pageable.getPageSize())
             .offset((int) pageable.getOffset())
@@ -69,5 +70,18 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                     r.getSku(),
                     r.getStatus(),
                     r.getVersion()));
+  }
+
+  private List<Condition> buildConditions(final ProductListParam param) {
+    final List<Condition> conditions = new ArrayList<>();
+    conditions.add(SoftDeleteCondition.notDeleted(PRODUCTS));
+
+    if (param.categoryId() != null) {
+      conditions.add(PRODUCTS.CATEGORY_ID.eq(UUID.fromString(param.categoryId())));
+    }
+    if (param.status() != null) {
+      conditions.add(PRODUCTS.STATUS.eq(param.status()));
+    }
+    return conditions;
   }
 }

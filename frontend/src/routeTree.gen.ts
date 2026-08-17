@@ -9,38 +9,219 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root";
+import { Route as ProductsRouteImport } from "./routes/products";
+import { Route as PricingsRouteImport } from "./routes/pricings";
+import { Route as CategoriesRouteImport } from "./routes/categories";
 import { Route as IndexRouteImport } from "./routes/index";
+import { Route as ProductsNewRouteImport } from "./routes/products_.new";
+import { Route as ProductsIdRouteImport } from "./routes/products_.$id";
+import { Route as PricingsNewRouteImport } from "./routes/pricings_.new";
+import { Route as PricingsIdRouteImport } from "./routes/pricings_.$id";
+import { Route as CategoriesNewRouteImport } from "./routes/categories_.new";
+import { Route as CategoriesIdRouteImport } from "./routes/categories_.$id";
+import { Route as ProductsIdEditRouteImport } from "./routes/products_.$id_.edit";
+import { Route as PricingsIdEditRouteImport } from "./routes/pricings_.$id_.edit";
+import { Route as CategoriesIdEditRouteImport } from "./routes/categories_.$id_.edit";
 
+const ProductsRoute = ProductsRouteImport.update({
+  id: "/products",
+  path: "/products",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PricingsRoute = PricingsRouteImport.update({
+  id: "/pricings",
+  path: "/pricings",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: "/categories",
+  path: "/categories",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const ProductsNewRoute = ProductsNewRouteImport.update({
+  id: "/products_/new",
+  path: "/products/new",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ProductsIdRoute = ProductsIdRouteImport.update({
+  id: "/products_/$id",
+  path: "/products/$id",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PricingsNewRoute = PricingsNewRouteImport.update({
+  id: "/pricings_/new",
+  path: "/pricings/new",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PricingsIdRoute = PricingsIdRouteImport.update({
+  id: "/pricings_/$id",
+  path: "/pricings/$id",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const CategoriesNewRoute = CategoriesNewRouteImport.update({
+  id: "/categories_/new",
+  path: "/categories/new",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const CategoriesIdRoute = CategoriesIdRouteImport.update({
+  id: "/categories_/$id",
+  path: "/categories/$id",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ProductsIdEditRoute = ProductsIdEditRouteImport.update({
+  id: "/products_/$id_/edit",
+  path: "/products/$id/edit",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PricingsIdEditRoute = PricingsIdEditRouteImport.update({
+  id: "/pricings_/$id_/edit",
+  path: "/pricings/$id/edit",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const CategoriesIdEditRoute = CategoriesIdEditRouteImport.update({
+  id: "/categories_/$id_/edit",
+  path: "/categories/$id/edit",
+  getParentRoute: () => rootRouteImport,
+} as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
+  "/categories": typeof CategoriesRoute;
+  "/pricings": typeof PricingsRoute;
+  "/products": typeof ProductsRoute;
+  "/categories/$id": typeof CategoriesIdRoute;
+  "/categories/new": typeof CategoriesNewRoute;
+  "/pricings/$id": typeof PricingsIdRoute;
+  "/pricings/new": typeof PricingsNewRoute;
+  "/products/$id": typeof ProductsIdRoute;
+  "/products/new": typeof ProductsNewRoute;
+  "/categories/$id/edit": typeof CategoriesIdEditRoute;
+  "/pricings/$id/edit": typeof PricingsIdEditRoute;
+  "/products/$id/edit": typeof ProductsIdEditRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
+  "/categories": typeof CategoriesRoute;
+  "/pricings": typeof PricingsRoute;
+  "/products": typeof ProductsRoute;
+  "/categories/$id": typeof CategoriesIdRoute;
+  "/categories/new": typeof CategoriesNewRoute;
+  "/pricings/$id": typeof PricingsIdRoute;
+  "/pricings/new": typeof PricingsNewRoute;
+  "/products/$id": typeof ProductsIdRoute;
+  "/products/new": typeof ProductsNewRoute;
+  "/categories/$id/edit": typeof CategoriesIdEditRoute;
+  "/pricings/$id/edit": typeof PricingsIdEditRoute;
+  "/products/$id/edit": typeof ProductsIdEditRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
+  "/categories": typeof CategoriesRoute;
+  "/pricings": typeof PricingsRoute;
+  "/products": typeof ProductsRoute;
+  "/categories_/$id": typeof CategoriesIdRoute;
+  "/categories_/new": typeof CategoriesNewRoute;
+  "/pricings_/$id": typeof PricingsIdRoute;
+  "/pricings_/new": typeof PricingsNewRoute;
+  "/products_/$id": typeof ProductsIdRoute;
+  "/products_/new": typeof ProductsNewRoute;
+  "/categories_/$id_/edit": typeof CategoriesIdEditRoute;
+  "/pricings_/$id_/edit": typeof PricingsIdEditRoute;
+  "/products_/$id_/edit": typeof ProductsIdEditRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/";
+  fullPaths:
+    | "/"
+    | "/categories"
+    | "/pricings"
+    | "/products"
+    | "/categories/$id"
+    | "/categories/new"
+    | "/pricings/$id"
+    | "/pricings/new"
+    | "/products/$id"
+    | "/products/new"
+    | "/categories/$id/edit"
+    | "/pricings/$id/edit"
+    | "/products/$id/edit";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/";
-  id: "__root__" | "/";
+  to:
+    | "/"
+    | "/categories"
+    | "/pricings"
+    | "/products"
+    | "/categories/$id"
+    | "/categories/new"
+    | "/pricings/$id"
+    | "/pricings/new"
+    | "/products/$id"
+    | "/products/new"
+    | "/categories/$id/edit"
+    | "/pricings/$id/edit"
+    | "/products/$id/edit";
+  id:
+    | "__root__"
+    | "/"
+    | "/categories"
+    | "/pricings"
+    | "/products"
+    | "/categories_/$id"
+    | "/categories_/new"
+    | "/pricings_/$id"
+    | "/pricings_/new"
+    | "/products_/$id"
+    | "/products_/new"
+    | "/categories_/$id_/edit"
+    | "/pricings_/$id_/edit"
+    | "/products_/$id_/edit";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
+  CategoriesRoute: typeof CategoriesRoute;
+  PricingsRoute: typeof PricingsRoute;
+  ProductsRoute: typeof ProductsRoute;
+  CategoriesIdRoute: typeof CategoriesIdRoute;
+  CategoriesNewRoute: typeof CategoriesNewRoute;
+  PricingsIdRoute: typeof PricingsIdRoute;
+  PricingsNewRoute: typeof PricingsNewRoute;
+  ProductsIdRoute: typeof ProductsIdRoute;
+  ProductsNewRoute: typeof ProductsNewRoute;
+  CategoriesIdEditRoute: typeof CategoriesIdEditRoute;
+  PricingsIdEditRoute: typeof PricingsIdEditRoute;
+  ProductsIdEditRoute: typeof ProductsIdEditRoute;
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
+    "/products": {
+      id: "/products";
+      path: "/products";
+      fullPath: "/products";
+      preLoaderRoute: typeof ProductsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/pricings": {
+      id: "/pricings";
+      path: "/pricings";
+      fullPath: "/pricings";
+      preLoaderRoute: typeof PricingsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/categories": {
+      id: "/categories";
+      path: "/categories";
+      fullPath: "/categories";
+      preLoaderRoute: typeof CategoriesRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/": {
       id: "/";
       path: "/";
@@ -48,11 +229,86 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/products_/new": {
+      id: "/products_/new";
+      path: "/products/new";
+      fullPath: "/products/new";
+      preLoaderRoute: typeof ProductsNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/products_/$id": {
+      id: "/products_/$id";
+      path: "/products/$id";
+      fullPath: "/products/$id";
+      preLoaderRoute: typeof ProductsIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/pricings_/new": {
+      id: "/pricings_/new";
+      path: "/pricings/new";
+      fullPath: "/pricings/new";
+      preLoaderRoute: typeof PricingsNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/pricings_/$id": {
+      id: "/pricings_/$id";
+      path: "/pricings/$id";
+      fullPath: "/pricings/$id";
+      preLoaderRoute: typeof PricingsIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/categories_/new": {
+      id: "/categories_/new";
+      path: "/categories/new";
+      fullPath: "/categories/new";
+      preLoaderRoute: typeof CategoriesNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/categories_/$id": {
+      id: "/categories_/$id";
+      path: "/categories/$id";
+      fullPath: "/categories/$id";
+      preLoaderRoute: typeof CategoriesIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/products_/$id_/edit": {
+      id: "/products_/$id_/edit";
+      path: "/products/$id/edit";
+      fullPath: "/products/$id/edit";
+      preLoaderRoute: typeof ProductsIdEditRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/pricings_/$id_/edit": {
+      id: "/pricings_/$id_/edit";
+      path: "/pricings/$id/edit";
+      fullPath: "/pricings/$id/edit";
+      preLoaderRoute: typeof PricingsIdEditRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/categories_/$id_/edit": {
+      id: "/categories_/$id_/edit";
+      path: "/categories/$id/edit";
+      fullPath: "/categories/$id/edit";
+      preLoaderRoute: typeof CategoriesIdEditRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CategoriesRoute: CategoriesRoute,
+  PricingsRoute: PricingsRoute,
+  ProductsRoute: ProductsRoute,
+  CategoriesIdRoute: CategoriesIdRoute,
+  CategoriesNewRoute: CategoriesNewRoute,
+  PricingsIdRoute: PricingsIdRoute,
+  PricingsNewRoute: PricingsNewRoute,
+  ProductsIdRoute: ProductsIdRoute,
+  ProductsNewRoute: ProductsNewRoute,
+  CategoriesIdEditRoute: CategoriesIdEditRoute,
+  PricingsIdEditRoute: PricingsIdEditRoute,
+  ProductsIdEditRoute: ProductsIdEditRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

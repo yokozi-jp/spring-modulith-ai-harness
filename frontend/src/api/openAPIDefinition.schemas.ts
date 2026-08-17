@@ -73,19 +73,6 @@ export interface MoveCategoryRequest {
   version?: number;
 }
 
-export interface ProductListParam {
-  categoryId?: string;
-  status?: string;
-}
-
-export interface Pageable {
-  /** @minimum 0 */
-  page?: number;
-  /** @minimum 1 */
-  size?: number;
-  sort?: string[];
-}
-
 export interface ProductSummaryResponse {
   id?: string;
   name?: string;
@@ -132,13 +119,6 @@ export interface ProductDetailResponse {
   version?: number;
 }
 
-export interface PricingListParam {
-  productId?: string;
-  level?: string;
-  areaCode?: string;
-  asOf?: string;
-}
-
 export interface PricingSummaryResponse {
   id?: string;
   productId?: string;
@@ -171,8 +151,6 @@ export interface PricingDetailResponse {
   validTo?: string;
   version?: number;
 }
-
-export interface CategoryListParam {}
 
 export interface CategorySummaryResponse {
   id?: string;
@@ -213,16 +191,58 @@ export interface DeleteRequest {
 }
 
 export type ListProductParams = {
-  param: ProductListParam;
-  pageable: Pageable;
+  categoryId?: string;
+  status?: string;
+  /**
+   * Zero-based page index (0..N)
+   * @minimum 0
+   */
+  page?: number;
+  /**
+   * The size of the page to be returned
+   * @minimum 1
+   */
+  size?: number;
+  /**
+   * Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+   */
+  sort?: string[];
 };
 
 export type ListPricingParams = {
-  param: PricingListParam;
-  pageable: Pageable;
+  productId?: string;
+  level?: string;
+  areaCode?: string;
+  asOf?: string;
+  /**
+   * Zero-based page index (0..N)
+   * @minimum 0
+   */
+  page?: number;
+  /**
+   * The size of the page to be returned
+   * @minimum 1
+   */
+  size?: number;
+  /**
+   * Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+   */
+  sort?: string[];
 };
 
 export type ListCategoryParams = {
-  param: CategoryListParam;
-  pageable: Pageable;
+  /**
+   * Zero-based page index (0..N)
+   * @minimum 0
+   */
+  page?: number;
+  /**
+   * The size of the page to be returned
+   * @minimum 1
+   */
+  size?: number;
+  /**
+   * Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+   */
+  sort?: string[];
 };

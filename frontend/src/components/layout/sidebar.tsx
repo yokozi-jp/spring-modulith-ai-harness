@@ -1,7 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
-const MENU_ITEMS = [{ to: "/", label: "ダッシュボード", icon: "◆" }] as const;
+const MENU_ITEMS = [
+  { to: "/", label: "ダッシュボード", icon: "◆" },
+  { to: "/products", label: "商品管理", icon: "◆" },
+  { to: "/categories", label: "カテゴリ管理", icon: "◆" },
+  { to: "/pricings", label: "価格管理", icon: "◆" },
+] as const;
 
 export function Sidebar() {
   return (

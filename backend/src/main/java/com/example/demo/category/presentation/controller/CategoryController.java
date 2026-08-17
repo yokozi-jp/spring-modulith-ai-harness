@@ -23,6 +23,7 @@ import java.security.Principal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -78,7 +79,7 @@ public class CategoryController {
   @ApiResponse(responseCode = "200", description = "取得成功")
   @GetMapping
   public Page<CategorySummaryResponse> list(
-      final CategoryListParam param, final Pageable pageable) {
+      @ParameterObject final CategoryListParam param, @ParameterObject final Pageable pageable) {
     return queryService.findAll(param, pageable).map(CategorySummaryResponse::from);
   }
 
