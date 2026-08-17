@@ -107,13 +107,34 @@ public ResponseEntity<Void> create(@RequestBody @Valid final CreateOrderRequest 
 - クエリパラメータ: `?page=0&size=20&sort=createdAt,desc`
 - QueryService のシグネチャ: `Page<XxxSummaryDto> findAll(XxxListParam param, Pageable pageable)`
 - Controller で `Page.map()` を使い DTO → Response に変換する
+- **`Pageable` と `XxxListParam` には必ず `@ParameterObject` を付与する**（後述）
 
 ```java
 @GetMapping
-public Page<OrderSummaryResponse> list(final OrderListParam param, final Pageable pageable) {
+public Page<OrderSummaryResponse> list(
+    @ParameterObject final OrderListParam param, @ParameterObject final Pageable pageable) {
   return queryService.findAll(param, pageable).map(OrderSummaryResponse::from);
 }
 ```
+
+### `@ParameterObject` の必須付与
+
+Controller の一覧取得メソッドで `Pageable` や `XxxListParam`（POJO のクエリパラメータ）を引数に取る場合、**`@ParameterObject`（`org.springdoc.core.annotations.ParameterObject`）を必ず付与する**。
+
+付与しない場合、SpringDoc はオブジェクト全体を単一のクエリパラメータとして OpenAPI spec に出力する（`?param=[object Object]` のような壊れた URL になる）。`@ParameterObject` を付与すると、オブジェクトのフィールドが個別のクエリパラメータ（`?categoryId=xxx&page=0&size=20&sort=createdAt,desc`）として正しく展開される。
+
+```java
+// ❌ @ParameterObject なし — OpenAPI spec でオブジェクト丸ごと1パラメータになる
+@GetMapping
+public Page<OrderSummaryResponse> list(final OrderListParam param, final Pageable pageable) { ... }
+
+// ✅ @ParameterObject あり — フィールドが個別パラメータとして展開される
+@GetMapping
+public Page<OrderSummaryResponse> list(
+    @ParameterObject final OrderListParam param, @ParameterObject final Pageable pageable) { ... }
+```
+
+**影響範囲**: この問題は Orval で自動生成されるフロントエンドの API クライアントに波及する。`@ParameterObject` がないと Orval 生成コードの URL 構築関数が壊れたクエリ文字列を生成し、フロントからのフィルタ・ページネーションが一切機能しなくなる。バックエンド単体テスト（MockMvc）では `Pageable` が正しくバインドされるため、**フロントエンドと結合するまで問題に気づけない**点に注意。
 
 ---
 

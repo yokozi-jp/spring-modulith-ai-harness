@@ -368,6 +368,43 @@ describe("OrderList", () => {
 - 要素の取得は `role` > `text` > `label` の順で優先（`data-testid` は最終手段）
 - 存在確認は `getBy*` + `toBeTruthy()`、非存在確認は `queryBy*` + `toBeNull()`（jest-dom 未導入のため）
 
+### `Link` を含むコンポーネントのテスト（`@tanstack/react-router` モック）
+
+`@tanstack/react-router` の `Link` を使うコンポーネントは、テスト環境で `RouterProvider` が存在しないためそのままでは動かない。`@tanstack/react-router` モジュール全体を `vi.mock` + `importActual` でモックし、`Link` のみを単純な HTML 要素に差し替える。
+
+```typescript
+import type { ComponentProps } from "react";
+import { describe, expect, it, vi, beforeEach } from "vite-plus/test";
+import { render, screen } from "@testing-library/react";
+import { OrderCard } from "@/features/order/components/order-card";
+
+// Link を単純な <a> タグに差し替える
+vi.mock("@tanstack/react-router", async () => {
+  const actual = await vi.importActual("@tanstack/react-router");
+  return {
+    ...actual,
+    Link: ({ children, to }: ComponentProps<"a"> & { readonly to?: string }) => (
+      <a href={to}>{children}</a>
+    ),
+  };
+});
+
+describe("OrderCard", () => {
+  it("注文名をリンクとして表示する", () => {
+    render(<OrderCard id="1" name="注文A" />);
+
+    expect(screen.getByText("注文A")).toBeTruthy();
+  });
+});
+```
+
+注意点:
+- `actual` をスプレッドして他のエクスポート（`useNavigate`, `createFileRoute` 等）を保持する。`Link` だけを差し替える
+- `Link` の props で `to` を受け取り `<a href={to}>` に渡すことで、リンク先の検証（`getByRole("link", { name: "..." })`）も可能にする
+- `jsx-a11y/anchor-is-valid` に違反しないよう、`href` には実際の `to` 値を渡す（`"#"` は使わない）
+- `Link` 内で `children` が文字列でない場合（`Button asChild` 等の組み合わせ）は `<span>{children}</span>` にフォールバックしてもよい
+- `useNavigate` もモックする場合は同じ `vi.mock` ブロック内で `useNavigate: vi.fn()` を追加する（`frontend-test-patterns.md` の「ミューテーション系 Hook のテスト」参照）
+
 ---
 
 ## テストで使わないもの

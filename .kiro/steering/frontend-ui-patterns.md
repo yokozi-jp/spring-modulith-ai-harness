@@ -537,6 +537,51 @@ export function OrderForm({ onSubmit, isSubmitting }: OrderFormProps) {
 
 **注意**: これは上記「送信中は `disabled` で二重送信防止」とは別の論点。`isSubmitting` による disabled は二重送信防止が目的であり、本項目と矛盾しない。バリデーションエラーの表現は `ErrorMessage` コンポーネント等で行う。
 
+### Instant 型フィールドのフォーム入出力変換
+
+バックエンドが `java.time.Instant` を使うフィールド（`validFrom`, `validTo`, `createdAt` 等）は、API 上で ISO 8601 形式（`2026-08-22T00:00:00Z`）としてやり取りされる。一方 HTML の `<input type="date">` は `YYYY-MM-DD` のみを返す。フォームの送信・表示時に以下の変換を行う。
+
+```tsx
+// 送信時: date入力値（YYYY-MM-DD）→ Instant形式（ISO 8601）
+function toInstant(dateString: string): string {
+  return `${dateString}T00:00:00Z`;
+}
+
+// 表示・初期値設定時: Instant形式 → date入力値
+function toDateString(instant: string): string {
+  return instant.slice(0, 10);
+}
+```
+
+**フォーム送信例**:
+```tsx
+function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  event.preventDefault();
+  onSubmit({
+    amount,
+    validFrom: toInstant(validFrom),          // "2026-08-22" → "2026-08-22T00:00:00Z"
+    ...(validTo.length > 0 && { validTo: toInstant(validTo) }),
+  });
+}
+```
+
+**編集フォームの初期値設定例**:
+```tsx
+const [validFrom, setValidFrom] = useState(
+  initialValues?.validFrom !== undefined ? toDateString(initialValues.validFrom) : "",
+);
+```
+
+**詳細表示例**:
+```tsx
+<dd className="text-sm">{toDateString(pricing.validFrom ?? "")}</dd>
+```
+
+注意点:
+- `T00:00:00Z` は UTC 0時を意味する。タイムゾーン変換が必要な場合は `timezone-rules.md` の方針に従い、フロントエンドで変換する
+- `validTo` のような optional フィールドは、空文字の場合にプロパティ自体を省略する（`exactOptionalPropertyTypes` 対応、`frontend-lint-fix-guide.md` 参照）
+- これらの変換関数は各フォームコンポーネント内のローカル関数として定義してよい（共通化は 2 箇所以上で使う場合に `src/lib/` に切り出す）
+
 ---
 
 ## モーダル / ダイアログ
